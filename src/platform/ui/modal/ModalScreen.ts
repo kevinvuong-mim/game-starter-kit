@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BaseScreen } from '../screen/ScreenManager';
-import { t } from '@platform/modules/i18n/i18n.service';
+import { t } from '../i18n';
 
 export class ModalScreen extends BaseScreen {
   readonly id = 'modal';

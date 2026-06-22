@@ -38,17 +38,12 @@ export class HUD extends Phaser.GameObjects.Container {
     });
     this.gemText.setOrigin(0, 0.5);
 
-    this.scoreText = this.scene.add.text(
-      this.scene.cameras.main.width / 2,
-      padding + 16,
-      '0',
-      {
-        fontSize: '28px',
-        color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
-        fontStyle: 'bold',
-      }
-    );
+    this.scoreText = this.scene.add.text(this.scene.cameras.main.width / 2, padding + 16, '0', {
+      fontSize: '28px',
+      color: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold',
+    });
     this.scoreText.setOrigin(0.5);
 
     this.add([coinBg, this.coinText, gemBg, this.gemText, this.scoreText]);

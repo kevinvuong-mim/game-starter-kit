@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
-import { t } from '@platform/modules/i18n/i18n.service';
-import { analytics } from '@platform/core/analytics';
+import { t } from '@platform/ui/i18n';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -29,8 +28,6 @@ export class GameOverScene extends Phaser.Scene {
         fontFamily: 'Arial, sans-serif',
       })
       .setOrigin(0.5);
-
-    analytics.track('level_complete', { score: data.score, jumps: data.jumps });
 
     this.createButton(width / 2, height * 0.6, t('game.retry'), () => {
       this.scene.start('Gameplay');

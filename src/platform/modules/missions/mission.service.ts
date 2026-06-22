@@ -102,10 +102,7 @@ export class MissionService {
     const mission = usePlatformStore.getState().missions.missions[missionId];
     if (!mission || mission.status !== 'active') return;
 
-    usePlatformStore.getState().updateMissionProgress(
-      missionId,
-      mission.progress + amount
-    );
+    usePlatformStore.getState().updateMissionProgress(missionId, mission.progress + amount);
     this.checkCompletion(missionId);
   }
 

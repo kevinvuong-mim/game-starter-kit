@@ -2,6 +2,8 @@
  * Platform event map. Games emit gameplay events only.
  * App modules subscribe and react.
  */
+import type { AnalyticsParams } from '../analytics/types';
+
 export interface PlatformEventMap {
   // Lifecycle
   'app:ready': void;
@@ -11,16 +13,17 @@ export interface PlatformEventMap {
   'game:start': { gameId: string };
   'game:pause': void;
   'game:resume': void;
-  'game:over': { score: number; duration: number };
+  'game:over': { score: number; duration: number; jumps?: number };
   'game:destroy': void;
+  'app:back': void;
 
   // Gameplay (game layer emits, platform consumes)
   'coin:add': { amount: number; source?: string };
   'coin:spend': { amount: number; reason?: string };
   'score:update': { score: number };
   'level:complete': { level: number; stars?: number };
-  'jump': { count?: number };
-  'collect': { itemId: string; count?: number };
+  jump: { count?: number };
+  collect: { itemId: string; count?: number };
 
   // Platform
   'mission:update': { missionId: string; progress: number };
@@ -28,9 +31,19 @@ export interface PlatformEventMap {
   'shop:purchase': { itemId: string; price: number };
   'shop:restore': void;
   'daily:claim': { day: number; streak: number };
+  'daily:claim:request': void;
+  'daily:claim:result': {
+    success: boolean;
+    coins?: number;
+    gems?: number;
+    message?: string;
+  };
+  'daily:status:request': void;
+  'daily:status': { canClaim: boolean };
+  'settings:set': { key: string; value: unknown };
   'leaderboard:submit': { score: number; board: string };
   'settings:change': { key: string; value: unknown };
-  'analytics:track': { event: string; params?: Record<string, unknown> };
+  'analytics:track': { event: string; params?: AnalyticsParams };
   'ad:reward': { placement: string; reward: unknown };
   'iap:purchase': { productId: string };
   'save:sync': void;

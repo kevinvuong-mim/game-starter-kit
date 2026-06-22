@@ -1,9 +1,4 @@
-import type {
-  EventHandler,
-  IEventBus,
-  PlatformEvent,
-  PlatformEventMap,
-} from './types';
+import type { EventHandler, IEventBus, PlatformEvent, PlatformEventMap } from './types';
 
 type ListenerEntry = {
   handler: EventHandler<PlatformEvent>;

@@ -59,12 +59,12 @@ Then:
 
 ## Game Layer Guidelines
 
-| Preferred | Avoid |
-|-----------|-------|
-| `@platform/core/events` (emit) | `@platform/core/api` |
-| `@game/*` | `@platform/core/storage` |
-| Phaser APIs | Direct store mutations |
-| `@platform/ui/*` (HUD, toast) | |
+| Preferred                      | Avoid                    |
+| ------------------------------ | ------------------------ |
+| `@platform/core/events` (emit) | `@platform/core/api`     |
+| `@game/*`                      | `@platform/core/storage` |
+| Phaser APIs                    | Direct store mutations   |
+| `@platform/ui/*` (HUD, toast)  |                          |
 
 ## Type Check
 

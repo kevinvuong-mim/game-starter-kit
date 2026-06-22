@@ -4,15 +4,15 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Game Engine | Phaser 3 |
-| Mobile | Capacitor 6 |
-| Language | TypeScript |
-| Bundler | Vite 6 |
-| State | Zustand |
-| Storage | LocalStorage + IndexedDB |
-| Networking | Fetch API (NestJS-compatible REST) |
+| Layer       | Technology                         |
+| ----------- | ---------------------------------- |
+| Game Engine | Phaser 3                           |
+| Mobile      | Capacitor 6                        |
+| Language    | TypeScript                         |
+| Bundler     | Vite 6                             |
+| State       | Zustand                            |
+| Storage     | LocalStorage + IndexedDB           |
+| Networking  | Fetch API (NestJS-compatible REST) |
 
 ## Quick Start
 
@@ -59,13 +59,13 @@ game-starter-kit/
 
 ## Path Aliases
 
-| Alias | Path |
-|-------|------|
-| `@platform/core` | `src/platform/core` |
-| `@platform/modules` | `src/platform/modules` |
-| `@platform/ui` | `src/platform/ui` |
+| Alias                 | Path                     |
+| --------------------- | ------------------------ |
+| `@platform/core`      | `src/platform/core`      |
+| `@platform/modules`   | `src/platform/modules`   |
+| `@platform/ui`        | `src/platform/ui`        |
 | `@platform/bootstrap` | `src/platform/bootstrap` |
-| `@game` | `src/game` |
+| `@game`               | `src/game`               |
 
 ## Architecture Layers
 
@@ -97,18 +97,18 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 ## Platform Modules
 
-| Module | API | Description |
-|--------|-----|-------------|
-| i18n | `t('shop.buy')` | Runtime language switch, lazy load |
-| Shop | `shop.purchase(id)` | Data-driven catalog (skins, boosts, IAP) |
-| Missions | Event-driven | Daily/weekly/permanent missions |
-| Leaderboard | `submitScore()`, `getLeaderboard()` | Offline queue, optimistic updates |
-| Daily Rewards | `claim()` | Streak calendar with server timestamp |
-| Save | `saveLocal()`, `sync()` | Local + cloud with conflict resolution |
-| Settings | Persisted locally | Language, sound, vibration, graphics |
-| Analytics | Provider interface | session_start, game_start, purchase, etc. |
-| Ads | Provider interface | Rewarded, interstitial, banner |
-| IAP | Provider interface | purchase, restore, verify |
+| Module        | API                                 | Description                               |
+| ------------- | ----------------------------------- | ----------------------------------------- |
+| i18n          | `t('shop.buy')`                     | Runtime language switch, lazy load        |
+| Shop          | `shop.purchase(id)`                 | Data-driven catalog (skins, boosts, IAP)  |
+| Missions      | Event-driven                        | Daily/weekly/permanent missions           |
+| Leaderboard   | `submitScore()`, `getLeaderboard()` | Offline queue, optimistic updates         |
+| Daily Rewards | `claim()`                           | Streak calendar with server timestamp     |
+| Save          | `saveLocal()`, `sync()`             | Local + cloud with conflict resolution    |
+| Settings      | Persisted locally                   | Language, sound, vibration, graphics      |
+| Analytics     | Provider interface                  | session_start, game_start, purchase, etc. |
+| Ads           | Provider interface                  | Rewarded, interstitial, banner            |
+| IAP           | Provider interface                  | purchase, restore, verify                 |
 
 ## UI Framework
 
@@ -153,22 +153,22 @@ API contracts are defined in `src/platform/bootstrap/api-contracts.ts`.
 
 ## Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| FPS | 60 |
-| RAM | < 150MB |
-| Cold start | < 3s |
+| Metric     | Target  |
+| ---------- | ------- |
+| FPS        | 60      |
+| RAM        | < 150MB |
+| Cold start | < 3s    |
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run lint` | TypeScript check |
-| `npm run cap:sync` | Sync Capacitor |
+| Command                 | Description          |
+| ----------------------- | -------------------- |
+| `npm run dev`           | Development server   |
+| `npm run build`         | Production build     |
+| `npm run lint`          | TypeScript check     |
+| `npm run cap:sync`      | Sync Capacitor       |
 | `npm run build:android` | Build + sync Android |
-| `npm run build:ios` | Build + sync iOS |
+| `npm run build:ios`     | Build + sync iOS     |
 
 ## Contributing
 

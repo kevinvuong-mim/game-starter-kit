@@ -23,9 +23,7 @@ export class LocalizationService {
   async init(language?: string): Promise<void> {
     await this.loadLanguage(this.fallbackLanguage);
 
-    const lang = this.normalizeLanguage(
-      language ?? usePlatformStore.getState().settings.language
-    );
+    const lang = this.normalizeLanguage(language ?? usePlatformStore.getState().settings.language);
     await this.setLanguage(lang);
   }
 
@@ -78,10 +76,7 @@ export class LocalizationService {
     const catalog = this.catalogs.get(this.currentLanguage);
     const fallback = this.catalogs.get(this.fallbackLanguage);
 
-    const value =
-      this.resolve(key, catalog) ??
-      this.resolve(key, fallback) ??
-      key;
+    const value = this.resolve(key, catalog) ?? this.resolve(key, fallback) ?? key;
 
     if (!params) return value;
 

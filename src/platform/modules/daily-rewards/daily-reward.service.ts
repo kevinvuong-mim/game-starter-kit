@@ -65,8 +65,7 @@ export class DailyRewardService {
 
     const store = usePlatformStore.getState();
     const currentDay = store.dailyRewards.currentDay;
-    const rewardDay = REWARD_CALENDAR.find((r) => r.day === currentDay)
-      ?? REWARD_CALENDAR[0];
+    const rewardDay = REWARD_CALENDAR.find((r) => r.day === currentDay) ?? REWARD_CALENDAR[0];
 
     if (rewardDay.reward.coins) store.addCoins(rewardDay.reward.coins);
     if (rewardDay.reward.gems) store.addGems(rewardDay.reward.gems);

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
 import { HUD } from '@platform/ui/hud/HUD';
-import { ObjectPool } from '@platform/core/utils';
+import { ObjectPool } from '@game/utils/ObjectPool';
 import { gameConfig } from '@game/config';
 
 interface FallingObject {
@@ -24,6 +24,7 @@ export class GameplayScene extends Phaser.Scene {
   private pool!: ObjectPool<FallingObject>;
   private activeObjects = new Set<FallingObject>();
   private spawnTimer?: Phaser.Time.TimerEvent;
+  private unsubscribers: Array<() => void> = [];
 
   constructor() {
     super({ key: 'Gameplay' });
@@ -67,6 +68,19 @@ export class GameplayScene extends Phaser.Scene {
     });
 
     eventBus.emit('game:start', { gameId: gameConfig.id });
+
+    this.unsubscribers.push(
+      eventBus.on('app:back', () => {
+        if (this.gameActive) {
+          this.scene.start('Home');
+        }
+      })
+    );
+  }
+
+  shutdown(): void {
+    for (const unsub of this.unsubscribers) unsub();
+    this.unsubscribers = [];
   }
 
   update(_time: number, delta: number): void {
@@ -150,7 +164,7 @@ export class GameplayScene extends Phaser.Scene {
     this.spawnTimer?.destroy();
 
     const duration = Date.now() - this.startTime;
-    eventBus.emit('game:over', { score: this.score, duration });
+    eventBus.emit('game:over', { score: this.score, duration, jumps: this.jumps });
     eventBus.emit('score:update', { score: this.score });
 
     this.time.delayedCall(500, () => {

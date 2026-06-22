@@ -106,10 +106,7 @@ export class ApiClient implements IApiClient {
     throw lastError;
   }
 
-  private async executeRequest<T>(
-    path: string,
-    config: RequestConfig
-  ): Promise<ApiResponse<T>> {
+  private async executeRequest<T>(path: string, config: RequestConfig): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

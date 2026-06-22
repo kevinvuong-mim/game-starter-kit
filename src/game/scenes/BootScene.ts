@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
-import { analytics } from '@platform/core/analytics';
-import { logger } from '@platform/core/error';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -26,8 +24,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    analytics.track('session_start');
-    logger.info('[Boot] Platform ready');
+    eventBus.emit('analytics:track', { event: 'session_start' });
     eventBus.emit('app:ready', undefined);
     this.scene.start('Preload');
   }

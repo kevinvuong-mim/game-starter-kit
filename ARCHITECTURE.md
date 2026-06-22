@@ -52,25 +52,25 @@ src/
 
 ## Path Aliases
 
-| Alias | Resolves to |
-|-------|-------------|
-| `@platform/core/*` | `src/platform/core/*` |
-| `@platform/modules/*` | `src/platform/modules/*` |
-| `@platform/ui/*` | `src/platform/ui/*` |
+| Alias                   | Resolves to                |
+| ----------------------- | -------------------------- |
+| `@platform/core/*`      | `src/platform/core/*`      |
+| `@platform/modules/*`   | `src/platform/modules/*`   |
+| `@platform/ui/*`        | `src/platform/ui/*`        |
 | `@platform/bootstrap/*` | `src/platform/bootstrap/*` |
-| `@game/*` | `src/game/*` |
+| `@game/*`               | `src/game/*`               |
 
 ## Design Principles
 
-| Principle | Implementation |
-|-----------|---------------|
-| Clone per game | One repo = one game; clone this kit to start |
-| Modularity | Each platform module is self-contained |
-| Reusability | `src/platform/` ships with every cloned project |
-| Event Driven | Typed EventBus decouples game from platform |
-| Data Driven | Shop catalog, missions defined in JSON |
-| Offline First | Local save, offline queue for leaderboard |
-| Mobile Performance | Object pooling, lazy load, 60 FPS target |
+| Principle          | Implementation                                  |
+| ------------------ | ----------------------------------------------- |
+| Clone per game     | One repo = one game; clone this kit to start    |
+| Modularity         | Each platform module is self-contained          |
+| Reusability        | `src/platform/` ships with every cloned project |
+| Event Driven       | Typed EventBus decouples game from platform     |
+| Data Driven        | Shop catalog, missions defined in JSON          |
+| Offline First      | Local save, offline queue for leaderboard       |
+| Mobile Performance | Object pooling, lazy load, 60 FPS target        |
 
 ## Layer 1: Game Layer
 
@@ -109,15 +109,15 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 **Location:** `src/platform/modules/`
 
-| Module | Files |
-|--------|-------|
-| i18n | `i18n/i18n.service.ts` + `i18n/locales/*.json` |
-| shop | `shop/shop.service.ts` + `shop/catalog.json` |
-| missions | `missions/mission.service.ts` + `missions/missions.json` |
-| leaderboard | `leaderboard/leaderboard.service.ts` |
-| settings | `settings/settings.service.ts` |
-| daily-rewards | `daily-rewards/daily-reward.service.ts` |
-| save | `save/save.service.ts` |
+| Module        | Files                                                    |
+| ------------- | -------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`           |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`             |
+| missions      | `missions/mission.service.ts` + `missions/missions.json` |
+| leaderboard   | `leaderboard/leaderboard.service.ts`                     |
+| settings      | `settings/settings.service.ts`                           |
+| daily-rewards | `daily-rewards/daily-reward.service.ts`                  |
+| save          | `save/save.service.ts`                                   |
 
 Modules subscribe to events from the game layer and update platform state. Wired in `bootstrap/App.ts`.
 
@@ -167,13 +167,13 @@ HUD subscribes to store → UI updates
 
 ## Technical Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Clone-per-game | Each game is independent; no multi-game monorepo |
-| `platform/` root folder | Single home for all shared code |
-| `game/` not `games/` | Singular — one game per repo |
-| i18n colocated | Service + locale JSON in `modules/i18n/` |
-| `advertising/` not `ads/` | Avoids browser ad-blocker URL filtering in dev |
-| Zustand vanilla | No React dependency with Phaser |
-| Provider pattern | Swap AdMob/Firebase/RevenueCat per game |
-| Event Bus | Enforces game/platform boundary |
+| Decision                  | Rationale                                        |
+| ------------------------- | ------------------------------------------------ |
+| Clone-per-game            | Each game is independent; no multi-game monorepo |
+| `platform/` root folder   | Single home for all shared code                  |
+| `game/` not `games/`      | Singular — one game per repo                     |
+| i18n colocated            | Service + locale JSON in `modules/i18n/`         |
+| `advertising/` not `ads/` | Avoids browser ad-blocker URL filtering in dev   |
+| Zustand vanilla           | No React dependency with Phaser                  |
+| Provider pattern          | Swap AdMob/Firebase/RevenueCat per game          |
+| Event Bus                 | Enforces game/platform boundary                  |

@@ -1,9 +1,10 @@
-import Phaser from 'phaser';
 import { createConfig, getConfig, setConfig } from '@platform/core/config';
 import { setupGlobalErrorHandlers, errorBoundary } from '@platform/core/error';
 import { app } from '@platform/bootstrap/App';
+import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { gameConfig } from '@game/config';
 import { gameScenes } from '@game/scenes';
+import type Phaser from 'phaser';
 
 export class GameEngine {
   private game: Phaser.Game | null = null;
@@ -14,22 +15,24 @@ export class GameEngine {
 
     try {
       await app.init();
+      await initCapacitorPlugins();
     } catch (error) {
       errorBoundary.capture(error, 'app.init');
       throw error;
     }
 
     const config = getConfig();
+    const PhaserLib = await import('phaser');
 
     const phaserConfig: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
+      type: PhaserLib.AUTO,
       parent: 'game-container',
       width: gameConfig.width,
       height: gameConfig.height,
       backgroundColor: '#1a1a2e',
       scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: PhaserLib.Scale.FIT,
+        autoCenter: PhaserLib.Scale.CENTER_BOTH,
       },
       scene: gameScenes,
       fps: {
@@ -47,7 +50,7 @@ export class GameEngine {
       banner: config.debug,
     };
 
-    this.game = new Phaser.Game(phaserConfig);
+    this.game = new PhaserLib.Game(phaserConfig);
     return this.game;
   }
 

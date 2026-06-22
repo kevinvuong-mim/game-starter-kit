@@ -23,7 +23,11 @@
     "title": "Shop",
     "buy": "Buy",
     "owned": "Owned",
-    "restore": "Restore Purchases"
+    "restore": "Restore Purchases",
+    "purchaseSuccess": "Purchased {{name}}!",
+    "purchaseFailed": "Purchase failed",
+    "restoreSuccess": "Restored {{count}} purchase(s)",
+    "restoreEmpty": "No purchases to restore"
   },
   "settings": {
     "title": "Settings",

@@ -23,7 +23,11 @@
     "title": "Cửa hàng",
     "buy": "Mua",
     "owned": "Đã sở hữu",
-    "restore": "Khôi phục mua hàng"
+    "restore": "Khôi phục mua hàng",
+    "purchaseSuccess": "Đã mua {{name}}!",
+    "purchaseFailed": "Mua thất bại",
+    "restoreSuccess": "Đã khôi phục {{count}} giao dịch",
+    "restoreEmpty": "Không có giao dịch để khôi phục"
   },
   "settings": {
     "title": "Cài đặt",

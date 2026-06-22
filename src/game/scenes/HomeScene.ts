@@ -1,13 +1,15 @@
 import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
-import { t } from '@platform/modules/i18n/i18n.service';
+import { t } from '@platform/ui/i18n';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
+import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { toast } from '@platform/ui/toast/ToastManager';
-import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
-import { gameConfig } from '@game/config';
 
 export class HomeScene extends Phaser.Scene {
+  private unsubscribers: Array<() => void> = [];
+  private dailyRewardButton?: Phaser.GameObjects.Rectangle;
+
   constructor() {
     super({ key: 'Home' });
   }
@@ -28,33 +30,72 @@ export class HomeScene extends Phaser.Scene {
 
     toast.init(this);
 
-    const modal = new ModalScreen(this);
-    screenManager.register(modal);
+    screenManager.register(new ModalScreen(this));
+    screenManager.register(new ShopScreen(this));
 
     this.createButton(width / 2, height * 0.45, t('home.play'), () => {
-      eventBus.emit('game:start', { gameId: gameConfig.id });
       this.scene.start('Gameplay');
     });
 
     this.createButton(width / 2, height * 0.55, t('home.shop'), () => {
-      toast.show({ message: t('shop.title'), type: 'info' });
+      screenManager.open('shop');
     });
 
     this.createButton(width / 2, height * 0.65, t('home.settings'), () => {
       this.scene.start('Settings');
     });
 
-    if (dailyRewards.canClaim()) {
-      this.createButton(width / 2, height * 0.75, t('dailyReward.claim'), async () => {
-        const reward = await dailyRewards.claim();
-        if (reward) {
+    this.bindPlatformEvents();
+    eventBus.emit('daily:status:request', undefined);
+  }
+
+  shutdown(): void {
+    for (const unsub of this.unsubscribers) unsub();
+    this.unsubscribers = [];
+  }
+
+  private bindPlatformEvents(): void {
+    this.unsubscribers.push(
+      eventBus.on('daily:status', ({ canClaim }) => {
+        if (canClaim) {
+          this.showDailyRewardButton();
+        }
+      }),
+
+      eventBus.on('daily:claim:result', ({ success, coins, gems, message }) => {
+        if (success) {
+          const amount = coins ?? gems ?? 0;
+          const unit = coins !== undefined ? 'coins' : 'gems';
           toast.show({
-            message: `+${reward.reward.coins ?? 0} coins!`,
+            message: message ?? `+${amount} ${unit}!`,
             type: 'success',
           });
+          this.dailyRewardButton?.destroy();
+          this.dailyRewardButton = undefined;
         }
-      });
-    }
+      })
+    );
+  }
+
+  private showDailyRewardButton(): void {
+    if (this.dailyRewardButton) return;
+    const { width, height } = this.cameras.main;
+    const bg = this.add.rectangle(width / 2, height * 0.75, 240, 52, 0x6c5ce7);
+    bg.setStrokeStyle(2, 0xffffff);
+    bg.setInteractive({ useHandCursor: true });
+    this.dailyRewardButton = bg;
+
+    this.add
+      .text(width / 2, height * 0.75, t('dailyReward.claim'), {
+        fontSize: '22px',
+        color: '#ffffff',
+        fontFamily: 'Arial, sans-serif',
+      })
+      .setOrigin(0.5);
+
+    bg.on('pointerdown', () => {
+      eventBus.emit('daily:claim:request', undefined);
+    });
   }
 
   private createButton(x: number, y: number, label: string, onClick: () => void): void {

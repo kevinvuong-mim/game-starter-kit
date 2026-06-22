@@ -1,4 +1,5 @@
 import { eventBus } from '@platform/core/events';
+import type { AnalyticsEvent, AnalyticsParams } from '@platform/core/analytics/types';
 import { analytics } from '@platform/core/analytics';
 import { ads } from '@platform/core/advertising';
 import { iap } from '@platform/core/iap';
@@ -25,13 +26,11 @@ export class App {
 
     logger.info('[App] Initializing platform...');
 
-    // Ensure user exists
     const store = usePlatformStore.getState();
     if (!store.user.id) {
       store.setUser({ id: generateId('user'), displayName: 'Player' });
     }
 
-    // Settings must load before i18n so language preference is available
     await settings.init();
     await Promise.all([
       i18n.init(),
@@ -71,10 +70,51 @@ export class App {
         analytics.track('game_start');
       }),
 
-      eventBus.on('game:over', async ({ score }) => {
-        analytics.track('level_complete', { score });
+      eventBus.on('game:over', async ({ score, jumps }) => {
+        analytics.track('level_complete', { score, jumps });
         await leaderboard.submitScore(score, 'daily');
         await saveService.saveLocal();
+      }),
+
+      eventBus.on('analytics:track', ({ event, params }) => {
+        analytics.track(event as AnalyticsEvent, params as AnalyticsParams | undefined);
+      }),
+
+      eventBus.on('settings:set', async ({ key, value }) => {
+        if (key === 'language' && typeof value === 'string') {
+          await settings.setLanguage(value);
+        } else if (key === 'soundEnabled' && typeof value === 'boolean') {
+          await settings.setSoundEnabled(value);
+        } else if (key === 'musicEnabled' && typeof value === 'boolean') {
+          await settings.setMusicEnabled(value);
+        } else if (key === 'vibrationEnabled' && typeof value === 'boolean') {
+          await settings.setVibrationEnabled(value);
+        } else if (
+          key === 'graphicsQuality' &&
+          (value === 'low' || value === 'medium' || value === 'high')
+        ) {
+          await settings.setGraphicsQuality(value);
+        }
+      }),
+
+      eventBus.on('daily:status:request', () => {
+        eventBus.emit('daily:status', { canClaim: dailyRewards.canClaim() });
+      }),
+
+      eventBus.on('daily:claim:request', async () => {
+        const reward = await dailyRewards.claim();
+        if (reward) {
+          eventBus.emit('daily:claim:result', {
+            success: true,
+            coins: reward.reward.coins,
+            gems: reward.reward.gems,
+          });
+        } else {
+          eventBus.emit('daily:claim:result', {
+            success: false,
+            message: 'Cooldown active',
+          });
+        }
       }),
 
       eventBus.on('shop:purchase', ({ itemId, price }) => {

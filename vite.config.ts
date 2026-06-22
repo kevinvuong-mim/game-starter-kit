@@ -15,11 +15,13 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'dist',
     sourcemap: true,
+    chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          phaser: ['phaser'],
-          vendor: ['zustand'],
+        manualChunks(id) {
+          if (id.includes('node_modules/phaser')) return 'phaser';
+          if (id.includes('node_modules/zustand')) return 'vendor';
+          if (id.includes('/src/platform/modules/i18n/locales/')) return 'locales';
         },
       },
     },

@@ -70,8 +70,7 @@ export const usePlatformStore = createStore<PlatformStore>()(
     (set, get) => ({
       ...DEFAULT_STATE,
 
-      setUser: (user) =>
-        set((s) => ({ user: { ...s.user, ...user } })),
+      setUser: (user) => set((s) => ({ user: { ...s.user, ...user } })),
 
       addCoins: (amount) =>
         set((s) => ({ currency: { ...s.currency, coins: s.currency.coins + amount } })),
@@ -161,8 +160,7 @@ export const usePlatformStore = createStore<PlatformStore>()(
       setCurrentLevel: (level) =>
         set((s) => ({ progress: { ...s.progress, currentLevel: level } })),
 
-      updateSettings: (settings) =>
-        set((s) => ({ settings: { ...s.settings, ...settings } })),
+      updateSettings: (settings) => set((s) => ({ settings: { ...s.settings, ...settings } })),
 
       updateMissionProgress: (id, progress) =>
         set((s) => {
@@ -221,8 +219,7 @@ export const usePlatformStore = createStore<PlatformStore>()(
           };
         }),
 
-      setMissions: (missions) =>
-        set((s) => ({ missions: { ...s.missions, missions } })),
+      setMissions: (missions) => set((s) => ({ missions: { ...s.missions, missions } })),
 
       claimDailyReward: (day) =>
         set((s) => ({

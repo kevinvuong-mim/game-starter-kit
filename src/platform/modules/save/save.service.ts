@@ -96,10 +96,7 @@ export class SaveService {
     }
   }
 
-  private resolveConflict(
-    local: SaveData | null,
-    cloud: SaveData | null
-  ): SaveData | null {
+  private resolveConflict(local: SaveData | null, cloud: SaveData | null): SaveData | null {
     if (!local && !cloud) return null;
     if (!local) return cloud;
     if (!cloud) return local;

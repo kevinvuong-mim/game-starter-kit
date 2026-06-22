@@ -75,10 +75,17 @@ export class DialogScreen extends BaseScreen {
 
     buttons.forEach((btn, i) => {
       const x = startX + i * spacing;
-      this.createButton(x, 0, btn.label, () => {
-        btn.onClick();
-        this.close();
-      }, 110, 44);
+      this.createButton(
+        x,
+        0,
+        btn.label,
+        () => {
+          btn.onClick();
+          this.close();
+        },
+        110,
+        44
+      );
     });
 
     super.show(data);
