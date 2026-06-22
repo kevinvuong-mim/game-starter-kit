@@ -1,0 +1,55 @@
+{
+  "common": {
+    "ok": "Đồng ý",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi"
+  },
+  "home": {
+    "title": "Bộ Khởi Động Game",
+    "play": "Chơi",
+    "shop": "Cửa hàng",
+    "settings": "Cài đặt",
+    "leaderboard": "Bảng xếp hạng"
+  },
+  "game": {
+    "score": "Điểm: {{score}}",
+    "gameOver": "Kết thúc",
+    "retry": "Chơi lại",
+    "home": "Trang chủ"
+  },
+  "shop": {
+    "title": "Cửa hàng",
+    "buy": "Mua",
+    "owned": "Đã sở hữu",
+    "restore": "Khôi phục mua hàng"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "language": "Ngôn ngữ",
+    "sound": "Âm thanh",
+    "music": "Nhạc",
+    "vibration": "Rung",
+    "graphics": "Chất lượng đồ họa"
+  },
+  "missions": {
+    "title": "Nhiệm vụ",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "claim": "Nhận"
+  },
+  "dailyReward": {
+    "title": "Phần thưởng hàng ngày",
+    "claim": "Nhận",
+    "streak": "Chuỗi: {{days}} ngày",
+    "comeBack": "Quay lại vào ngày mai!"
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "allTime": "Mọi thời đại",
+    "rank": "Hạng của bạn: #{{rank}}"
+  }
+}

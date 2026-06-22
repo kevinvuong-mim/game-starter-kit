@@ -1,0 +1,42 @@
+{
+  "items": [
+    {
+      "id": "skin_blue",
+      "type": "skin",
+      "name": "Blue Skin",
+      "description": "A cool blue character skin",
+      "price": 100,
+      "currency": "coins",
+      "icon": "skin_blue"
+    },
+    {
+      "id": "skin_gold",
+      "type": "skin",
+      "name": "Gold Skin",
+      "description": "Premium gold character skin",
+      "price": 50,
+      "currency": "gems",
+      "icon": "skin_gold"
+    },
+    {
+      "id": "boost_double",
+      "type": "boost",
+      "name": "Double Coins",
+      "description": "2x coins for 1 hour",
+      "price": 200,
+      "currency": "coins",
+      "icon": "boost_double",
+      "duration": 3600
+    },
+    {
+      "id": "coins_pack",
+      "type": "currency",
+      "name": "Coin Pack",
+      "description": "500 coins",
+      "price": 0.99,
+      "currency": "iap",
+      "iapProductId": "coins_500",
+      "reward": { "coins": 500 }
+    }
+  ]
+}

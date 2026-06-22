@@ -1,0 +1,34 @@
+[
+  {
+    "id": "jump_100",
+    "type": "jump",
+    "target": 100,
+    "missionType": "daily",
+    "reward": { "coins": 50 },
+    "titleKey": "missions.jump100"
+  },
+  {
+    "id": "score_1000",
+    "type": "score",
+    "target": 1000,
+    "missionType": "daily",
+    "reward": { "coins": 100 },
+    "titleKey": "missions.score1000"
+  },
+  {
+    "id": "play_10",
+    "type": "play",
+    "target": 10,
+    "missionType": "weekly",
+    "reward": { "gems": 5 },
+    "titleKey": "missions.play10"
+  },
+  {
+    "id": "collect_50",
+    "type": "collect",
+    "target": 50,
+    "missionType": "permanent",
+    "reward": { "coins": 200 },
+    "titleKey": "missions.collect50"
+  }
+]

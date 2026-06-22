@@ -1,0 +1,55 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  },
+  "home": {
+    "title": "Game Starter Kit",
+    "play": "Play",
+    "shop": "Shop",
+    "settings": "Settings",
+    "leaderboard": "Leaderboard"
+  },
+  "game": {
+    "score": "Score: {{score}}",
+    "gameOver": "Game Over",
+    "retry": "Retry",
+    "home": "Home"
+  },
+  "shop": {
+    "title": "Shop",
+    "buy": "Buy",
+    "owned": "Owned",
+    "restore": "Restore Purchases"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "sound": "Sound",
+    "music": "Music",
+    "vibration": "Vibration",
+    "graphics": "Graphics Quality"
+  },
+  "missions": {
+    "title": "Missions",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "claim": "Claim"
+  },
+  "dailyReward": {
+    "title": "Daily Reward",
+    "claim": "Claim",
+    "streak": "Streak: {{days}} days",
+    "comeBack": "Come back tomorrow!"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "allTime": "All Time",
+    "rank": "Your Rank: #{{rank}}"
+  }
+}
