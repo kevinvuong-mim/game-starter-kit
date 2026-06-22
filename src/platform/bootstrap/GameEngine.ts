@@ -57,7 +57,7 @@ export class GameEngine {
   destroy(): void {
     this.game?.destroy(true);
     this.game = null;
-    app.destroy();
+    void app.destroy();
   }
 }
 

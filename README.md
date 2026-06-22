@@ -121,13 +121,36 @@ toast.show({ message: 'Coins +50', type: 'success' });
 
 ## Environment Config
 
+Copy `.env.example` to `.env` and adjust per environment:
+
 ```bash
 # .env
 VITE_APP_ENV=dev          # dev | staging | production
 VITE_API_URL=http://localhost:3000/api
 VITE_ANALYTICS_ENABLED=false
 VITE_ADS_ENABLED=false
+
+# Firebase Analytics (required when VITE_ANALYTICS_ENABLED=true)
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
 ```
+
+| Variable | Description |
+| -------- | ----------- |
+| `VITE_APP_ENV` | Runtime environment (`dev`, `staging`, `production`) |
+| `VITE_API_URL` | Backend API base URL |
+| `VITE_ANALYTICS_ENABLED` | Enables Firebase analytics provider |
+| `VITE_ADS_ENABLED` | Enables ad providers |
+| `VITE_FIREBASE_API_KEY` | Firebase web API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID |
+| `VITE_FIREBASE_MEASUREMENT_ID` | GA4 measurement ID |
+
+See [docs/analytics.md](./docs/analytics.md) for Firebase setup and DebugView.
 
 Game identity (`id`, `name`) is set in `src/game/config.ts`, not via env vars.
 

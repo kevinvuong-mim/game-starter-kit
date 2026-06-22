@@ -111,17 +111,29 @@ VITE_APP_ENV=production
 VITE_API_URL=https://api.studio.games/api
 VITE_ANALYTICS_ENABLED=true
 VITE_ADS_ENABLED=true
+VITE_FIREBASE_API_KEY=<from-secrets>
+VITE_FIREBASE_AUTH_DOMAIN=<project>.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=<project-id>
+VITE_FIREBASE_APP_ID=<app-id>
+VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
+
+Store Firebase values in CI secrets — never commit real keys to the repo.
 
 ## Swapping Providers
 
 ### Analytics
 
+Firebase is registered automatically when `VITE_ANALYTICS_ENABLED=true`. See [docs/analytics.md](./docs/analytics.md).
+
+To add another provider:
+
 ```typescript
 import { analytics } from '@platform/core/analytics';
+import type { IAnalyticsProvider } from '@platform/core/analytics';
 
-class FirebaseAnalytics implements IAnalyticsProvider { ... }
-analytics.registerProvider(new FirebaseAnalytics());
+class MyAnalyticsProvider implements IAnalyticsProvider { ... }
+analytics.registerProvider(new MyAnalyticsProvider());
 ```
 
 ### Ads

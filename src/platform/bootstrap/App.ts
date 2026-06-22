@@ -1,11 +1,22 @@
 import { eventBus } from '@platform/core/events';
-import type { AnalyticsEvent, AnalyticsParams } from '@platform/core/analytics/types';
 import { analytics } from '@platform/core/analytics';
+import { getConfig } from '@platform/core/config';
+import {
+  trackAdReward,
+  trackDailyClaim,
+  trackGameOver,
+  trackGameStart,
+  trackLevelComplete,
+  trackMissionComplete,
+  trackPurchase,
+  trackSessionEnd,
+} from '@platform/core/analytics/events';
 import { ads } from '@platform/core/advertising';
 import { iap } from '@platform/core/iap';
 import { usePlatformStore } from '@platform/core/state';
 import { generateId } from '@platform/core/utils';
 import { logger } from '@platform/core/error';
+import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { i18n } from '@platform/modules/i18n/i18n.service';
 import { settings } from '@platform/modules/settings/settings.service';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
@@ -31,6 +42,8 @@ export class App {
       store.setUser({ id: generateId('user'), displayName: 'Player' });
     }
 
+    registerAnalyticsProviders();
+
     await settings.init();
     await Promise.all([
       i18n.init(),
@@ -40,6 +53,9 @@ export class App {
       leaderboard.init(),
       dailyRewards.init(),
     ]);
+
+    analytics.setUserId(usePlatformStore.getState().user.id);
+    analytics.setUserProperty('game_id', getConfig().gameId);
 
     await saveService.loadLocal();
     missions.init();
@@ -52,7 +68,18 @@ export class App {
   }
 
   private bindPlatformEvents(): void {
+    const forwardAnalytics = eventBus.on('analytics', ({ event, params }) => {
+      analytics.track(event, params);
+    });
+
+    const forwardLegacyAnalytics = eventBus.on('analytics:track', ({ event, params }) => {
+      analytics.track(event, params);
+    });
+
     this.unsubscribers.push(
+      forwardAnalytics,
+      forwardLegacyAnalytics,
+
       eventBus.on('coin:add', ({ amount }) => {
         usePlatformStore.getState().addCoins(amount);
       }),
@@ -67,17 +94,21 @@ export class App {
 
       eventBus.on('game:start', () => {
         usePlatformStore.getState().incrementGamesPlayed();
-        analytics.track('game_start');
+        trackGameStart();
       }),
 
-      eventBus.on('game:over', async ({ score, jumps }) => {
-        analytics.track('level_complete', { score, jumps });
+      eventBus.on('game:over', async ({ score, duration, jumps }) => {
+        trackGameOver({ score, duration, jumps });
         await leaderboard.submitScore(score, 'daily');
         await saveService.saveLocal();
       }),
 
-      eventBus.on('analytics:track', ({ event, params }) => {
-        analytics.track(event as AnalyticsEvent, params as AnalyticsParams | undefined);
+      eventBus.on('level:complete', ({ level, stars }) => {
+        trackLevelComplete({ level, stars });
+      }),
+
+      eventBus.on('mission:complete', ({ missionId }) => {
+        trackMissionComplete({ missionId });
       }),
 
       eventBus.on('settings:set', async ({ key, value }) => {
@@ -104,6 +135,11 @@ export class App {
       eventBus.on('daily:claim:request', async () => {
         const reward = await dailyRewards.claim();
         if (reward) {
+          trackDailyClaim({
+            day: reward.day,
+            coins: reward.reward.coins,
+            gems: reward.reward.gems,
+          });
           eventBus.emit('daily:claim:result', {
             success: true,
             coins: reward.reward.coins,
@@ -118,11 +154,11 @@ export class App {
       }),
 
       eventBus.on('shop:purchase', ({ itemId, price }) => {
-        analytics.track('purchase', { itemId, price });
+        trackPurchase({ itemId, price });
       }),
 
       eventBus.on('ad:reward', ({ placement, reward }) => {
-        analytics.track('ad_reward', { placement, reward: JSON.stringify(reward) });
+        trackAdReward({ placement, reward: JSON.stringify(reward) });
       }),
 
       eventBus.on('save:sync', () => {
@@ -136,15 +172,20 @@ export class App {
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
+        trackSessionEnd();
         eventBus.emit('app:pause', undefined);
         void saveService.saveLocal();
+        void analytics.flush();
       } else {
         eventBus.emit('app:resume', undefined);
       }
     });
   }
 
-  destroy(): void {
+  async destroy(): Promise<void> {
+    trackSessionEnd();
+    await analytics.flush();
+    await analytics.shutdown();
     missions.destroy();
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];

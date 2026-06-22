@@ -2,7 +2,7 @@
  * Platform event map. Games emit gameplay events only.
  * App modules subscribe and react.
  */
-import type { AnalyticsParams } from '../analytics/types';
+import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 
 export interface PlatformEventMap {
   // Lifecycle
@@ -43,7 +43,9 @@ export interface PlatformEventMap {
   'settings:set': { key: string; value: unknown };
   'leaderboard:submit': { score: number; board: string };
   'settings:change': { key: string; value: unknown };
-  'analytics:track': { event: string; params?: AnalyticsParams };
+  analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
+  /** @deprecated Use `analytics` instead */
+  'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };
   'ad:reward': { placement: string; reward: unknown };
   'iap:purchase': { productId: string };
   'save:sync': void;

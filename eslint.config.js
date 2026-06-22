@@ -27,7 +27,7 @@ export default tseslint.config(
           paths: [
             {
               name: '@platform/core/analytics',
-              message: 'Use eventBus.emit("analytics:track", ...) from @platform/core/events',
+              message: 'Use eventBus.emit("analytics", ...) with AnalyticsEvents from @platform/core/events',
             },
             {
               name: '@platform/core/api',
