@@ -33,7 +33,7 @@ The Game Starter Kit is a **reusable internal game platform**, not a single game
 | Data Driven | Shop catalog, missions defined in JSON |
 | Offline First | Local save, offline queue for leaderboard |
 | Mobile Performance | Object pooling, lazy load, 60 FPS target |
-| Easy Cloning | `npm run create-game` scaffolds in seconds |
+| Easy Cloning | Copy `game-template/` folder to start a new game |
 
 ## Layer 1: Game Layer
 
@@ -50,7 +50,7 @@ games/
       GameOverScene.ts  # Results screen
     assets/
     index.ts            # Config + scene exports
-  game-template/        # Copy source for create-game
+  game-template/        # Copy this folder to create a new game
 ```
 
 ### Contract
@@ -311,13 +311,6 @@ const active = getActiveGame(); // reads VITE_GAME_ID
 | Scene lazy load | Per-game scene registration |
 | Zustand partialize | Only persist necessary slices |
 
-## Testing Strategy
-
-| Type | Tool | Coverage |
-|------|------|----------|
-| Unit | Vitest | Events, state, storage |
-| E2E | Playwright | App boot, canvas init |
-
 ## Adding a New Module
 
 **Target: < 2 hours.**
@@ -326,8 +319,7 @@ const active = getActiveGame(); // reads VITE_GAME_ID
 2. Define data in JSON if applicable
 3. Subscribe to relevant events in `init()`
 4. Register in `src/app/App.ts`
-5. Add i18n keys to `i18n/en.json` and `i18n/vi.json`
-6. Add unit tests in `tests/`
+5. Add i18n keys to `src/i18n/en.json` and `src/i18n/vi.json`
 
 ## Technical Decisions
 

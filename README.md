@@ -13,7 +13,6 @@ Production-grade starter kit for hyper-casual / casual mobile games. Built for s
 | State | Zustand |
 | Storage | LocalStorage + IndexedDB |
 | Networking | Fetch API (NestJS-compatible REST) |
-| Testing | Vitest + Playwright |
 
 ## Quick Start
 
@@ -24,39 +23,19 @@ npm install
 # Start development server
 npm run dev
 
-# Run unit tests
-npm test
-
-# Run e2e tests
-npm run test:e2e
-
 # Production build
 npm run build
 ```
 
 ## Create a New Game
 
-```bash
-npm run create-game -- tap-jump
-```
+Copy `src/games/game-template/` to `src/games/game-<name>/`, then:
 
-This generates:
-
-```
-src/games/game-tap-jump/
-  scenes/       # Boot, Preload, Home, Gameplay, GameOver
-  assets/       # Game-specific assets
-  index.ts      # Game config and scene exports
-```
-
-Then:
-
-1. Set `VITE_GAME_ID=game-tap-jump` in `.env`
-2. Register the game in `src/infrastructure/GameEngine.ts`
-3. Implement gameplay in `GameplayScene.ts`
-4. Run `npm run dev`
-
-**Target: new game in < 1 day.**
+1. Rename config/scenes for your game
+2. Set `VITE_GAME_ID=game-<name>` in `.env`
+3. Register the game in `src/infrastructure/GameEngine.ts`
+4. Implement gameplay in `GameplayScene.ts`
+5. Run `npm run dev`
 
 ## Project Structure
 
@@ -70,8 +49,6 @@ game-starter-kit/
 │   ├── games/             # Game implementations (template + examples)
 │   └── main.ts            # Entry point
 ├── src/i18n/              # Localization files (en, vi)
-├── scripts/               # Tooling (create-game)
-├── tests/                 # Unit + e2e tests
 └── public/                # Static assets
 ```
 
@@ -198,9 +175,7 @@ Optimizations included: lazy loading, object pooling, asset cache, code splittin
 |---------|-------------|
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm run create-game` | Scaffold new game |
-| `npm test` | Unit tests |
-| `npm run test:e2e` | Playwright e2e |
+| `npm run lint` | TypeScript check |
 | `npm run cap:sync` | Sync Capacitor |
 | `npm run build:android` | Build + sync Android |
 | `npm run build:ios` | Build + sync iOS |

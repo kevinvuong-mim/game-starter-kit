@@ -26,6 +26,6 @@
       "@i18n/*": ["src/i18n/*"]
     }
   },
-  "include": ["src", "scripts", "tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

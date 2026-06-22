@@ -8,10 +8,6 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "create-game": "tsx scripts/create-game.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test",
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios",
@@ -33,12 +29,9 @@
     "@capacitor/android": "^6.2.0",
     "@capacitor/cli": "^6.2.0",
     "@capacitor/ios": "^6.2.0",
-    "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.4",
-    "tsx": "^4.19.3",
     "typescript": "^5.7.3",
-    "vite": "^6.1.0",
-    "vitest": "^3.0.5"
+    "vite": "^6.1.0"
   },
   "engines": {
     "node": ">=20.0.0"

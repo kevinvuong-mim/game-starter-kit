@@ -18,12 +18,10 @@ npm run dev
 
 ## Creating a New Game
 
-```bash
-npm run create-game -- my-game-name
-```
+Copy `src/games/game-template/` to `src/games/game-<name>/`.
 
-1. Implement gameplay in `src/games/game-my-game-name/scenes/GameplayScene.ts`
-2. Add assets to `src/games/game-my-game-name/assets/`
+1. Implement gameplay in `src/games/game-<name>/scenes/GameplayScene.ts`
+2. Add assets to `src/games/game-<name>/assets/`
 3. Register in `src/infrastructure/GameEngine.ts`:
 
 ```typescript
@@ -32,7 +30,7 @@ import { myGameConfig, myGameScenes } from '@games/game-my-game-name';
 registerGame({ config: myGameConfig, scenes: myGameScenes });
 ```
 
-4. Set `VITE_GAME_ID=game-my-game-name` in `.env`
+4. Set `VITE_GAME_ID=game-<name>` in `.env`
 
 ## Adding a Platform Module
 
@@ -41,8 +39,7 @@ registerGame({ config: myGameConfig, scenes: myGameScenes });
 3. Call `init()` in `src/app/App.ts`
 4. Wire event bus subscriptions
 5. Add i18n keys
-6. Write tests in `tests/`
-7. Document in ARCHITECTURE.md
+6. Document in ARCHITECTURE.md
 
 ### Module Checklist
 
@@ -50,7 +47,6 @@ registerGame({ config: myGameConfig, scenes: myGameScenes });
 - [ ] No direct imports from game layer
 - [ ] Event-driven communication
 - [ ] Offline-first where applicable
-- [ ] Unit tests
 - [ ] i18n strings (en + vi)
 
 ## Code Style
@@ -70,27 +66,11 @@ registerGame({ config: myGameConfig, scenes: myGameScenes });
 | Phaser APIs | `@core/storage` |
 | `@ui/*` (optional) | Direct store mutations |
 
-## Testing
+## Type Check
 
 ```bash
-# Unit tests
-npm test
-
-# Watch mode
-npm run test:watch
-
-# E2E
-npm run test:e2e
-
-# Type check
 npm run lint
 ```
-
-Write tests for:
-- Event bus handlers
-- Store mutations
-- Service business logic
-- Storage providers
 
 ## Commit Messages
 
