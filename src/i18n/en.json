@@ -28,10 +28,13 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "languageEn": "English",
+    "languageVi": "Tiếng Việt",
     "sound": "Sound",
     "music": "Music",
     "vibration": "Vibration",
-    "graphics": "Graphics Quality"
+    "graphics": "Graphics Quality",
+    "back": "Back"
   },
   "missions": {
     "title": "Missions",

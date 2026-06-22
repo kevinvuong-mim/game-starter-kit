@@ -28,10 +28,13 @@
   "settings": {
     "title": "Cài đặt",
     "language": "Ngôn ngữ",
+    "languageEn": "English",
+    "languageVi": "Tiếng Việt",
     "sound": "Âm thanh",
     "music": "Nhạc",
     "vibration": "Rung",
-    "graphics": "Chất lượng đồ họa"
+    "graphics": "Chất lượng đồ họa",
+    "back": "Quay lại"
   },
   "missions": {
     "title": "Nhiệm vụ",

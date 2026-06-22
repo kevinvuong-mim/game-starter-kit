@@ -31,10 +31,10 @@ export class App {
       store.setUser({ id: generateId('user'), displayName: 'Player' });
     }
 
-    // Init services
+    // Settings must load before i18n so language preference is available
+    await settings.init();
     await Promise.all([
       i18n.init(),
-      settings.init(),
       analytics.init(),
       ads.init(),
       iap.init(),

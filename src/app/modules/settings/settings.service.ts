@@ -11,7 +11,6 @@ export class SettingsService {
     const saved = await storage.load<SettingsState>(SETTINGS_KEY);
     if (saved) {
       usePlatformStore.getState().updateSettings(saved);
-      await i18n.setLanguage(saved.language);
     }
   }
 

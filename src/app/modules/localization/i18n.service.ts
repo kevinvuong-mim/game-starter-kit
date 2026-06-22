@@ -6,57 +6,94 @@ interface TranslationNode {
   [key: string]: string | TranslationNode;
 }
 
+const SUPPORTED_LANGUAGES = ['en', 'vi'] as const;
+export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
+/** Lazy loaders — each locale is a separate chunk in production builds */
+const LOCALE_LOADERS: Record<SupportedLanguage, () => Promise<{ default: TranslationNode }>> = {
+  en: () => import('@i18n/en.json'),
+  vi: () => import('@i18n/vi.json'),
+};
+
 export class LocalizationService {
-  private translations: TranslationNode = {};
-  private fallbackLanguage = 'en';
-  private currentLanguage = 'en';
-  private loadedLanguages = new Set<string>();
+  private catalogs = new Map<string, TranslationNode>();
+  private fallbackLanguage: SupportedLanguage = 'en';
+  private currentLanguage: SupportedLanguage = 'en';
 
   async init(language?: string): Promise<void> {
-    const lang = language ?? usePlatformStore.getState().settings.language ?? this.fallbackLanguage;
+    await this.loadLanguage(this.fallbackLanguage);
+
+    const lang = this.normalizeLanguage(
+      language ?? usePlatformStore.getState().settings.language
+    );
     await this.setLanguage(lang);
   }
 
   async setLanguage(language: string): Promise<void> {
-    if (!this.loadedLanguages.has(language)) {
-      await this.loadLanguage(language);
+    const lang = this.normalizeLanguage(language);
+
+    if (!this.catalogs.has(lang)) {
+      await this.loadLanguage(lang);
     }
 
-    if (!this.loadedLanguages.has(language) && language !== this.fallbackLanguage) {
-      await this.loadLanguage(this.fallbackLanguage);
+    if (!this.catalogs.has(lang)) {
+      logger.warn(`[i18n] Language unavailable: ${language}, using ${this.fallbackLanguage}`);
       this.currentLanguage = this.fallbackLanguage;
       return;
     }
 
-    this.currentLanguage = language;
-    usePlatformStore.getState().updateSettings({ language });
-    await storage.save('settings:language', language);
-    logger.info(`[i18n] Language set to: ${language}`);
+    this.currentLanguage = lang;
+    usePlatformStore.getState().updateSettings({ language: lang });
+    await storage.save('settings:language', lang);
+    logger.info(`[i18n] Language set to: ${lang}`);
+  }
+
+  private normalizeLanguage(language: string): SupportedLanguage {
+    const code = language.split('-')[0].toLowerCase();
+    if (SUPPORTED_LANGUAGES.includes(code as SupportedLanguage)) {
+      return code as SupportedLanguage;
+    }
+    return this.fallbackLanguage;
   }
 
   private async loadLanguage(language: string): Promise<void> {
+    if (this.catalogs.has(language)) return;
+
+    const loader = LOCALE_LOADERS[language as SupportedLanguage];
+    if (!loader) {
+      logger.warn(`[i18n] Unsupported language: ${language}`);
+      return;
+    }
+
     try {
-      const module = await import(`../../../i18n/${language}.json`);
-      this.translations = { ...this.translations, ...module.default };
-      this.loadedLanguages.add(language);
-    } catch {
-      logger.warn(`[i18n] Failed to load language: ${language}`);
+      const module = await loader();
+      this.catalogs.set(language, module.default);
+      logger.debug(`[i18n] Loaded locale: ${language}`);
+    } catch (error) {
+      logger.warn(`[i18n] Failed to load language: ${language}`, error);
     }
   }
 
   t(key: string, params?: Record<string, string | number>): string {
-    const value = this.resolve(key, this.translations)
-      ?? this.resolve(key, this.translations)
-      ?? key;
+    const catalog = this.catalogs.get(this.currentLanguage);
+    const fallback = this.catalogs.get(this.fallbackLanguage);
+
+    const value =
+      this.resolve(key, catalog) ??
+      this.resolve(key, fallback) ??
+      key;
 
     if (!params) return value;
+
     return Object.entries(params).reduce(
       (str, [k, v]) => str.replace(new RegExp(`{{${k}}}`, 'g'), String(v)),
       value
     );
   }
 
-  private resolve(key: string, map: TranslationNode): string | undefined {
+  private resolve(key: string, map?: TranslationNode): string | undefined {
+    if (!map) return undefined;
+
     const parts = key.split('.');
     let current: string | TranslationNode = map;
 
@@ -69,11 +106,15 @@ export class LocalizationService {
     return typeof current === 'string' ? current : undefined;
   }
 
-  getCurrentLanguage(): string {
+  getCurrentLanguage(): SupportedLanguage {
     return this.currentLanguage;
   }
 
-  getFallbackLanguage(): string {
+  getSupportedLanguages(): SupportedLanguage[] {
+    return [...SUPPORTED_LANGUAGES];
+  }
+
+  getFallbackLanguage(): SupportedLanguage {
     return this.fallbackLanguage;
   }
 }

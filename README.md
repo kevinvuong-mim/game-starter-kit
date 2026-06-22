@@ -69,7 +69,7 @@ game-starter-kit/
 │   ├── infrastructure/    # Game engine bootstrap, API contracts
 │   ├── games/             # Game implementations (template + examples)
 │   └── main.ts            # Entry point
-├── i18n/                  # Localization files (en, vi)
+├── src/i18n/              # Localization files (en, vi)
 ├── scripts/               # Tooling (create-game)
 ├── tests/                 # Unit + e2e tests
 └── public/                # Static assets

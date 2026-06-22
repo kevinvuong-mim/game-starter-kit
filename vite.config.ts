@@ -9,6 +9,7 @@ export default defineConfig({
       '@ui': resolve(__dirname, 'src/ui'),
       '@infra': resolve(__dirname, 'src/infrastructure'),
       '@games': resolve(__dirname, 'src/games'),
+      '@i18n': resolve(__dirname, 'src/i18n'),
     },
   },
   build: {

@@ -40,7 +40,7 @@ export class HomeScene extends Phaser.Scene {
     });
 
     this.createButton(width / 2, height * 0.65, t('home.settings'), () => {
-      screenManager.open('modal', { message: t('settings.title') });
+      this.scene.start('Settings');
     });
 
     if (dailyRewards.canClaim()) {

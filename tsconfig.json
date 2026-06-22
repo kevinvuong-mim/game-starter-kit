@@ -22,7 +22,8 @@
       "@app/*": ["src/app/*"],
       "@ui/*": ["src/ui/*"],
       "@infra/*": ["src/infrastructure/*"],
-      "@games/*": ["src/games/*"]
+      "@games/*": ["src/games/*"],
+      "@i18n/*": ["src/i18n/*"]
     }
   },
   "include": ["src", "scripts", "tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
