@@ -71,13 +71,13 @@ export class HomeScene extends Phaser.Scene {
   private showDailyRewardButton(): void {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
-    const bg = this.add.rectangle(width / 2, height * 0.75, 240, 52, 0x6c5ce7);
+    const bg = this.add.rectangle(width / 2, height * 0.84, 240, 52, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });
     this.dailyRewardButton = bg;
 
     this.add
-      .text(width / 2, height * 0.75, t('dailyReward.claim'), {
+      .text(width / 2, height * 0.84, t('dailyReward.claim'), {
         fontSize: '22px',
         color: '#ffffff',
         fontFamily: 'Arial, sans-serif',
