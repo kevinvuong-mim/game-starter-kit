@@ -17,31 +17,22 @@ export class HomeScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.cameras.main;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
-
-    this.add
-      .text(width / 2, height * 0.2, t('home.title'), {
-        fontSize: '36px',
-        color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5);
+    this.addBackgroundImage(width, height);
 
     toast.init(this);
 
     screenManager.register(new ModalScreen(this));
     screenManager.register(new ShopScreen(this));
 
-    this.createButton(width / 2, height * 0.45, t('home.play'), () => {
+    this.createButton(width / 2, height * 0.60, t('home.play'), () => {
       this.scene.start('Gameplay');
     });
 
-    this.createButton(width / 2, height * 0.55, t('home.shop'), () => {
+    this.createButton(width / 2, height * 0.68, t('home.shop'), () => {
       screenManager.open('shop');
     });
 
-    this.createButton(width / 2, height * 0.65, t('home.settings'), () => {
+    this.createButton(width / 2, height * 0.76, t('home.settings'), () => {
       this.scene.start('Settings');
     });
 
@@ -96,6 +87,12 @@ export class HomeScene extends Phaser.Scene {
     bg.on('pointerdown', () => {
       eventBus.emit('daily:claim:request', undefined);
     });
+  }
+
+  private addBackgroundImage(width: number, height: number): void {
+    const bg = this.add.image(width / 2, height / 2, 'home-background');
+    const scale = Math.max(width / bg.width, height / bg.height);
+    bg.setScale(scale).setDepth(-1);
   }
 
   private createButton(x: number, y: number, label: string, onClick: () => void): void {

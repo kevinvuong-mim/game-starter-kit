@@ -6,10 +6,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image(
-      'logo',
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-    );
+    this.load.image('home-background', '/assets/ui/home-background-image.webp');
   }
 
   create(): void {

@@ -31,7 +31,7 @@ export class GameEngine {
       height: gameConfig.height,
       backgroundColor: '#1a1a2e',
       scale: {
-        mode: PhaserLib.Scale.FIT,
+        mode: PhaserLib.Scale.ENVELOP,
         autoCenter: PhaserLib.Scale.CENTER_BOTH,
       },
       scene: gameScenes,
