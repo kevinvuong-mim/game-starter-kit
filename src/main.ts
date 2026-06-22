@@ -1,4 +1,4 @@
-import { gameEngine } from '@infra/GameEngine';
+import { gameEngine } from '@platform/bootstrap/GameEngine';
 
 async function main(): Promise<void> {
   try {

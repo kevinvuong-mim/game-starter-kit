@@ -12,31 +12,32 @@ npm run dev
 
 ## Branch Strategy
 
-- `main` — stable platform releases
-- `feature/<name>` — new platform features
-- `game/<name>` — game-specific work (if monorepo)
+- `main` — stable starter kit releases
+- `feature/<name>` — platform improvements to the kit itself
 
 ## Creating a New Game
 
-Copy `src/games/game-template/` to `src/games/game-<name>/`.
+**Clone this repo** — do not add a second game folder to the same project.
 
-1. Implement gameplay in `src/games/game-<name>/scenes/GameplayScene.ts`
-2. Add assets to `src/games/game-<name>/assets/`
-3. Register in `src/infrastructure/GameEngine.ts`:
-
-```typescript
-import { myGameConfig, myGameScenes } from '@games/game-my-game-name';
-
-registerGame({ config: myGameConfig, scenes: myGameScenes });
+```bash
+git clone <repo-url> game-tap-jump
+cd game-tap-jump
+npm install
 ```
 
-4. Set `VITE_GAME_ID=game-<name>` in `.env`
+Then:
+
+1. Edit `src/game/config.ts` — set `id`, `name`, `version`
+2. Edit `capacitor.config.ts` — set `appId`, `appName`
+3. Implement gameplay in `src/game/scenes/GameplayScene.ts`
+4. Load assets in `src/game/scenes/PreloadScene.ts`
+5. Add art/audio to `public/`
 
 ## Adding a Platform Module
 
-1. Create service in `src/app/modules/<module>/`
+1. Create service in `src/platform/modules/<module>/`
 2. Export singleton from service file
-3. Call `init()` in `src/app/App.ts`
+3. Call `init()` in `src/platform/bootstrap/App.ts`
 4. Wire event bus subscriptions
 5. Add i18n keys
 6. Document in ARCHITECTURE.md
@@ -55,16 +56,15 @@ registerGame({ config: myGameConfig, scenes: myGameScenes });
 - No `any` unless absolutely necessary
 - Match existing naming conventions
 - Services are singletons exported as `const`
-- Game layer never imports from `@app`
 
-## Game Layer Rules (Enforced)
+## Game Layer Guidelines
 
-| Allowed | Forbidden |
-|---------|-----------|
-| `@core/events` (emit only) | `@core/api` |
-| `@games/types` | `@app/*` |
-| Phaser APIs | `@core/storage` |
-| `@ui/*` (optional) | Direct store mutations |
+| Preferred | Avoid |
+|-----------|-------|
+| `@platform/core/events` (emit) | `@platform/core/api` |
+| `@game/*` | `@platform/core/storage` |
+| Phaser APIs | Direct store mutations |
+| `@platform/ui/*` (HUD, toast) | |
 
 ## Type Check
 
@@ -77,7 +77,7 @@ npm run lint
 ```
 feat(shop): add boost item type
 fix(leaderboard): flush offline queue on reconnect
-game(tap-jump): implement obstacle spawning
+feat(game): implement obstacle spawning
 docs: update deployment guide
 ```
 
@@ -95,7 +95,6 @@ npm run build
 ```bash
 npm run build:android
 npm run cap:android
-# Build signed APK/AAB in Android Studio
 ```
 
 ### iOS
@@ -103,17 +102,13 @@ npm run cap:android
 ```bash
 npm run build:ios
 npm run cap:ios
-# Archive in Xcode
 ```
 
 ### Environment Variables (CI/CD)
 
-Set per environment:
-
 ```
 VITE_APP_ENV=production
 VITE_API_URL=https://api.studio.games/api
-VITE_GAME_ID=game-my-game
 VITE_ANALYTICS_ENABLED=true
 VITE_ADS_ENABLED=true
 ```
@@ -123,7 +118,7 @@ VITE_ADS_ENABLED=true
 ### Analytics
 
 ```typescript
-import { analytics } from '@core/analytics';
+import { analytics } from '@platform/core/analytics';
 
 class FirebaseAnalytics implements IAnalyticsProvider { ... }
 analytics.registerProvider(new FirebaseAnalytics());
@@ -132,7 +127,7 @@ analytics.registerProvider(new FirebaseAnalytics());
 ### Ads
 
 ```typescript
-import { ads } from '@core/advertising';
+import { ads } from '@platform/core/advertising';
 
 class AdMobProvider implements IAdsProvider { ... }
 ads.setProvider(new AdMobProvider());
@@ -141,7 +136,7 @@ ads.setProvider(new AdMobProvider());
 ### IAP
 
 ```typescript
-import { iap } from '@core/iap';
+import { iap } from '@platform/core/iap';
 
 class RevenueCatProvider implements IIapProvider { ... }
 iap.setProvider(new RevenueCatProvider());

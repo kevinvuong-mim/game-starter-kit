@@ -1,6 +1,6 @@
 # Game Starter Kit
 
-Production-grade starter kit for hyper-casual / casual mobile games. Built for studios publishing dozens of games from a single reusable platform.
+Production-grade starter kit for hyper-casual / casual mobile games. **Clone this repo once per game** — each game is its own project with a ready-made platform layer.
 
 ## Tech Stack
 
@@ -17,24 +17,27 @@ Production-grade starter kit for hyper-casual / casual mobile games. Built for s
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
+cp .env.example .env
 npm run dev
-
-# Production build
-npm run build
 ```
 
 ## Create a New Game
 
-Copy `src/games/game-template/` to `src/games/game-<name>/`, then:
+**Clone this entire repo** for each new game — do not add multiple games to one codebase.
 
-1. Rename config/scenes for your game
-2. Set `VITE_GAME_ID=game-<name>` in `.env`
-3. Register the game in `src/infrastructure/GameEngine.ts`
-4. Implement gameplay in `GameplayScene.ts`
+```bash
+git clone <repo-url> my-tap-jump
+cd my-tap-jump
+npm install
+```
+
+Then customize:
+
+1. **`src/game/config.ts`** — set `id`, `name`, `version`, screen size
+2. **`capacitor.config.ts`** — set `appId` and `appName`
+3. **`src/game/scenes/GameplayScene.ts`** — implement your game mechanics
+4. **`src/game/scenes/PreloadScene.ts`** — load your assets
 5. Run `npm run dev`
 
 ## Project Structure
@@ -42,48 +45,53 @@ Copy `src/games/game-template/` to `src/games/game-<name>/`, then:
 ```
 game-starter-kit/
 ├── src/
-│   ├── core/              # Core SDK (events, state, storage, api, analytics, ads, iap)
-│   ├── app/               # App modules (i18n, shop, missions, leaderboard, save, etc.)
-│   ├── ui/                # Reusable Phaser UI (modal, toast, dialog, hud, screen)
-│   ├── infrastructure/    # Game engine bootstrap, API contracts
-│   ├── games/             # Game implementations (template + examples)
-│   └── main.ts            # Entry point
-├── src/i18n/              # Localization files (en, vi)
-└── public/                # Static assets
+│   ├── platform/              # Reusable platform (keep as-is across games)
+│   │   ├── core/              # SDK: events, state, storage, api, analytics, ads, iap
+│   │   ├── modules/           # i18n, shop, missions, leaderboard, save, settings
+│   │   ├── ui/                # Phaser UI: modal, toast, dialog, hud, screen
+│   │   └── bootstrap/         # App orchestrator, GameEngine, API contracts
+│   ├── game/                  # YOUR game — customize per project
+│   │   ├── config.ts          # Game identity & screen size
+│   │   └── scenes/            # Phaser scenes (Boot → Preload → Home → Gameplay → GameOver)
+│   └── main.ts                # Entry point
+└── public/                    # Static assets
 ```
+
+## Path Aliases
+
+| Alias | Path |
+|-------|------|
+| `@platform/core` | `src/platform/core` |
+| `@platform/modules` | `src/platform/modules` |
+| `@platform/ui` | `src/platform/ui` |
+| `@platform/bootstrap` | `src/platform/bootstrap` |
+| `@game` | `src/game` |
 
 ## Architecture Layers
 
 ```
-Game Layer        → Gameplay only (scenes, entities, systems)
+Game Layer        → src/game/ — gameplay only (scenes, entities, systems)
      ↓ events
-Core SDK Layer    → Events, state, config, storage, analytics, ads, IAP
+Platform Core     → src/platform/core — events, state, storage, api, providers
      ↓
-App Layer         → Missions, shop, leaderboard, settings, save, i18n
+Platform Modules  → src/platform/modules — i18n, shop, missions, leaderboard, save
      ↓
-Infrastructure    → Phaser bootstrap, Capacitor, API contracts
+Platform UI       → src/platform/ui — reusable Phaser screens & HUD
+     ↓
+Bootstrap         → src/platform/bootstrap — App, GameEngine, API contracts
 ```
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for full details.
 
 ## Game Layer Rules
 
-Games MUST NOT:
-- Call APIs directly
-- Access local storage
-- Implement ads, missions, or leaderboard logic
-
-Games ONLY:
-- Emit events via `eventBus`
-- Implement `init()`, `start()`, `pause()`, `resume()`, `destroy()`
+Games communicate with the platform via the **Event Bus** — no direct API or storage calls:
 
 ```typescript
-import { eventBus } from '@core/events';
+import { eventBus } from '@platform/core/events';
 
-// In gameplay scene
 eventBus.emit('score:update', { score: 100 });
 eventBus.emit('coin:add', { amount: 5 });
-eventBus.emit('jump', { count: 1 });
 eventBus.emit('game:over', { score: 100, duration: 30000 });
 ```
 
@@ -105,10 +113,9 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 ## UI Framework
 
 ```typescript
-import { screenManager, toast } from '@ui';
+import { screenManager, toast } from '@platform/ui';
 
 screenManager.open('modal', { message: 'Hello!' });
-screenManager.replace('shop');
 toast.show({ message: 'Coins +50', type: 'success' });
 ```
 
@@ -118,27 +125,19 @@ toast.show({ message: 'Coins +50', type: 'success' });
 # .env
 VITE_APP_ENV=dev          # dev | staging | production
 VITE_API_URL=http://localhost:3000/api
-VITE_GAME_ID=game-example
 VITE_ANALYTICS_ENABLED=false
 VITE_ADS_ENABLED=false
 ```
 
+Game identity (`id`, `name`) is set in `src/game/config.ts`, not via env vars.
+
 ## Mobile Deployment
 
 ```bash
-# Build web assets
 npm run build
-
-# Sync to native projects
 npm run cap:sync
-
-# Open native IDE
 npm run cap:android    # Android Studio
-npm run cap:ios      # Xcode
-
-# Or combined
-npm run build:android
-npm run build:ios
+npm run cap:ios        # Xcode
 ```
 
 ### Capacitor Setup (first time)
@@ -150,14 +149,7 @@ npx cap add ios
 
 ## Backend (NestJS)
 
-API contracts are defined in `src/infrastructure/api-contracts.ts`. Implement these REST endpoints:
-
-- `POST /leaderboard/submit`
-- `GET /leaderboard/:board`
-- `GET /leaderboard/:board/rank/:userId`
-- `GET/POST /save`
-- `POST /iap/verify`
-- `GET /time`
+API contracts are defined in `src/platform/bootstrap/api-contracts.ts`.
 
 ## Performance Targets
 
@@ -166,8 +158,6 @@ API contracts are defined in `src/infrastructure/api-contracts.ts`. Implement th
 | FPS | 60 |
 | RAM | < 150MB |
 | Cold start | < 3s |
-
-Optimizations included: lazy loading, object pooling, asset cache, code splitting.
 
 ## Scripts
 

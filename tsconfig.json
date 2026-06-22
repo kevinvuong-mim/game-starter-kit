@@ -18,12 +18,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@core/*": ["src/core/*"],
-      "@app/*": ["src/app/*"],
-      "@ui/*": ["src/ui/*"],
-      "@infra/*": ["src/infrastructure/*"],
-      "@games/*": ["src/games/*"],
-      "@i18n/*": ["src/i18n/*"]
+      "@platform/core/*": ["src/platform/core/*"],
+      "@platform/modules/*": ["src/platform/modules/*"],
+      "@platform/ui/*": ["src/platform/ui/*"],
+      "@platform/bootstrap/*": ["src/platform/bootstrap/*"],
+      "@game/*": ["src/game/*"]
     }
   },
   "include": ["src", "vite.config.ts"],

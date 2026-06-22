@@ -6,7 +6,6 @@ interface ImportMetaEnv {
   readonly VITE_ANALYTICS_ENABLED: string;
   readonly VITE_ADS_ENABLED: string;
   readonly VITE_IAP_ENABLED: string;
-  readonly VITE_GAME_ID: string;
   readonly VITE_APP_VERSION: string;
 }
 
