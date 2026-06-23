@@ -4,6 +4,8 @@ import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
 import { createUIButton } from '@platform/ui/button/UIButton';
+import { screenManager } from '@platform/ui/screen/ScreenManager';
+import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -13,6 +15,8 @@ export class GameOverScene extends Phaser.Scene {
   create(data: { score?: number; jumps?: number } = {}): void {
     const score = data.score ?? 0;
     const { width, height } = this.cameras.main;
+
+    screenManager.register(new LeaderboardScreen(this));
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e, 0.95);
 
@@ -37,7 +41,7 @@ export class GameOverScene extends Phaser.Scene {
       height: 52,
       width: 240,
       x: width / 2,
-      y: height * 0.6,
+      y: height * 0.58,
       fontSize: '22px',
       label: t('game.retry'),
       onClick: () => this.scene.start('Gameplay'),
@@ -48,12 +52,26 @@ export class GameOverScene extends Phaser.Scene {
       width: 240,
       x: width / 2,
       fontSize: '22px',
-      y: height * 0.72,
+      y: height * 0.68,
+      label: t('game.leaderboard'),
+      onClick: () => screenManager.open('leaderboard', { board: 'daily' }),
+    });
+
+    createUIButton(this, {
+      height: 52,
+      width: 240,
+      x: width / 2,
+      fontSize: '22px',
+      y: height * 0.78,
       label: t('game.home'),
       onClick: () => {
         eventBus.emit('game:destroy', undefined);
         this.scene.start('Home');
       },
     });
+  }
+
+  shutdown(): void {
+    screenManager.unregisterForScene(this);
   }
 }

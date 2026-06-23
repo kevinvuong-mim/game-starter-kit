@@ -16,7 +16,8 @@
     "score": "Điểm: {{score}}",
     "gameOver": "Kết thúc",
     "retry": "Chơi lại",
-    "home": "Trang chủ"
+    "home": "Trang chủ",
+    "leaderboard": "Bảng xếp hạng"
   },
   "shop": {
     "title": "Cửa hàng",
@@ -83,6 +84,9 @@
     "daily": "Hàng ngày",
     "weekly": "Hàng tuần",
     "allTime": "Mọi thời đại",
-    "rank": "Hạng của bạn: #{{rank}}"
+    "rank": "Hạng của bạn: #{{rank}}",
+    "empty": "Chưa có điểm nào. Chơi một ván để lên bảng!",
+    "you": "(Bạn)",
+    "rankUnavailable": "Chưa có hạng của bạn"
   }
 }

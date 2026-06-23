@@ -11,16 +11,21 @@ interface FallingObject {
 }
 
 /**
- * Example gameplay — tap to jump, collect coins, avoid obstacles.
+ * Example gameplay — tap to jump (double jump), collect coins, avoid obstacles.
  * Replace this scene with your own game mechanics.
  */
 export class GameplayScene extends Phaser.Scene {
   private hud!: HUD;
   private jumps = 0;
   private score = 0;
+  private groundY = 0;
   private startTime = 0;
+  private velocityY = 0;
   private gameActive = true;
-  private isJumping = false;
+  private jumpsRemaining = 0;
+  private readonly maxJumps = 5;
+  private readonly gravity = 1500;
+  private readonly jumpVelocity = -600;
   private player!: Phaser.GameObjects.Arc;
   private pool!: ObjectPool<FallingObject>;
   private spawnTimer?: Phaser.Time.TimerEvent;
@@ -36,6 +41,7 @@ export class GameplayScene extends Phaser.Scene {
     this.startTime = Date.now();
     this.score = 0;
     this.jumps = 0;
+    this.jumpsRemaining = this.maxJumps;
     this.gameActive = true;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x16213e);
@@ -43,6 +49,8 @@ export class GameplayScene extends Phaser.Scene {
 
     this.player = this.add.circle(120, height - 80, 24, 0x4a90d9);
     this.player.setStrokeStyle(3, 0xffffff);
+    this.groundY = height - 80;
+    this.velocityY = 0;
 
     this.hud = new HUD(this);
     this.hud.setScore(0);
@@ -104,6 +112,8 @@ export class GameplayScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.gameActive) return;
 
+    this.updatePlayer(delta);
+
     for (const obj of [...this.activeObjects]) {
       const child = obj.sprite;
       if (!child.active || !child.visible) continue;
@@ -124,24 +134,26 @@ export class GameplayScene extends Phaser.Scene {
     }
   }
 
+  private updatePlayer(delta: number): void {
+    const dt = delta / 1000;
+
+    this.velocityY += this.gravity * dt;
+    this.player.y += this.velocityY * dt;
+
+    if (this.player.y >= this.groundY) {
+      this.player.y = this.groundY;
+      this.velocityY = 0;
+      this.jumpsRemaining = this.maxJumps;
+    }
+  }
+
   private jump(): void {
-    if (!this.gameActive || this.isJumping) return;
-    this.isJumping = true;
+    if (!this.gameActive || this.jumpsRemaining <= 0) return;
+
+    this.jumpsRemaining--;
     this.jumps++;
     eventBus.emit('jump', { count: 1 });
-
-    const groundY = this.cameras.main.height - 80;
-    this.tweens.add({
-      targets: this.player,
-      y: groundY - 120,
-      duration: 300,
-      ease: 'Power2',
-      yoyo: true,
-      onComplete: () => {
-        this.player.y = groundY;
-        this.isJumping = false;
-      },
-    });
+    this.velocityY = this.jumpVelocity;
   }
 
   private spawnObject(): void {

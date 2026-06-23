@@ -8,6 +8,7 @@ export { toast, ToastManager } from './toast/ToastManager';
 export { NUNITO_FONT, FREDOKA_FONT } from './typography';
 export { dialog, DialogScreen } from './dialog/DialogScreen';
 export { PopupScreen, createPopup } from './popup/PopupScreen';
+export { LeaderboardScreen } from './leaderboard/LeaderboardScreen';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export type { UIButtonOptions, UIButtonVariant } from './button/UIButton';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';

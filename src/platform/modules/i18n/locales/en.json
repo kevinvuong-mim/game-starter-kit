@@ -16,7 +16,8 @@
     "score": "Score: {{score}}",
     "gameOver": "Game Over",
     "retry": "Retry",
-    "home": "Home"
+    "home": "Home",
+    "leaderboard": "Leaderboard"
   },
   "shop": {
     "title": "Shop",
@@ -83,6 +84,9 @@
     "daily": "Daily",
     "weekly": "Weekly",
     "allTime": "All Time",
-    "rank": "Your Rank: #{{rank}}"
+    "rank": "Your Rank: #{{rank}}",
+    "empty": "No scores yet. Play a game to get on the board!",
+    "you": "(You)",
+    "rankUnavailable": "Your rank is not available yet"
   }
 }

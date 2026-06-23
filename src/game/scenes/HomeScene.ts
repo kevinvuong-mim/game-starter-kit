@@ -8,6 +8,7 @@ import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { createUIButton } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
+import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
 
 export class HomeScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -24,12 +25,13 @@ export class HomeScene extends Phaser.Scene {
 
     screenManager.register(new ModalScreen(this));
     screenManager.register(new ShopScreen(this));
+    screenManager.register(new LeaderboardScreen(this));
 
     createUIButton(this, {
       height: 64,
       width: 256,
       x: width / 2,
-      y: height * 0.6,
+      y: height * 0.58,
       fontSize: '36px',
       variant: 'rounded',
       label: t('home.play'),
@@ -41,7 +43,7 @@ export class HomeScene extends Phaser.Scene {
       width: 256,
       x: width / 2,
       fontSize: '36px',
-      y: height * 0.68,
+      y: height * 0.66,
       variant: 'rounded',
       label: t('home.shop'),
       onClick: () => screenManager.open('shop'),
@@ -52,7 +54,18 @@ export class HomeScene extends Phaser.Scene {
       width: 256,
       x: width / 2,
       fontSize: '36px',
-      y: height * 0.76,
+      y: height * 0.74,
+      variant: 'rounded',
+      label: t('home.leaderboard'),
+      onClick: () => screenManager.open('leaderboard'),
+    });
+
+    createUIButton(this, {
+      height: 64,
+      width: 256,
+      x: width / 2,
+      fontSize: '36px',
+      y: height * 0.82,
       variant: 'rounded',
       label: t('home.settings'),
       onClick: () => this.scene.start('Settings'),
@@ -95,7 +108,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
 
-    const container = this.add.container(width / 2, height * 0.84);
+    const container = this.add.container(width / 2, height * 0.9);
     const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });
