@@ -1,10 +1,10 @@
 export * from './types';
 export { HUD } from './hud/HUD';
 export { t, i18n } from './i18n';
-export { FONT_FAMILY } from './typography';
 export { ShopScreen } from './shop/ShopScreen';
 export { ModalScreen } from './modal/ModalScreen';
 export { toast, ToastManager } from './toast/ToastManager';
+export { NUNITO_FONT, FREDOKA_FONT,  } from './typography';
 export { dialog, DialogScreen } from './dialog/DialogScreen';
 export { PopupScreen, createPopup } from './popup/PopupScreen';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';

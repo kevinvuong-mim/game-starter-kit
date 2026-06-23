@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { t, i18n } from '../i18n';
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import { toast } from '../toast/ToastManager';
 import { settings } from '@platform/modules/settings/settings.service';
 
@@ -27,9 +27,9 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
 
     this.scene.add
       .text(centerX, startY, t('settings.language'), {
-        fontSize: '20px',
         color: '#aaaaaa',
-        fontFamily: FONT_FAMILY,
+        fontSize: '20px',
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 
@@ -53,9 +53,9 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
     this.add(bg);
 
     const text = this.scene.add.text(x, y, active ? `${label} ✓` : label, {
-      fontSize: '20px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '20px',
+      fontFamily: FREDOKA_FONT,
     });
     text.setOrigin(0.5);
     this.add(text);

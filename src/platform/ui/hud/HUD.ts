@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { formatNumber } from '@platform/core/utils';
-import { FONT_FAMILY } from '@platform/ui/typography';
+import { FREDOKA_FONT } from '@platform/ui/typography';
 import { usePlatformStore } from '@platform/core/state';
 
 export class HUD extends Phaser.GameObjects.Container {
@@ -25,26 +25,26 @@ export class HUD extends Phaser.GameObjects.Container {
     const coinBg = this.scene.add.rectangle(padding + 60, padding + 16, 120, 32, 0x000000, 0.5);
     coinBg.setOrigin(0.5);
     this.coinText = this.scene.add.text(padding + 20, padding + 16, '0', {
-      fontSize: '18px',
       color: '#ffd700',
-      fontFamily: FONT_FAMILY,
+      fontSize: '18px',
+      fontFamily: FREDOKA_FONT,
     });
     this.coinText.setOrigin(0, 0.5);
 
     const gemBg = this.scene.add.rectangle(padding + 200, padding + 16, 100, 32, 0x000000, 0.5);
     gemBg.setOrigin(0.5);
     this.gemText = this.scene.add.text(padding + 160, padding + 16, '0', {
-      fontSize: '18px',
       color: '#00bcd4',
-      fontFamily: FONT_FAMILY,
+      fontSize: '18px',
+      fontFamily: FREDOKA_FONT,
     });
     this.gemText.setOrigin(0, 0.5);
 
     this.scoreText = this.scene.add.text(this.scene.cameras.main.width / 2, padding + 16, '0', {
-      fontSize: '28px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '28px',
       fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
     });
     this.scoreText.setOrigin(0.5);
 

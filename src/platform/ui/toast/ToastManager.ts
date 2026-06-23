@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import type { UIToastType, ToastOptions } from '../types';
 
 const TOAST_COLORS: Record<UIToastType, number> = {
@@ -54,9 +54,9 @@ export class ToastManager {
       bg.setStrokeStyle(1, 0xffffff, 0.3);
 
       const text = this.scene.add.text(0, 0, options.message, {
-        fontSize: '16px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontSize: '16px',
+        fontFamily: FREDOKA_FONT,
       });
       text.setOrigin(0.5);
 

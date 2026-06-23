@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { t } from '../i18n';
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import { toast } from '../toast/ToastManager';
 import { BaseScreen } from '../screen/ScreenManager';
 import { shop } from '@platform/modules/shop/shop.service';
@@ -34,8 +34,8 @@ export class ShopScreen extends BaseScreen {
     const title = this.scene.add.text(width / 2, height * 0.16, t('shop.title'), {
       fontSize: '28px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
     });
     title.setOrigin(0.5);
     this.add(title);
@@ -82,15 +82,15 @@ export class ShopScreen extends BaseScreen {
     const nameText = this.scene.add.text(-270, -10, item.name, {
       fontSize: '18px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
     });
     container.add(nameText);
 
     const descText = this.scene.add.text(-270, 12, item.description, {
       fontSize: '14px',
       color: '#aaaaaa',
-      fontFamily: FONT_FAMILY,
+      fontFamily: FREDOKA_FONT,
       wordWrap: { width: 360 },
     });
     container.add(descText);
@@ -103,7 +103,7 @@ export class ShopScreen extends BaseScreen {
       const buyLabel = this.scene.add.text(220, 0, t('shop.buy'), {
         fontSize: '16px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontFamily: FREDOKA_FONT,
       });
       buyLabel.setOrigin(0.5);
 
@@ -116,7 +116,7 @@ export class ShopScreen extends BaseScreen {
       const ownedText = this.scene.add.text(220, 0, priceLabel, {
         fontSize: '14px',
         color: '#ffd700',
-        fontFamily: FONT_FAMILY,
+        fontFamily: FREDOKA_FONT,
       });
       ownedText.setOrigin(0.5);
       container.add(ownedText);

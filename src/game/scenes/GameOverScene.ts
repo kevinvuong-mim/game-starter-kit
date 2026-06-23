@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FONT_FAMILY } from '@platform/ui/typography';
+import { FREDOKA_FONT } from '@platform/ui/typography';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -16,18 +16,18 @@ export class GameOverScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, height * 0.25, t('game.gameOver'), {
-        fontSize: '42px',
         color: '#f44336',
-        fontFamily: FONT_FAMILY,
+        fontSize: '42px',
         fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 
     this.add
       .text(width / 2, height * 0.4, t('game.score', { score: data.score }), {
-        fontSize: '28px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontSize: '28px',
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 
@@ -47,9 +47,9 @@ export class GameOverScene extends Phaser.Scene {
     bg.setInteractive({ useHandCursor: true });
 
     const text = this.add.text(x, y, label, {
-      fontSize: '22px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '22px',
+      fontFamily: FREDOKA_FONT,
     });
     text.setOrigin(0.5);
 

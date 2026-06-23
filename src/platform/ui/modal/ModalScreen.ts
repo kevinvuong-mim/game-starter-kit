@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { t } from '../i18n';
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import { BaseScreen } from '../screen/ScreenManager';
 
 export class ModalScreen extends BaseScreen {
@@ -30,11 +30,11 @@ export class ModalScreen extends BaseScreen {
     this.add(panel);
 
     this.content = this.scene.add.text(width / 2, height / 2 - 30, '', {
-      fontSize: '22px',
-      color: '#ffffff',
-      fontFamily: FONT_FAMILY,
-      wordWrap: { width: width * 0.7 },
       align: 'center',
+      color: '#ffffff',
+      fontSize: '22px',
+      fontFamily: FREDOKA_FONT,
+      wordWrap: { width: width * 0.7 },
     });
     this.content.setOrigin(0.5);
     this.add(this.content);

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FONT_FAMILY } from '@platform/ui/typography';
+import { FREDOKA_FONT } from '@platform/ui/typography';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
@@ -80,10 +80,10 @@ export class HomeScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, height * 0.84, t('dailyReward.claim'), {
-        fontSize: '36px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontSize: '36px',
         fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 
@@ -115,10 +115,10 @@ export class HomeScene extends Phaser.Scene {
     bg.input!.cursor = 'pointer';
 
     const text = this.add.text(x, y, label, {
-      fontSize: '36px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '36px',
       fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
     });
     text.setOrigin(0.5);
 

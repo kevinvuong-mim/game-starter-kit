@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FONT_FAMILY } from '@platform/ui/typography';
+import { FREDOKA_FONT } from '@platform/ui/typography';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 
 export class SettingsScene extends Phaser.Scene {
@@ -19,10 +19,10 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, height * 0.12, t('settings.title'), {
-        fontSize: '32px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontSize: '32px',
         fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 
@@ -53,7 +53,7 @@ export class SettingsScene extends Phaser.Scene {
       .text(x, y, label, {
         fontSize: '20px',
         color: '#ffffff',
-        fontFamily: FONT_FAMILY,
+        fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
 

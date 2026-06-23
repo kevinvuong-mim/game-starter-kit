@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import { BaseScreen } from '../screen/ScreenManager';
 import { t } from '@platform/modules/i18n/i18n.service';
 
@@ -37,20 +37,20 @@ export class DialogScreen extends BaseScreen {
     this.add(panel);
 
     this.titleText = this.scene.add.text(width / 2, height / 2 - 80, '', {
-      fontSize: '26px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '26px',
       fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
     });
     this.titleText.setOrigin(0.5);
     this.add(this.titleText);
 
     this.messageText = this.scene.add.text(width / 2, height / 2 - 20, '', {
-      fontSize: '18px',
-      color: '#cccccc',
-      fontFamily: FONT_FAMILY,
-      wordWrap: { width: width * 0.75 },
       align: 'center',
+      color: '#cccccc',
+      fontSize: '18px',
+      fontFamily: FREDOKA_FONT,
+      wordWrap: { width: width * 0.75 },
     });
     this.messageText.setOrigin(0.5);
     this.add(this.messageText);

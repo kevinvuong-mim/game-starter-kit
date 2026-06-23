@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FONT_FAMILY } from '../typography';
+import { FREDOKA_FONT } from '../typography';
 import type { IUIScreen, UIScreenId, UIScreenConfig } from '../types';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
@@ -63,9 +63,9 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
     bg.setInteractive({ useHandCursor: true });
 
     const label = this.scene.add.text(0, 0, text, {
-      fontSize: '20px',
       color: '#ffffff',
-      fontFamily: FONT_FAMILY,
+      fontSize: '20px',
+      fontFamily: FREDOKA_FONT,
     });
     label.setOrigin(0.5);
 
