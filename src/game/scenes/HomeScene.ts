@@ -72,7 +72,7 @@ export class HomeScene extends Phaser.Scene {
   private showDailyRewardButton(): void {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
-    const bg = this.add.rectangle(width / 2, height * 0.84, 240, 52, 0x6c5ce7);
+    const bg = this.add.rectangle(width / 2, height * 0.84, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });
     this.dailyRewardButton = bg;
@@ -98,9 +98,20 @@ export class HomeScene extends Phaser.Scene {
   }
 
   private createButton(x: number, y: number, label: string, onClick: () => void): void {
-    const bg = this.add.rectangle(x, y, 240, 52, 0x4a90d9);
-    bg.setStrokeStyle(2, 0xffffff);
-    bg.setInteractive({ useHandCursor: true });
+    const width = 256;
+    const height = 64;
+    const radius = 16;
+
+    const bg = this.add.graphics({ x, y });
+    bg.fillStyle(0xffffff, 1);
+    bg.fillRoundedRect(-width / 2, -height / 2, width, height, radius);
+    bg.fillStyle(0x4a90d9, 1);
+    bg.fillRoundedRect(-width / 2 + 2, -height / 2 + 2, width - 4, height - 4, radius - 2);
+    bg.setInteractive(
+      new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
+      Phaser.Geom.Rectangle.Contains
+    );
+    bg.input!.cursor = 'pointer';
 
     const text = this.add.text(x, y, label, {
       fontSize: '36px',
