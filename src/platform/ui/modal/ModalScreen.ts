@@ -46,8 +46,8 @@ export class ModalScreen extends BaseScreen {
   }
 
   show(data?: Record<string, unknown>): void {
-    if (data?.message && this.content) {
-      this.content.setText(String(data.message));
+    if (this.content) {
+      this.content.setText(data?.message ? String(data.message) : '');
     }
     this.onClose = data?.onClose as (() => void) | undefined;
     super.show(data);

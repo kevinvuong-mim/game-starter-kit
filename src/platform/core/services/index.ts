@@ -21,3 +21,12 @@ export const services = {
 } as const;
 
 export type PlatformServices = typeof services;
+
+/** Sync service flags and API base URL after `setConfig()` in bootstrap. */
+export function refreshServicesFromConfig(): void {
+  const config = getConfig();
+  analytics.setEnabled(config.analyticsEnabled);
+  ads.setEnabled(config.adsEnabled);
+  iap.setEnabled(config.iapEnabled);
+  apiClient.setBaseUrl(config.apiUrl);
+}

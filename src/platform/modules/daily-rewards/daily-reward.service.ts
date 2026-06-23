@@ -6,6 +6,7 @@ import { usePlatformStore } from '@platform/core/state';
 import type { DailyRewardState } from '@platform/core/state';
 
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const STREAK_RESET_MS = COOLDOWN_MS * 2;
 const DAILY_REWARD_KEY = 'daily-rewards';
 
 export interface DailyRewardDay {
@@ -64,8 +65,15 @@ export class DailyRewardService {
     }
 
     const store = usePlatformStore.getState();
-    const currentDay = store.dailyRewards.currentDay;
-    const rewardDay = REWARD_CALENDAR.find((r) => r.day === currentDay) ?? REWARD_CALENDAR[0];
+    const { lastClaimAt } = store.dailyRewards;
+
+    if (lastClaimAt && Date.now() - lastClaimAt > STREAK_RESET_MS) {
+      store.setDailyRewardState({ streak: 0, currentDay: 1, claimedDays: [] });
+    }
+
+    const currentDay = usePlatformStore.getState().dailyRewards.currentDay;
+    const calendarDay = ((currentDay - 1) % 7) + 1;
+    const rewardDay = REWARD_CALENDAR.find((r) => r.day === calendarDay) ?? REWARD_CALENDAR[0];
 
     if (rewardDay.reward.coins) store.addCoins(rewardDay.reward.coins);
     if (rewardDay.reward.gems) store.addGems(rewardDay.reward.gems);

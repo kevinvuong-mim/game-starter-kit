@@ -13,9 +13,8 @@ export class SettingsService {
   }
 
   async setLanguage(language: string): Promise<void> {
-    usePlatformStore.getState().updateSettings({ language });
     await i18n.setLanguage(language);
-    eventBus.emit('settings:change', { key: 'language', value: language });
+    eventBus.emit('settings:change', { key: 'language', value: i18n.getCurrentLanguage() });
   }
 
   async setSoundEnabled(enabled: boolean): Promise<void> {

@@ -1,9 +1,10 @@
 import {
-  analytics,
   ConsoleAnalyticsProvider,
   FirebaseAnalyticsProvider,
 } from '@platform/core/analytics';
-import { getConfig } from '@platform/core/config';
+import { services } from '@platform/core/services';
+
+const { analytics, config } = services;
 
 /**
  * Registers analytics providers based on runtime config.
@@ -12,7 +13,7 @@ import { getConfig } from '@platform/core/config';
 export function registerAnalyticsProviders(): void {
   analytics.registerProvider(new ConsoleAnalyticsProvider());
 
-  if (getConfig().analyticsEnabled) {
+  if (config().analyticsEnabled) {
     analytics.registerProvider(new FirebaseAnalyticsProvider());
   }
 }

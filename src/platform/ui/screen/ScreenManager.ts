@@ -19,7 +19,7 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
   }
 
   close(): void {
-    this.hide();
+    screenManager.close(this.id);
   }
 
   show(data?: Record<string, unknown>): void {
@@ -100,6 +100,11 @@ export class ScreenManager {
     if (!screen) return;
 
     const current = this.activeStack[this.activeStack.length - 1];
+    if (current === id) {
+      screen.open(data);
+      return;
+    }
+
     if (current) {
       this.screens.get(current)?.hide();
     }
@@ -109,26 +114,26 @@ export class ScreenManager {
   }
 
   close(id?: UIScreenId): void {
-    const targetId = id ?? this.activeStack.pop();
+    const targetId = id ?? this.activeStack[this.activeStack.length - 1];
     if (!targetId) return;
 
-    const screen = this.screens.get(targetId);
-    screen?.close();
+    const wasTop = this.activeStack[this.activeStack.length - 1] === targetId;
+    const idx = this.activeStack.lastIndexOf(targetId);
+    if (idx >= 0) this.activeStack.splice(idx, 1);
 
-    if (!id) {
+    this.screens.get(targetId)?.hide();
+
+    if (wasTop) {
       const previous = this.activeStack[this.activeStack.length - 1];
       if (previous) {
         this.screens.get(previous)?.show();
       }
-    } else {
-      const idx = this.activeStack.indexOf(targetId);
-      if (idx >= 0) this.activeStack.splice(idx, 1);
     }
   }
 
   replace(id: UIScreenId, data?: Record<string, unknown>): void {
     const current = this.activeStack.pop();
-    if (current) this.screens.get(current)?.close();
+    if (current) this.screens.get(current)?.hide();
     this.open(id, data);
   }
 

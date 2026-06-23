@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 import { t } from '../i18n';
 import { FREDOKA_FONT } from '../typography';
+import { createUIButton } from '../button/UIButton';
 import { BaseScreen } from '../screen/ScreenManager';
 
 export interface DialogButton {
@@ -77,17 +78,18 @@ export class DialogScreen extends BaseScreen {
 
     buttons.forEach((btn, i) => {
       const x = startX + i * spacing;
-      this.createButton(
+      const button = createUIButton(this.scene, {
         x,
-        0,
-        btn.label,
-        () => {
+        y: 0,
+        label: btn.label,
+        onClick: () => {
           btn.onClick();
           this.close();
         },
-        110,
-        44
-      );
+        width: 110,
+        height: 44,
+      });
+      this.buttonContainer!.add(button);
     });
 
     super.show(data);

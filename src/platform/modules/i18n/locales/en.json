@@ -26,7 +26,30 @@
     "purchaseSuccess": "Purchased {{name}}!",
     "purchaseFailed": "Purchase failed",
     "restoreSuccess": "Restored {{count}} purchase(s)",
-    "restoreEmpty": "No purchases to restore"
+    "restoreEmpty": "No purchases to restore",
+    "currency": {
+      "coins": "coins",
+      "gems": "gems",
+      "iap": "USD"
+    },
+    "items": {
+      "skin_blue": {
+        "name": "Blue Skin",
+        "description": "A cool blue character skin"
+      },
+      "skin_gold": {
+        "name": "Gold Skin",
+        "description": "Premium gold character skin"
+      },
+      "boost_double": {
+        "name": "Double Coins",
+        "description": "2x coins for 1 hour"
+      },
+      "coins_pack": {
+        "name": "Coin Pack",
+        "description": "500 coins"
+      }
+    }
   },
   "settings": {
     "title": "Settings",
@@ -43,7 +66,11 @@
     "title": "Missions",
     "daily": "Daily",
     "weekly": "Weekly",
-    "claim": "Claim"
+    "claim": "Claim",
+    "jump100": "Jump 100 times",
+    "score1000": "Reach 1000 points",
+    "play10": "Play 10 games",
+    "collect50": "Collect 50 coins"
   },
   "dailyReward": {
     "title": "Daily Reward",

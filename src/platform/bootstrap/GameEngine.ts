@@ -6,14 +6,18 @@ import { app } from '@platform/bootstrap/App';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
+import { refreshServicesFromConfig } from '@platform/core/services';
 import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
 
 export class GameEngine {
   private game: Phaser.Game | null = null;
 
   async bootstrap(): Promise<Phaser.Game> {
+    if (this.game) return this.game;
+
     setupGlobalErrorHandlers();
     setConfig(createConfig({ gameId: gameConfig.id }));
+    refreshServicesFromConfig();
 
     try {
       await app.init();

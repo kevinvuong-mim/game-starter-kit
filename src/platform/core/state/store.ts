@@ -31,6 +31,9 @@ export interface PlatformStore extends PlatformState {
   completeMission: (id: string) => void;
   updateMissionProgress: (id: string, progress: number) => void;
   setMissions: (missions: PlatformState['missions']['missions']) => void;
+  updateMissionsState: (
+    update: Partial<Pick<PlatformState['missions'], 'missions' | 'lastDailyReset' | 'lastWeeklyReset'>>
+  ) => void;
 
   // Daily rewards
   claimDailyReward: (day: number) => void;
@@ -53,10 +56,13 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
 
   setUser: (user) => set((s) => ({ user: { ...s.user, ...user } })),
 
-  addCoins: (amount) =>
-    set((s) => ({ currency: { ...s.currency, coins: s.currency.coins + amount } })),
+  addCoins: (amount) => {
+    if (amount <= 0) return;
+    set((s) => ({ currency: { ...s.currency, coins: s.currency.coins + amount } }));
+  },
 
   spendCoins: (amount) => {
+    if (amount <= 0) return false;
     const { currency } = get();
     if (currency.coins < amount) return false;
     set((s) => ({
@@ -65,10 +71,13 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
     return true;
   },
 
-  addGems: (amount) =>
-    set((s) => ({ currency: { ...s.currency, gems: s.currency.gems + amount } })),
+  addGems: (amount) => {
+    if (amount <= 0) return;
+    set((s) => ({ currency: { ...s.currency, gems: s.currency.gems + amount } }));
+  },
 
   spendGems: (amount) => {
+    if (amount <= 0) return false;
     const { currency } = get();
     if (currency.gems < amount) return false;
     set((s) => ({
@@ -138,17 +147,15 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
       },
     })),
 
-  setCurrentLevel: (level) =>
-    set((s) => ({ progress: { ...s.progress, currentLevel: level } })),
+  setCurrentLevel: (level) => set((s) => ({ progress: { ...s.progress, currentLevel: level } })),
 
   updateSettings: (settings) => set((s) => ({ settings: { ...s.settings, ...settings } })),
 
   updateMissionProgress: (id, progress) =>
     set((s) => {
       const mission = s.missions.missions[id];
-      if (!mission) return s;
+      if (!mission || mission.status !== 'active') return s;
       const capped = Math.min(progress, mission.target);
-      const completed = capped >= mission.target;
       return {
         missions: {
           ...s.missions,
@@ -157,8 +164,6 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
             [id]: {
               ...mission,
               progress: capped,
-              status: completed ? 'completed' : mission.status,
-              completedAt: completed ? Date.now() : mission.completedAt,
             },
           },
         },
@@ -168,7 +173,7 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
   completeMission: (id) =>
     set((s) => {
       const mission = s.missions.missions[id];
-      if (!mission) return s;
+      if (!mission || mission.status !== 'active') return s;
       return {
         missions: {
           ...s.missions,
@@ -202,6 +207,11 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
 
   setMissions: (missions) => set((s) => ({ missions: { ...s.missions, missions } })),
 
+  updateMissionsState: (update) =>
+    set((s) => ({
+      missions: { ...s.missions, ...update },
+    })),
+
   claimDailyReward: (day) =>
     set((s) => ({
       dailyRewards: {
@@ -209,12 +219,11 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
         lastClaimAt: Date.now(),
         streak: s.dailyRewards.streak + 1,
         claimedDays: [...s.dailyRewards.claimedDays, day],
-        currentDay: day + 1,
+        currentDay: day >= 7 ? 1 : day + 1,
       },
     })),
 
-  setDailyRewardState: (state) =>
-    set((s) => ({ dailyRewards: { ...s.dailyRewards, ...state } })),
+  setDailyRewardState: (state) => set((s) => ({ dailyRewards: { ...s.dailyRewards, ...state } })),
 
   setLeaderboard: (board, entries) =>
     set((s) => ({

@@ -1,4 +1,3 @@
-import { iap } from '@platform/core/iap';
 import {
   trackAdReward,
   trackGameOver,
@@ -10,11 +9,8 @@ import {
   trackMissionComplete,
 } from '@platform/core/analytics/events';
 import { logger } from '@platform/core/error';
-import { ads } from '@platform/core/advertising';
-import { eventBus } from '@platform/core/events';
 import { generateId } from '@platform/core/utils';
-import { getConfig } from '@platform/core/config';
-import { analytics } from '@platform/core/analytics';
+import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
 import { i18n } from '@platform/modules/i18n/i18n.service';
 import { saveService } from '@platform/modules/save/save.service';
@@ -23,6 +19,9 @@ import { settings } from '@platform/modules/settings/settings.service';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
+import { hideNativeSplash } from '@platform/bootstrap/capacitor';
+
+const { events, analytics, ads, iap, config } = services;
 
 /**
  * App layer orchestrator. Wires platform modules to the event bus.
@@ -50,13 +49,13 @@ export class App {
       ads.init(),
       iap.init(),
       leaderboard.init(),
-      dailyRewards.init(),
     ]);
 
     analytics.setUserId(usePlatformStore.getState().user.id);
-    analytics.setUserProperty('game_id', getConfig().gameId);
+    analytics.setUserProperty('game_id', config().gameId);
 
     await saveService.loadLocal();
+    await dailyRewards.init();
     await settings.init();
     missions.init();
 
@@ -68,11 +67,11 @@ export class App {
   }
 
   private bindPlatformEvents(): void {
-    const forwardAnalytics = eventBus.on('analytics', ({ event, params }) => {
+    const forwardAnalytics = events.on('analytics', ({ event, params }) => {
       analytics.track(event, params);
     });
 
-    const forwardLegacyAnalytics = eventBus.on('analytics:track', ({ event, params }) => {
+    const forwardLegacyAnalytics = events.on('analytics:track', ({ event, params }) => {
       analytics.track(event, params);
     });
 
@@ -80,46 +79,51 @@ export class App {
       forwardAnalytics,
       forwardLegacyAnalytics,
 
-      eventBus.on('coin:add', ({ amount }) => {
+      events.on('app:ready', () => {
+        logger.info('[App] Game shell ready');
+        void hideNativeSplash();
+      }),
+
+      events.on('coin:add', ({ amount }) => {
         usePlatformStore.getState().addCoins(amount);
       }),
 
-      eventBus.on('coin:spend', ({ amount }) => {
+      events.on('coin:spend', ({ amount }) => {
         usePlatformStore.getState().spendCoins(amount);
       }),
 
-      eventBus.on('score:update', ({ score }) => {
+      events.on('score:update', ({ score }) => {
         usePlatformStore.getState().setHighScore(score);
       }),
 
-      eventBus.on('game:start', () => {
+      events.on('game:start', () => {
         usePlatformStore.getState().incrementGamesPlayed();
         trackGameStart();
       }),
 
-      eventBus.on('game:over', async ({ score, duration, jumps }) => {
+      events.on('game:over', async ({ score, duration, jumps }) => {
         trackGameOver({ score, duration, jumps });
         await leaderboard.submitScore(score, 'daily');
         await saveService.saveLocal();
       }),
 
-      eventBus.on('level:complete', ({ level, stars }) => {
+      events.on('level:complete', ({ level, stars }) => {
         trackLevelComplete({ level, stars });
       }),
 
-      eventBus.on('mission:complete', ({ missionId }) => {
+      events.on('mission:complete', ({ missionId }) => {
         trackMissionComplete({ missionId });
       }),
 
-      eventBus.on('settings:change', () => {
+      events.on('settings:change', () => {
         void saveService.saveLocal();
       }),
 
-      eventBus.on('daily:status:request', () => {
-        eventBus.emit('daily:status', { canClaim: dailyRewards.canClaim() });
+      events.on('daily:status:request', () => {
+        events.emit('daily:status', { canClaim: dailyRewards.canClaim() });
       }),
 
-      eventBus.on('daily:claim:request', async () => {
+      events.on('daily:claim:request', async () => {
         const reward = await dailyRewards.claim();
         if (reward) {
           trackDailyClaim({
@@ -127,28 +131,38 @@ export class App {
             gems: reward.reward.gems,
             coins: reward.reward.coins,
           });
-          eventBus.emit('daily:claim:result', {
+          await saveService.saveLocal();
+          events.emit('daily:claim:result', {
             success: true,
             gems: reward.reward.gems,
             coins: reward.reward.coins,
           });
         } else {
-          eventBus.emit('daily:claim:result', {
+          events.emit('daily:claim:result', {
             success: false,
             message: 'Cooldown active',
           });
         }
       }),
 
-      eventBus.on('shop:purchase', ({ itemId, price }) => {
+      events.on('shop:purchase', ({ itemId, price }) => {
         trackPurchase({ itemId, price });
+        void saveService.saveLocal();
       }),
 
-      eventBus.on('ad:reward', ({ placement, reward }) => {
+      events.on('shop:restore', () => {
+        void saveService.saveLocal();
+      }),
+
+      events.on('game:destroy', () => {
+        void saveService.saveLocal();
+      }),
+
+      events.on('ad:reward', ({ placement, reward }) => {
         trackAdReward({ placement, reward: JSON.stringify(reward) });
       }),
 
-      eventBus.on('save:sync', () => {
+      events.on('save:sync', () => {
         void saveService.sync();
       })
     );
@@ -160,19 +174,21 @@ export class App {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         trackSessionEnd();
-        eventBus.emit('app:pause', undefined);
+        events.emit('app:pause', undefined);
         void saveService.saveLocal();
         void analytics.flush();
       } else {
-        eventBus.emit('app:resume', undefined);
+        events.emit('app:resume', undefined);
       }
     });
   }
 
   async destroy(): Promise<void> {
     trackSessionEnd();
+    await saveService.saveLocal();
     await analytics.flush();
     await analytics.shutdown();
+    analytics.clearProviders();
     missions.destroy();
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];

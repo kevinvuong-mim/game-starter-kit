@@ -84,7 +84,7 @@ export class LeaderboardService {
 
   async getRank(board: LeaderboardBoard = 'daily'): Promise<number> {
     const cachedRank = usePlatformStore.getState().leaderboard.playerRanks[board];
-    if (cachedRank) return cachedRank;
+    if (cachedRank !== undefined && cachedRank >= 0) return cachedRank;
 
     const userId = usePlatformStore.getState().user.id;
     if (!userId) return -1;

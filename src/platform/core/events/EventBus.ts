@@ -19,7 +19,11 @@ export class EventBus implements IEventBus {
 
     for (const entry of entries) {
       try {
-        void entry.handler(payload as PlatformEventMap[PlatformEvent]);
+        void Promise.resolve(
+          entry.handler(payload as PlatformEventMap[PlatformEvent])
+        ).catch((error) => {
+          console.error(`[EventBus] Handler error for "${event}":`, error);
+        });
       } catch (error) {
         console.error(`[EventBus] Handler error for "${event}":`, error);
       }

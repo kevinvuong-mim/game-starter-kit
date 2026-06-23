@@ -1,17 +1,17 @@
 import { logger } from '../error';
-import { getConfig } from '../config';
 import type { AnalyticsEvent, AnalyticsParams, IAnalyticsProvider } from './types';
 
 export class AnalyticsService {
   private enabled = true;
   private providers: IAnalyticsProvider[] = [];
 
-  constructor() {
-    this.enabled = getConfig().analyticsEnabled;
+  registerProvider(provider: IAnalyticsProvider): void {
+    if (this.providers.some((p) => p.name === provider.name)) return;
+    this.providers.push(provider);
   }
 
-  registerProvider(provider: IAnalyticsProvider): void {
-    this.providers.push(provider);
+  clearProviders(): void {
+    this.providers = [];
   }
 
   async init(): Promise<void> {

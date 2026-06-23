@@ -1,5 +1,4 @@
 import { logger } from '../error';
-import { getConfig } from '../config';
 import type { AdType, AdShowResult, IAdsProvider } from './types';
 
 export class MockAdsProvider implements IAdsProvider {
@@ -42,16 +41,15 @@ export class AdsService {
   private enabled = true;
   private provider: IAdsProvider | null = null;
 
-  constructor() {
-    this.enabled = getConfig().adsEnabled;
-  }
-
   setProvider(provider: IAdsProvider): void {
     this.provider = provider;
   }
 
   async init(): Promise<void> {
-    if (!this.enabled || !this.provider) return;
+    if (!this.provider) {
+      this.provider = new MockAdsProvider();
+    }
+    if (!this.enabled) return;
     await this.provider.init();
   }
 
@@ -98,4 +96,3 @@ export class AdsService {
 }
 
 export const ads = new AdsService();
-ads.setProvider(new MockAdsProvider());

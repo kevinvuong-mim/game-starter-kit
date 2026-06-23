@@ -10,7 +10,8 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: 'GameOver' });
   }
 
-  create(data: { score: number; jumps: number }): void {
+  create(data: { score?: number; jumps?: number } = {}): void {
+    const score = data.score ?? 0;
     const { width, height } = this.cameras.main;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e, 0.95);
@@ -25,7 +26,7 @@ export class GameOverScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, height * 0.4, t('game.score', { score: data.score }), {
+      .text(width / 2, height * 0.4, t('game.score', { score }), {
         color: '#ffffff',
         fontSize: '28px',
         fontFamily: FREDOKA_FONT,

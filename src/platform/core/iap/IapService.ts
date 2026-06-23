@@ -77,10 +77,6 @@ export class IapService {
   private provider: IIapProvider | null = null;
   private enabled = true;
 
-  constructor() {
-    this.enabled = getConfig().iapEnabled;
-  }
-
   setProvider(provider: IIapProvider): void {
     this.provider = provider;
   }
@@ -110,14 +106,20 @@ export class IapService {
 
     if (getConfig().apiUrl) {
       try {
-        await apiClient.post('/iap/verify', {
+        const result = await apiClient.post<{ valid: boolean }>('/iap/verify', {
           platform: 'mock',
           receipt: purchase.receipt,
           productId: purchase.productId,
         });
+        if (!result.valid) {
+          throw new Error('IAP server verification rejected receipt');
+        }
       } catch (e) {
         logger.warn('[IAP] Server verification failed, using local verify', e);
-        await this.provider.verify(purchase.receipt);
+        const result = await this.provider.verify(purchase.receipt);
+        if (!result.valid) {
+          throw new Error('IAP local verification failed');
+        }
       }
     }
 

@@ -26,7 +26,30 @@
     "purchaseSuccess": "Đã mua {{name}}!",
     "purchaseFailed": "Mua thất bại",
     "restoreSuccess": "Đã khôi phục {{count}} giao dịch",
-    "restoreEmpty": "Không có giao dịch để khôi phục"
+    "restoreEmpty": "Không có giao dịch để khôi phục",
+    "currency": {
+      "coins": "xu",
+      "gems": "ngọc",
+      "iap": "USD"
+    },
+    "items": {
+      "skin_blue": {
+        "name": "Skin Xanh",
+        "description": "Skin nhân vật màu xanh cool"
+      },
+      "skin_gold": {
+        "name": "Skin Vàng",
+        "description": "Skin nhân vật vàng cao cấp"
+      },
+      "boost_double": {
+        "name": "Xu Gấp Đôi",
+        "description": "Nhân đôi xu trong 1 giờ"
+      },
+      "coins_pack": {
+        "name": "Gói Xu",
+        "description": "500 xu"
+      }
+    }
   },
   "settings": {
     "title": "Cài đặt",
@@ -43,7 +66,11 @@
     "title": "Nhiệm vụ",
     "daily": "Hàng ngày",
     "weekly": "Hàng tuần",
-    "claim": "Nhận"
+    "claim": "Nhận",
+    "jump100": "Nhảy 100 lần",
+    "score1000": "Đạt 1000 điểm",
+    "play10": "Chơi 10 ván",
+    "collect50": "Thu thập 50 xu"
   },
   "dailyReward": {
     "title": "Phần thưởng hàng ngày",

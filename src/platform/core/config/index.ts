@@ -18,34 +18,23 @@ export interface RuntimeConfig {
   analyticsEnabled: boolean;
 }
 
-const EMPTY_FIREBASE: FirebaseConfig = {
-  appId: '',
-  apiKey: '',
-  projectId: '',
-  authDomain: '',
-  measurementId: '',
-};
-
 const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
   dev: {
     debug: true,
     adsEnabled: false,
     analyticsEnabled: false,
-    firebase: EMPTY_FIREBASE,
     apiUrl: 'http://localhost:3000/api',
   },
   staging: {
     debug: true,
     adsEnabled: true,
     analyticsEnabled: true,
-    firebase: EMPTY_FIREBASE,
     apiUrl: 'https://staging-api.studio.games/api',
   },
   production: {
     debug: false,
     adsEnabled: true,
     analyticsEnabled: true,
-    firebase: EMPTY_FIREBASE,
     apiUrl: 'https://api.studio.games/api',
   },
 };

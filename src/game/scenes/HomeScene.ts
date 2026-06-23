@@ -11,7 +11,7 @@ import { screenManager } from '@platform/ui/screen/ScreenManager';
 
 export class HomeScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
-  private dailyRewardButton?: Phaser.GameObjects.Rectangle;
+  private dailyRewardButton?: Phaser.GameObjects.Container;
 
   constructor() {
     super({ key: 'Home' });
@@ -94,23 +94,28 @@ export class HomeScene extends Phaser.Scene {
   private showDailyRewardButton(): void {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
-    const bg = this.add.rectangle(width / 2, height * 0.84, 256, 64, 0x6c5ce7);
+
+    const container = this.add.container(width / 2, height * 0.84);
+    const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });
-    this.dailyRewardButton = bg;
+    container.add(bg);
 
-    this.add
-      .text(width / 2, height * 0.84, t('dailyReward.claim'), {
+    const label = this.add
+      .text(0, 0, t('dailyReward.claim'), {
         color: '#ffffff',
         fontSize: '36px',
         fontStyle: 'bold',
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
+    container.add(label);
 
     bg.on('pointerdown', () => {
       eventBus.emit('daily:claim:request', undefined);
     });
+
+    this.dailyRewardButton = container;
   }
 
   private addBackgroundImage(width: number, height: number): void {

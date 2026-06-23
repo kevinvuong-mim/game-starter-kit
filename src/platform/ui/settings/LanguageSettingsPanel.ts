@@ -25,13 +25,14 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
     const { width } = this.scene.cameras.main;
     const centerX = width / 2 - this.x;
 
-    this.scene.add
+    const title = this.scene.add
       .text(centerX, startY, t('settings.language'), {
         color: '#aaaaaa',
         fontSize: '20px',
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
+    this.add(title);
 
     LANGUAGES.forEach((lang, index) => {
       const rowY = startY + 60 + index * 56;

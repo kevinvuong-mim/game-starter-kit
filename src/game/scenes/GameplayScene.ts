@@ -73,6 +73,7 @@ export class GameplayScene extends Phaser.Scene {
     this.unsubscribers.push(
       eventBus.on('app:back', () => {
         if (this.gameActive) {
+          this.endSession();
           this.scene.start('Home');
         }
       })
@@ -80,8 +81,24 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.gameActive = false;
+    this.spawnTimer?.destroy();
+    for (const obj of this.activeObjects) {
+      this.pool.release(obj);
+    }
+    this.activeObjects.clear();
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
+  }
+
+  private endSession(): void {
+    if (!this.gameActive) return;
+    this.gameActive = false;
+    this.spawnTimer?.destroy();
+
+    const duration = Date.now() - this.startTime;
+    eventBus.emit('game:over', { score: this.score, duration, jumps: this.jumps });
+    eventBus.emit('score:update', { score: this.score });
   }
 
   update(_time: number, delta: number): void {
@@ -157,12 +174,7 @@ export class GameplayScene extends Phaser.Scene {
 
   private gameOver(): void {
     if (!this.gameActive) return;
-    this.gameActive = false;
-    this.spawnTimer?.destroy();
-
-    const duration = Date.now() - this.startTime;
-    eventBus.emit('game:over', { score: this.score, duration, jumps: this.jumps });
-    eventBus.emit('score:update', { score: this.score });
+    this.endSession();
 
     this.time.delayedCall(500, () => {
       this.scene.start('GameOver', { score: this.score, jumps: this.jumps });

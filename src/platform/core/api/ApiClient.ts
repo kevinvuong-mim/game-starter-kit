@@ -6,7 +6,6 @@ import type {
   RequestInterceptor,
   ResponseInterceptor,
 } from './types';
-import { getConfig } from '../config';
 import { ApiError as ApiErrorClass } from './types';
 
 const DEFAULT_RETRIES = 2;
@@ -21,7 +20,7 @@ export class ApiClient implements IApiClient {
   private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl ?? getConfig().apiUrl;
+    this.baseUrl = baseUrl ?? '';
   }
 
   setBaseUrl(url: string): void {

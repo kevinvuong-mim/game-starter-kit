@@ -73,13 +73,17 @@ export class ShopScreen extends BaseScreen {
   private createItemRow(item: ShopItem, y: number): Phaser.GameObjects.Container {
     const container = this.scene.add.container(0, y);
     const owned = shop.isOwned(item.id);
-    const priceLabel = owned ? t('shop.owned') : `${item.price} ${item.currency}`;
+    const itemName = t(`shop.items.${item.id}.name`);
+    const itemDesc = t(`shop.items.${item.id}.description`);
+    const priceLabel = owned
+      ? t('shop.owned')
+      : `${item.price} ${t(`shop.currency.${item.currency}`)}`;
 
     const bg = this.scene.add.rectangle(0, 0, 600, 64, 0x1a1a2e, 1);
     bg.setStrokeStyle(1, 0x4a90d9);
     container.add(bg);
 
-    const nameText = this.scene.add.text(-270, -10, item.name, {
+    const nameText = this.scene.add.text(-270, -10, itemName, {
       fontSize: '18px',
       color: '#ffffff',
       fontStyle: 'bold',
@@ -87,7 +91,7 @@ export class ShopScreen extends BaseScreen {
     });
     container.add(nameText);
 
-    const descText = this.scene.add.text(-270, 12, item.description, {
+    const descText = this.scene.add.text(-270, 12, itemDesc, {
       fontSize: '14px',
       color: '#aaaaaa',
       fontFamily: FREDOKA_FONT,
@@ -126,10 +130,11 @@ export class ShopScreen extends BaseScreen {
   }
 
   private async purchaseItem(item: ShopItem): Promise<void> {
+    const itemName = t(`shop.items.${item.id}.name`);
     const success = await shop.purchase(item.id);
     if (success) {
       toast.show({
-        message: t('shop.purchaseSuccess', { name: item.name }),
+        message: t('shop.purchaseSuccess', { name: itemName }),
         type: 'success',
       });
       this.renderItems();
