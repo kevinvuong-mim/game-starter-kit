@@ -7,10 +7,10 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 ```
 ┌─────────────────────────────────────────────┐
 │            GAME LAYER (src/game/)            │
-│  config / scenes / entities / systems        │
+│  config / scenes / utils / systems           │
 ├─────────────────────────────────────────────┤
-│         PLATFORM UI (src/platform/ui/)     │
-│  modal / toast / dialog / hud / screen       │
+│         PLATFORM UI (src/platform/ui/)       │
+│  screen / hud / toast / button / shop …    │
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n / shop / missions / leaderboard / save │
@@ -20,7 +20,7 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 │  analytics / advertising / iap / utils       │
 ├─────────────────────────────────────────────┤
 │     BOOTSTRAP (src/platform/bootstrap/)      │
-│  App / GameEngine / API contracts            │
+│  App / GameEngine / analytics / capacitor    │
 └─────────────────────────────────────────────┘
 ```
 
@@ -31,6 +31,8 @@ src/
 ├── main.ts
 ├── game/                        # Customize per project
 │   ├── config.ts                # id, name, version, screen size
+│   ├── utils/
+│   │   └── ObjectPool.ts        # Generic object pool for entities
 │   └── scenes/
 │       ├── index.ts             # Scene registry for Phaser
 │       ├── BootScene.ts
@@ -39,15 +41,28 @@ src/
 │       ├── GameplayScene.ts
 │       ├── GameOverScene.ts
 │       └── SettingsScene.ts
-├── platform/
-│   ├── index.ts
-│   ├── core/
-│   ├── modules/
-│   ├── ui/
-│   └── bootstrap/
-│       ├── App.ts
-│       ├── GameEngine.ts
-│       └── api-contracts.ts
+└── platform/
+    ├── index.ts                 # Barrel re-export (optional)
+    ├── core/
+    ├── modules/
+    ├── ui/
+    │   ├── button/UIButton.ts   # createUIButton()
+    │   ├── hud/HUD.ts
+    │   ├── screen/ScreenManager.ts
+    │   ├── shop/ShopScreen.ts
+    │   ├── toast/ToastManager.ts
+    │   ├── modal/ModalScreen.ts
+    │   ├── dialog/DialogScreen.ts
+    │   ├── popup/PopupScreen.ts
+    │   ├── settings/LanguageSettingsPanel.ts
+    │   ├── typography.ts        # FREDOKA_FONT, NUNITO_FONT
+    │   └── i18n.ts              # Re-export t/i18n for game & UI layers
+    └── bootstrap/
+        ├── App.ts               # Module wiring, event handlers
+        ├── GameEngine.ts        # Phaser bootstrap, font preload, toast init
+        ├── analytics.ts         # Analytics provider registration
+        ├── capacitor.ts         # Capacitor plugin init
+        └── api-contracts.ts     # NestJS-compatible REST DTOs (reference)
 ```
 
 ## Path Aliases
@@ -69,14 +84,15 @@ src/
 | Reusability        | `src/platform/` ships with every cloned project |
 | Event Driven       | Typed EventBus decouples game from platform     |
 | Data Driven        | Shop catalog, missions defined in JSON          |
-| Offline First      | Local save, offline queue for leaderboard       |
+| Offline First      | IndexedDB save + offline queue for leaderboard  |
 | Mobile Performance | Object pooling, lazy load, 60 FPS target        |
+| Single persistence | SaveService owns durable state; store is in-memory |
 
 ## Layer 1: Game Layer
 
 **Location:** `src/game/`
 
-Games communicate via the Event Bus:
+Games communicate with the platform via the **Event Bus**:
 
 ```typescript
 import { eventBus } from '@platform/core/events';
@@ -90,20 +106,44 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 ### Game layer guidelines
 
-- **Primary:** Emit events via `@platform/core/events`
-- **Allowed:** Phaser APIs, `@game/*`, `@platform/ui/*` (HUD, toast)
-- **Avoid:** Direct `@platform/core/api`, `@platform/core/storage`, store mutations
+| Preferred | Avoid |
+| --------- | ----- |
+| `@platform/core/events` (emit) | `@platform/core/api` |
+| `@game/*` | `@platform/core/storage` |
+| Phaser APIs | Direct store mutations (`@platform/core/state`) |
+| `@platform/ui/*` (HUD, toast, `createUIButton`, `t`) | `@platform/modules/*` |
+| `@game/utils/*` (e.g. `ObjectPool`) | `@platform/core/utils` |
+
+ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` in `eslint.config.js`.
+
+**i18n:** Import `t` from `@platform/ui/i18n`, not from `@platform/modules/i18n` directly.
 
 ## Layer 2: Platform Core
 
 **Location:** `src/platform/core/`
 
-- **Event Bus** — typed pub/sub
-- **Global Store** — Zustand vanilla store
-- **Config** — `dev` / `staging` / `production` runtime config
-- **Storage** — localStorage, IndexedDB, memory providers
-- **API Client** — REST client with retry, timeout, auth interceptors
-- **Providers** — analytics, advertising, IAP (swappable interfaces)
+| System | Role |
+| ------ | ---- |
+| **Event Bus** | Typed pub/sub between game, UI, and bootstrap |
+| **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware) |
+| **SaveService** | Durable persistence via IndexedDB + optional cloud sync (see modules) |
+| **Config** | `dev` / `staging` / `production` runtime config |
+| **Storage** | `StorageService` with localStorage, IndexedDB, memory providers (used by modules) |
+| **API Client** | REST client with retry, timeout, auth interceptors |
+| **Providers** | Analytics, advertising, IAP — swappable interfaces |
+
+### Persistence model
+
+```
+Runtime state  →  usePlatformStore (Zustand, in-memory)
+                        ↕ hydrate / extractSaveableState
+Durable save   →  saveService (IndexedDB key: game-save)
+                        ↕ optional cloud sync via API
+```
+
+- On boot: `saveService.loadLocal()` hydrates the store before `settings.init()` and `missions.init()`.
+- On `game:over`, `settings:change`, and app background: `saveService.saveLocal()`.
+- Settings are part of store state — **not** persisted separately.
 
 ## Layer 3: Platform Modules
 
@@ -119,25 +159,58 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 | daily-rewards | `daily-rewards/daily-reward.service.ts`                  |
 | save          | `save/save.service.ts`                                   |
 
-Modules subscribe to events from the game layer and update platform state. Wired in `bootstrap/App.ts`.
+Modules are initialized and wired in `bootstrap/App.ts`. Mission progress is **merged** with saved state on init (not reset). Settings changes emit `settings:change`, which triggers a local save.
 
 ## Layer 4: Platform UI
 
 **Location:** `src/platform/ui/`
 
-Phaser-native UI: `ScreenManager`, `ModalScreen`, `ToastManager`, `DialogScreen`, `HUD`, `PopupScreen`.
+Phaser-native UI components:
+
+| Component | Purpose |
+| --------- | ------- |
+| `ScreenManager` / `BaseScreen` | Screen stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
+| `createUIButton` | Shared button factory (`primary` / `rounded` variants) |
+| `HUD` | Score, coins, gems — subscribes to store |
+| `ToastManager` | Queued toasts; bound to `Phaser.Game` in `GameEngine` |
+| `ShopScreen` | In-game shop UI |
+| `LanguageSettingsPanel` | Language picker for Settings scene |
+| `ModalScreen`, `DialogScreen`, `PopupScreen` | Reusable overlay screens |
+
+Import from `@platform/ui` or `@platform/ui/<component>`.
 
 ## Layer 5: Bootstrap
 
 **Location:** `src/platform/bootstrap/`
 
-- **`App.ts`** — initializes modules, binds event bus handlers
-- **`GameEngine.ts`** — creates Phaser instance from `src/game/`
-- **`api-contracts.ts`** — NestJS-compatible REST DTO definitions
+| File | Role |
+| ---- | ---- |
+| `App.ts` | Initializes modules, binds event bus handlers, lifecycle |
+| `GameEngine.ts` | Creates Phaser instance, preloads fonts, inits toast |
+| `analytics.ts` | Registers Console + Firebase analytics providers |
+| `capacitor.ts` | Capacitor plugin initialization |
+| `api-contracts.ts` | REST DTO definitions for backend reference |
 
-Entry point: `src/main.ts` → `GameEngine.bootstrap()`
+**Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
+
+### App initialization order
+
+```
+1. Ensure user id in store (generateId if missing)
+2. registerAnalyticsProviders()
+3. Parallel: i18n, analytics, ads, iap, leaderboard, dailyRewards init
+4. analytics.setUserId() + setUserProperty('game_id')
+5. saveService.loadLocal()        ← hydrate store from IndexedDB
+6. settings.init()                ← apply language from store
+7. missions.init()                ← merge mission progress with saved state
+8. bindPlatformEvents() + bindLifecycle()
+```
+
+`GameEngine.bootstrap()` runs `app.init()` **before** creating the Phaser game, then calls `toast.init(game)` once the game instance exists.
 
 ## Data Flow
+
+### Gameplay → UI
 
 ```
 Player action in GameplayScene
@@ -148,6 +221,28 @@ App.ts handler → usePlatformStore.addCoins()
     ↓
 HUD subscribes to store → UI updates
 ```
+
+### Settings → persistence
+
+```
+settings.setLanguage('vi')
+    ↓
+store.updateSettings() + i18n.setLanguage()
+    ↓
+eventBus.emit('settings:change', …)
+    ↓
+App.ts → saveService.saveLocal()
+```
+
+## Scene Flow
+
+```
+Boot → Preload → Home ⇄ Settings
+                  ↓
+              Gameplay → GameOver → Home / Gameplay
+```
+
+`HomeScene` registers `ShopScreen` (and optionally `ModalScreen`) with `screenManager` and calls `screenManager.unregisterForScene(this)` on shutdown.
 
 ## Starting a New Game
 
@@ -173,7 +268,14 @@ HUD subscribes to store → UI updates
 | `platform/` root folder   | Single home for all shared code                  |
 | `game/` not `games/`      | Singular — one game per repo                     |
 | i18n colocated            | Service + locale JSON in `modules/i18n/`         |
+| `@platform/ui/i18n` facade | Game/UI import `t` without touching modules     |
 | `advertising/` not `ads/` | Avoids browser ad-blocker URL filtering in dev   |
 | Zustand vanilla           | No React dependency with Phaser                  |
+| SaveService over store persist | One persistence path; cloud sync ready       |
 | Provider pattern          | Swap AdMob/Firebase/RevenueCat per game          |
 | Event Bus                 | Enforces game/platform boundary                  |
+
+## Related docs
+
+- [docs/analytics.md](./docs/analytics.md) — analytics providers, events, Firebase setup
+- [README.md](./README.md) — quick start, env vars, deployment
