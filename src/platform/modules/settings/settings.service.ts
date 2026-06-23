@@ -1,8 +1,8 @@
+import { i18n } from '../i18n/i18n.service';
+import { eventBus } from '@platform/core/events';
+import { storage } from '@platform/core/storage';
 import { usePlatformStore } from '@platform/core/state';
 import type { SettingsState } from '@platform/core/state';
-import { storage } from '@platform/core/storage';
-import { eventBus } from '@platform/core/events';
-import { i18n } from '../i18n/i18n.service';
 
 const SETTINGS_KEY = 'settings';
 

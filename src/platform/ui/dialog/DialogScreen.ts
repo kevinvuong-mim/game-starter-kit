@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
+
+import { FONT_FAMILY } from '../typography';
 import { BaseScreen } from '../screen/ScreenManager';
 import { t } from '@platform/modules/i18n/i18n.service';
-import { FONT_FAMILY } from '../typography';
 
 export interface DialogButton {
   label: string;
-  onClick: () => void;
   primary?: boolean;
+  onClick: () => void;
 }
 
 export class DialogScreen extends BaseScreen {

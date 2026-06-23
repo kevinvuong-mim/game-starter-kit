@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import { BaseScreen } from '../screen/ScreenManager';
+
 import { t } from '../i18n';
+import { FONT_FAMILY } from '../typography';
+import { toast } from '../toast/ToastManager';
+import { BaseScreen } from '../screen/ScreenManager';
 import { shop } from '@platform/modules/shop/shop.service';
 import type { ShopItem } from '@platform/modules/shop/shop.service';
-import { toast } from '../toast/ToastManager';
-import { FONT_FAMILY } from '../typography';
 
 export class ShopScreen extends BaseScreen {
   readonly id = 'shop';

@@ -1,53 +1,53 @@
 export type Environment = 'dev' | 'staging' | 'production';
 
 export interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
   appId: string;
+  apiKey: string;
+  projectId: string;
+  authDomain: string;
   measurementId: string;
 }
 
 export interface RuntimeConfig {
   apiUrl: string;
-  adsEnabled: boolean;
-  analyticsEnabled: boolean;
-  iapEnabled: boolean;
   debug: boolean;
   gameId: string;
   version: string;
+  adsEnabled: boolean;
+  iapEnabled: boolean;
   firebase: FirebaseConfig;
+  analyticsEnabled: boolean;
 }
 
 const EMPTY_FIREBASE: FirebaseConfig = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
   appId: '',
+  apiKey: '',
+  projectId: '',
+  authDomain: '',
   measurementId: '',
 };
 
 const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
   dev: {
-    apiUrl: 'http://localhost:3000/api',
+    debug: true,
     adsEnabled: false,
     analyticsEnabled: false,
-    debug: true,
     firebase: EMPTY_FIREBASE,
+    apiUrl: 'http://localhost:3000/api',
   },
   staging: {
-    apiUrl: 'https://staging-api.studio.games/api',
+    debug: true,
     adsEnabled: true,
     analyticsEnabled: true,
-    debug: true,
     firebase: EMPTY_FIREBASE,
+    apiUrl: 'https://staging-api.studio.games/api',
   },
   production: {
-    apiUrl: 'https://api.studio.games/api',
+    debug: false,
     adsEnabled: true,
     analyticsEnabled: true,
-    debug: false,
     firebase: EMPTY_FIREBASE,
+    apiUrl: 'https://api.studio.games/api',
   },
 };
 
@@ -59,10 +59,10 @@ function resolveEnvironment(): Environment {
 
 function resolveFirebaseConfig(): FirebaseConfig {
   return {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? '',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '',
     appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '',
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? '',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
   };
 }
@@ -72,15 +72,15 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   const base = ENV_CONFIGS[env];
 
   return {
+    debug: base.debug ?? false,
+    gameId: 'game-starter-kit',
+    firebase: resolveFirebaseConfig(),
+    version: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
+    iapEnabled: import.meta.env.VITE_IAP_ENABLED === 'true',
     apiUrl: import.meta.env.VITE_API_URL ?? base.apiUrl ?? '',
     adsEnabled: import.meta.env.VITE_ADS_ENABLED === 'true' || base.adsEnabled === true,
     analyticsEnabled:
       import.meta.env.VITE_ANALYTICS_ENABLED === 'true' || base.analyticsEnabled === true,
-    iapEnabled: import.meta.env.VITE_IAP_ENABLED === 'true',
-    debug: base.debug ?? false,
-    gameId: 'game-starter-kit',
-    version: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
-    firebase: resolveFirebaseConfig(),
     ...overrides,
   };
 }

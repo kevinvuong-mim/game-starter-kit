@@ -1,25 +1,16 @@
-/**
- * NestJS-compatible API contract definitions.
- * Implement these endpoints on your backend server.
- *
- * @example
- * // backend/src/leaderboard/leaderboard.controller.ts
- * @Post('submit')
- * submitScore(@Body() dto: SubmitScoreDto) { ... }
- */
 export interface SubmitScoreDto {
   score: number;
-  board: 'daily' | 'weekly' | 'allTime';
   userId: string;
   displayName: string;
+  board: 'daily' | 'weekly' | 'allTime';
 }
 
 export interface LeaderboardResponse {
   rank: number;
-  playerId: string;
-  displayName: string;
   score: number;
+  playerId: string;
   avatarUrl?: string;
+  displayName: string;
 }
 
 export interface SaveDataDto {
@@ -31,7 +22,7 @@ export interface SaveDataDto {
 export interface IapVerifyDto {
   receipt: string;
   productId: string;
-  platform: 'ios' | 'android' | 'mock';
+  platform: 'ios' | 'mock' | 'android';
 }
 
 export interface IapVerifyResponse {
@@ -46,10 +37,8 @@ export interface ServerTimeResponse {
 
 /** REST API route map for NestJS implementation */
 export const API_ROUTES = {
-  leaderboard: {
-    submit: 'POST /leaderboard/submit',
-    get: 'GET /leaderboard/:board',
-    rank: 'GET /leaderboard/:board/rank/:userId',
+  time: {
+    get: 'GET /time',
   },
   save: {
     get: 'GET /save',
@@ -58,7 +47,10 @@ export const API_ROUTES = {
   iap: {
     verify: 'POST /iap/verify',
   },
-  time: {
-    get: 'GET /time',
+
+  leaderboard: {
+    get: 'GET /leaderboard/:board',
+    submit: 'POST /leaderboard/submit',
+    rank: 'GET /leaderboard/:board/rank/:userId',
   },
 } as const;

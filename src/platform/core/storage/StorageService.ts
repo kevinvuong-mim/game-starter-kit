@@ -1,11 +1,11 @@
-import type { StorageProvider, StorageProviderType } from './types';
 import { LocalStorageProvider } from './LocalStorage';
-import { IndexedDBStorageProvider } from './IndexedDBStorage';
 import { MemoryStorageProvider } from './MemoryStorage';
+import { IndexedDBStorageProvider } from './IndexedDBStorage';
+import type { StorageProvider, StorageProviderType } from './types';
 
 export class StorageService {
-  private providers = new Map<StorageProviderType, StorageProvider>();
   private primary: StorageProviderType = 'localStorage';
+  private providers = new Map<StorageProviderType, StorageProvider>();
 
   constructor() {
     this.providers.set('localStorage', new LocalStorageProvider());

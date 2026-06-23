@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AnalyticsService } from './AnalyticsService';
+import { it, vi, expect, describe, beforeEach } from 'vitest';
 import type { AnalyticsEvent, AnalyticsParams, IAnalyticsProvider } from './types';
 
 function createMockProvider(overrides: Partial<IAnalyticsProvider> = {}): IAnalyticsProvider {
   return {
     name: 'mock',
-    init: vi.fn().mockResolvedValue(undefined),
     track: vi.fn(),
     setUserId: vi.fn(),
     setUserProperty: vi.fn(),
+    init: vi.fn().mockResolvedValue(undefined),
     flush: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };

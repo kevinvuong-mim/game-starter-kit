@@ -1,14 +1,18 @@
-import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
+  server: {
+    host: true,
+    port: 5173,
+  },
   resolve: {
     alias: {
+      '@game': resolve(__dirname, 'src/game'),
+      '@platform/ui': resolve(__dirname, 'src/platform/ui'),
       '@platform/core': resolve(__dirname, 'src/platform/core'),
       '@platform/modules': resolve(__dirname, 'src/platform/modules'),
-      '@platform/ui': resolve(__dirname, 'src/platform/ui'),
       '@platform/bootstrap': resolve(__dirname, 'src/platform/bootstrap'),
-      '@game': resolve(__dirname, 'src/game'),
     },
   },
   build: {
@@ -25,9 +29,5 @@ export default defineConfig({
         },
       },
     },
-  },
-  server: {
-    port: 5173,
-    host: true,
   },
 });

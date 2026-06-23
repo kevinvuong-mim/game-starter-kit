@@ -1,22 +1,22 @@
 import catalog from './catalog.json';
-import { usePlatformStore } from '@platform/core/state';
-import { eventBus } from '@platform/core/events';
 import { iap } from '@platform/core/iap';
 import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
+import { usePlatformStore } from '@platform/core/state';
 
 export type ShopItemType = 'skin' | 'boost' | 'currency';
 
 export interface ShopItem {
   id: string;
-  type: ShopItemType;
   name: string;
-  description: string;
-  price: number;
-  currency: 'coins' | 'gems' | 'iap';
   icon: string;
-  iapProductId?: string;
+  price: number;
   duration?: number;
-  reward?: { coins?: number; gems?: number };
+  type: ShopItemType;
+  description: string;
+  iapProductId?: string;
+  currency: 'iap' | 'gems' | 'coins';
+  reward?: { gems?: number; coins?: number };
 }
 
 export class ShopService {

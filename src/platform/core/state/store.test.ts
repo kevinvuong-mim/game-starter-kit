@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { it, expect, describe, beforeEach } from 'vitest';
+
 import { usePlatformStore } from './store';
 
 describe('usePlatformStore', () => {

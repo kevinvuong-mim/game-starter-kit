@@ -1,24 +1,24 @@
-import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import {
-  getAnalytics,
-  initializeAnalytics,
-  isSupported,
   logEvent,
   setUserId,
-  setUserProperties,
+  isSupported,
+  getAnalytics,
   type Analytics,
+  setUserProperties,
+  initializeAnalytics,
 } from 'firebase/analytics';
-import { getConfig } from '../../config';
 import { logger } from '../../error';
+import { getConfig } from '../../config';
+import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import type { AnalyticsEvent, AnalyticsParams, IAnalyticsProvider } from '../types';
 
 export class FirebaseAnalyticsProvider implements IAnalyticsProvider {
   readonly name = 'firebase';
 
+  private initialized = false;
   private app: FirebaseApp | null = null;
   private analytics: Analytics | null = null;
   private initPromise: Promise<void> | null = null;
-  private initialized = false;
 
   async init(): Promise<void> {
     await this.ensureInitialized();

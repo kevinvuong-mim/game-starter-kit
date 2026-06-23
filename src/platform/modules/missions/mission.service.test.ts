@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
+import { it, vi, expect, describe, beforeEach } from 'vitest';
 
 vi.mock('@platform/core/error', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },

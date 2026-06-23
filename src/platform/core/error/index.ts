@@ -1,17 +1,17 @@
 import { getEnvironment } from '../config';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'info' | 'warn' | 'debug' | 'error';
 
 const LOG_LEVELS: Record<LogLevel, number> = {
-  debug: 0,
   info: 1,
   warn: 2,
+  debug: 0,
   error: 3,
 };
 
 export class Logger {
-  private minLevel: LogLevel;
   private context: string;
+  private minLevel: LogLevel;
 
   constructor(context = 'Platform', minLevel?: LogLevel) {
     this.context = context;
@@ -50,8 +50,8 @@ export class Logger {
 export const logger = new Logger('Platform');
 
 export interface CrashReport {
-  message: string;
   stack?: string;
+  message: string;
   context?: string;
   timestamp: number;
   userAgent?: string;
@@ -71,10 +71,10 @@ export function registerCrashReporter(reporter: CrashReporter): () => void {
 
 export async function reportCrash(error: Error, context?: string): Promise<void> {
   const report: CrashReport = {
-    message: error.message,
-    stack: error.stack,
     context,
+    stack: error.stack,
     timestamp: Date.now(),
+    message: error.message,
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
   };
 

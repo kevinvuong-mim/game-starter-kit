@@ -1,9 +1,9 @@
-import { getConfig } from '@platform/core/config';
 import {
   analytics,
   ConsoleAnalyticsProvider,
   FirebaseAnalyticsProvider,
 } from '@platform/core/analytics';
+import { getConfig } from '@platform/core/config';
 
 /**
  * Registers analytics providers based on runtime config.

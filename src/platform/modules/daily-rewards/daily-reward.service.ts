@@ -1,12 +1,12 @@
-import { usePlatformStore } from '@platform/core/state';
-import type { DailyRewardState } from '@platform/core/state';
-import { eventBus } from '@platform/core/events';
+import { logger } from '@platform/core/error';
 import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
-import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
+import { usePlatformStore } from '@platform/core/state';
+import type { DailyRewardState } from '@platform/core/state';
 
-const DAILY_REWARD_KEY = 'daily-rewards';
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const DAILY_REWARD_KEY = 'daily-rewards';
 
 export interface DailyRewardDay {
   day: number;

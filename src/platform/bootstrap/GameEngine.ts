@@ -1,10 +1,11 @@
-import { createConfig, getConfig, setConfig } from '@platform/core/config';
-import { setupGlobalErrorHandlers, errorBoundary } from '@platform/core/error';
-import { app } from '@platform/bootstrap/App';
-import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
+import type Phaser from 'phaser';
+
 import { gameConfig } from '@game/config';
 import { gameScenes } from '@game/scenes';
-import type Phaser from 'phaser';
+import { app } from '@platform/bootstrap/App';
+import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
+import { getConfig, setConfig, createConfig } from '@platform/core/config';
+import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
 
 export class GameEngine {
   private game: Phaser.Game | null = null;
@@ -27,38 +28,40 @@ export class GameEngine {
     const PhaserLib = await import('phaser');
 
     const phaserConfig: Phaser.Types.Core.GameConfig = {
+      scene: gameScenes,
+      render: {
+        antialias: true,
+        pixelArt: false,
+        roundPixels: true,
+      },
+      banner: config.debug,
       type: PhaserLib.AUTO,
-      parent: 'game-container',
       width: gameConfig.width,
+      parent: 'game-container',
+      audio: {
+        disableWebAudio: false,
+      },
+      fps: {
+        target: 60,
+        forceSetTimeOut: false,
+      },
       height: gameConfig.height,
       backgroundColor: '#1a1a2e',
       scale: {
         mode: PhaserLib.Scale.ENVELOP,
         autoCenter: PhaserLib.Scale.CENTER_BOTH,
       },
-      scene: gameScenes,
-      fps: {
-        target: 60,
-        forceSetTimeOut: false,
-      },
-      render: {
-        antialias: true,
-        pixelArt: false,
-        roundPixels: true,
-      },
-      audio: {
-        disableWebAudio: false,
-      },
-      banner: config.debug,
     };
 
     this.game = new PhaserLib.Game(phaserConfig);
+
     return this.game;
   }
 
   destroy(): void {
     this.game?.destroy(true);
     this.game = null;
+
     void app.destroy();
   }
 }

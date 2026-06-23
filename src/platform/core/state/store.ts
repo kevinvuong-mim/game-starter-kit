@@ -1,35 +1,36 @@
 import { createStore } from 'zustand/vanilla';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { PlatformState } from './types';
+
 import { DEFAULT_STATE } from './types';
+import type { PlatformState } from './types';
 
 export interface PlatformStore extends PlatformState {
   // User
   setUser: (user: Partial<PlatformState['user']>) => void;
 
   // Currency
-  addCoins: (amount: number) => void;
-  spendCoins: (amount: number) => boolean;
   addGems: (amount: number) => void;
+  addCoins: (amount: number) => void;
   spendGems: (amount: number) => boolean;
+  spendCoins: (amount: number) => boolean;
 
   // Inventory
+  equipItem: (id: string) => void;
   addItem: (id: string, quantity?: number) => void;
   removeItem: (id: string, quantity?: number) => void;
-  equipItem: (id: string) => void;
 
   // Progress
-  setHighScore: (score: number) => void;
   incrementGamesPlayed: () => void;
+  setHighScore: (score: number) => void;
   setCurrentLevel: (level: number) => void;
 
   // Settings
   updateSettings: (settings: Partial<PlatformState['settings']>) => void;
 
   // Missions
-  updateMissionProgress: (id: string, progress: number) => void;
-  completeMission: (id: string) => void;
   claimMission: (id: string) => void;
+  completeMission: (id: string) => void;
+  updateMissionProgress: (id: string, progress: number) => void;
   setMissions: (missions: PlatformState['missions']['missions']) => void;
 
   // Daily rewards
@@ -49,12 +50,12 @@ export interface PlatformStore extends PlatformState {
 }
 
 const memoryStorage: Storage = {
-  getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {},
+  length: 0,
   clear: () => {},
   key: () => null,
-  length: 0,
+  setItem: () => {},
+  getItem: () => null,
+  removeItem: () => {},
 };
 
 function getStorage(): Storage {

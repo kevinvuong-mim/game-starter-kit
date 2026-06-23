@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
+
 import { t, i18n } from '../i18n';
-import { settings } from '@platform/modules/settings/settings.service';
-import { toast } from '../toast/ToastManager';
 import { FONT_FAMILY } from '../typography';
+import { toast } from '../toast/ToastManager';
+import { settings } from '@platform/modules/settings/settings.service';
 
 const LANGUAGES = [
   { code: 'en', labelKey: 'settings.languageEn' as const },

@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
+
+import { formatNumber } from '@platform/core/utils';
 import { FONT_FAMILY } from '@platform/ui/typography';
 import { usePlatformStore } from '@platform/core/state';
-import { formatNumber } from '@platform/core/utils';
 
 export class HUD extends Phaser.GameObjects.Container {
+  private unsubscribe?: () => void;
+  private gemText?: Phaser.GameObjects.Text;
   private coinText?: Phaser.GameObjects.Text;
   private scoreText?: Phaser.GameObjects.Text;
-  private gemText?: Phaser.GameObjects.Text;
-  private unsubscribe?: () => void;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);

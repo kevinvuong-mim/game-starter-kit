@@ -1,10 +1,10 @@
-import { getConfig } from '../config';
 import { logger } from '../error';
+import { getConfig } from '../config';
 import type { AnalyticsEvent, AnalyticsParams, IAnalyticsProvider } from './types';
 
 export class AnalyticsService {
-  private providers: IAnalyticsProvider[] = [];
   private enabled = true;
+  private providers: IAnalyticsProvider[] = [];
 
   constructor() {
     this.enabled = getConfig().analyticsEnabled;

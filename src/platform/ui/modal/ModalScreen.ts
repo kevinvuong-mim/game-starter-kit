@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { BaseScreen } from '../screen/ScreenManager';
+
 import { t } from '../i18n';
 import { FONT_FAMILY } from '../typography';
+import { BaseScreen } from '../screen/ScreenManager';
 
 export class ModalScreen extends BaseScreen {
   readonly id = 'modal';
-  private content?: Phaser.GameObjects.Text;
   private onClose?: () => void;
+  private content?: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     super(scene);

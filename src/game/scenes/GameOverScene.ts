@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { eventBus } from '@platform/core/events';
+
 import { t } from '@platform/ui/i18n';
+import { eventBus } from '@platform/core/events';
 import { FONT_FAMILY } from '@platform/ui/typography';
 
 export class GameOverScene extends Phaser.Scene {

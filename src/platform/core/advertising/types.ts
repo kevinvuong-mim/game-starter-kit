@@ -1,4 +1,4 @@
-export type AdType = 'rewarded' | 'interstitial' | 'banner';
+export type AdType = 'banner' | 'rewarded' | 'interstitial';
 
 export interface AdReward {
   type: string;
@@ -6,19 +6,19 @@ export interface AdReward {
 }
 
 export interface AdShowResult {
+  error?: string;
   shown: boolean;
   rewarded?: AdReward;
-  error?: string;
 }
 
 export interface IAdsProvider {
-  readonly name: string;
+  destroy(): void;
+  hideBanner(): void;
   init(): Promise<void>;
+  readonly name: string;
   isReady(type: AdType): boolean;
   preload(type: AdType): Promise<void>;
+  showBanner(placement?: string): Promise<void>;
   showRewarded(placement?: string): Promise<AdShowResult>;
   showInterstitial(placement?: string): Promise<AdShowResult>;
-  showBanner(placement?: string): Promise<void>;
-  hideBanner(): void;
-  destroy(): void;
 }

@@ -1,18 +1,18 @@
 export interface IapProduct {
   id: string;
-  title: string;
-  description: string;
   price: string;
-  priceAmount: number;
+  title: string;
   currency: string;
-  type: 'consumable' | 'non_consumable' | 'subscription';
+  description: string;
+  priceAmount: number;
+  type: 'consumable' | 'subscription' | 'non_consumable';
 }
 
 export interface IapPurchase {
-  productId: string;
-  transactionId: string;
   receipt: string;
+  productId: string;
   purchaseTime: number;
+  transactionId: string;
 }
 
 export interface IapVerifyResult {
@@ -24,9 +24,9 @@ export interface IapVerifyResult {
 export interface IIapProvider {
   readonly name: string;
   init(): Promise<void>;
-  getProducts(): Promise<IapProduct[]>;
-  purchase(productId: string): Promise<IapPurchase>;
   restore(): Promise<IapPurchase[]>;
-  verify(receipt: string): Promise<IapVerifyResult>;
+  getProducts(): Promise<IapProduct[]>;
   consume(transactionId: string): Promise<void>;
+  purchase(productId: string): Promise<IapPurchase>;
+  verify(receipt: string): Promise<IapVerifyResult>;
 }

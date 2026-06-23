@@ -1,18 +1,19 @@
 import Phaser from 'phaser';
-import type { ToastOptions, UIToastType } from '../types';
+
 import { FONT_FAMILY } from '../typography';
+import type { UIToastType, ToastOptions } from '../types';
 
 const TOAST_COLORS: Record<UIToastType, number> = {
   info: 0x4a90d9,
+  error: 0xf44336,
   success: 0x4caf50,
   warning: 0xff9800,
-  error: 0xf44336,
 };
 
 export class ToastManager {
-  private scene: Phaser.Scene | null = null;
-  private queue: ToastOptions[] = [];
   private showing = false;
+  private queue: ToastOptions[] = [];
+  private scene: Phaser.Scene | null = null;
 
   init(scene: Phaser.Scene): void {
     this.scene = scene;

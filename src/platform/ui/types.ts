@@ -4,28 +4,28 @@ export type UIScreenId = string;
 
 export interface UIScreenConfig {
   id: UIScreenId;
-  scene?: Phaser.Scene;
   modal?: boolean;
+  scene?: Phaser.Scene;
   data?: Record<string, unknown>;
 }
 
 export interface IUIComponent {
-  readonly id: string;
-  show(data?: Record<string, unknown>): void;
   hide(): void;
   destroy(): void;
+  readonly id: string;
   isVisible(): boolean;
+  show(data?: Record<string, unknown>): void;
 }
 
 export interface IUIScreen extends IUIComponent {
-  open(data?: Record<string, unknown>): void;
   close(): void;
+  open(data?: Record<string, unknown>): void;
 }
 
-export type UIToastType = 'info' | 'success' | 'warning' | 'error';
+export type UIToastType = 'info' | 'error' | 'success' | 'warning';
 
 export interface ToastOptions {
   message: string;
-  type?: UIToastType;
   duration?: number;
+  type?: UIToastType;
 }

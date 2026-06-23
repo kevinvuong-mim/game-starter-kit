@@ -5,15 +5,15 @@
 export interface GameConfig {
   id: string;
   name: string;
-  version: string;
   width: number;
   height: number;
+  version: string;
 }
 
 export const gameConfig: GameConfig = {
-  id: 'game-starter-kit',
-  name: 'Game Starter Kit',
-  version: '1.0.0',
   width: 720,
   height: 1280,
+  version: '1.0.0',
+  id: 'game-starter-kit',
+  name: 'Game Starter Kit',
 };

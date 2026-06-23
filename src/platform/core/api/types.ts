@@ -1,13 +1,13 @@
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
 
 export interface RequestConfig {
-  method?: HttpMethod;
-  headers?: Record<string, string>;
-  body?: unknown;
-  timeout?: number;
-  retries?: number;
-  retryDelay?: number;
   auth?: boolean;
+  body?: unknown;
+  retries?: number;
+  timeout?: number;
+  method?: HttpMethod;
+  retryDelay?: number;
+  headers?: Record<string, string>;
 }
 
 export interface ApiResponse<T> {
@@ -39,12 +39,12 @@ export class ApiError extends Error {
 }
 
 export interface IApiClient {
-  get<T>(path: string, config?: RequestConfig): Promise<T>;
-  post<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
-  put<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
-  delete<T>(path: string, config?: RequestConfig): Promise<T>;
   setAuthToken(token: string | null): void;
+  get<T>(path: string, config?: RequestConfig): Promise<T>;
+  delete<T>(path: string, config?: RequestConfig): Promise<T>;
+  addErrorInterceptor(interceptor: ErrorInterceptor): () => void;
   addRequestInterceptor(interceptor: RequestInterceptor): () => void;
   addResponseInterceptor(interceptor: ResponseInterceptor): () => void;
-  addErrorInterceptor(interceptor: ErrorInterceptor): () => void;
+  put<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
+  post<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
 }

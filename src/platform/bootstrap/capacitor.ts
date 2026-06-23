@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
-import { eventBus } from '@platform/core/events';
 import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
 
 /**
  * Initialize native Capacitor plugins after platform bootstrap.

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+
 import { BaseScreen } from '../screen/ScreenManager';
 
 export class PopupScreen extends BaseScreen {

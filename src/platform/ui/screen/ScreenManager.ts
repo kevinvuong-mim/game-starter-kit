@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import type { IUIScreen, UIScreenConfig, UIScreenId } from '../types';
+
 import { FONT_FAMILY } from '../typography';
+import type { IUIScreen, UIScreenId, UIScreenConfig } from '../types';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
   abstract readonly id: string;

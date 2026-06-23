@@ -2,6 +2,7 @@ import type { StorageProvider } from './types';
 
 export class MemoryStorageProvider implements StorageProvider {
   readonly type = 'memory' as const;
+
   private store = new Map<string, string>();
 
   async save<T>(key: string, value: T): Promise<void> {

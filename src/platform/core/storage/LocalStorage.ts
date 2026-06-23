@@ -4,6 +4,7 @@ const PREFIX = 'gsk:';
 
 export class LocalStorageProvider implements StorageProvider {
   readonly type = 'localStorage' as const;
+
   private available: boolean;
 
   constructor() {

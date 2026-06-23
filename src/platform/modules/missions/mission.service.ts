@@ -1,23 +1,23 @@
 import missionsData from './missions.json';
+import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 import type { MissionType, MissionProgress } from '@platform/core/state';
-import { logger } from '@platform/core/error';
 
 export interface MissionDefinition {
   id: string;
   type: string;
   target: number;
+  titleKey: string;
   missionType: MissionType;
   reward: { coins?: number; gems?: number };
-  titleKey: string;
 }
 
 const EVENT_TYPE_MAP: Record<string, string> = {
   jump: 'jump',
-  score: 'score:update',
   play: 'game:start',
   collect: 'collect',
+  score: 'score:update',
 };
 
 export class MissionService {

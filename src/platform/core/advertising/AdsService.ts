@@ -1,6 +1,6 @@
-import { getConfig } from '../config';
 import { logger } from '../error';
-import type { AdShowResult, AdType, IAdsProvider } from './types';
+import { getConfig } from '../config';
+import type { AdType, AdShowResult, IAdsProvider } from './types';
 
 export class MockAdsProvider implements IAdsProvider {
   readonly name = 'mock';
@@ -39,8 +39,8 @@ export class MockAdsProvider implements IAdsProvider {
 }
 
 export class AdsService {
-  private provider: IAdsProvider | null = null;
   private enabled = true;
+  private provider: IAdsProvider | null = null;
 
   constructor() {
     this.enabled = getConfig().adsEnabled;

@@ -1,28 +1,28 @@
-import { eventBus } from '@platform/core/events';
-import { analytics } from '@platform/core/analytics';
-import { getConfig } from '@platform/core/config';
+import { iap } from '@platform/core/iap';
 import {
   trackAdReward,
-  trackDailyClaim,
   trackGameOver,
+  trackPurchase,
   trackGameStart,
+  trackDailyClaim,
+  trackSessionEnd,
   trackLevelComplete,
   trackMissionComplete,
-  trackPurchase,
-  trackSessionEnd,
 } from '@platform/core/analytics/events';
-import { ads } from '@platform/core/advertising';
-import { iap } from '@platform/core/iap';
-import { usePlatformStore } from '@platform/core/state';
-import { generateId } from '@platform/core/utils';
 import { logger } from '@platform/core/error';
-import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
+import { ads } from '@platform/core/advertising';
+import { eventBus } from '@platform/core/events';
+import { generateId } from '@platform/core/utils';
+import { getConfig } from '@platform/core/config';
+import { analytics } from '@platform/core/analytics';
+import { usePlatformStore } from '@platform/core/state';
 import { i18n } from '@platform/modules/i18n/i18n.service';
-import { settings } from '@platform/modules/settings/settings.service';
-import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
-import { missions } from '@platform/modules/missions/mission.service';
-import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 import { saveService } from '@platform/modules/save/save.service';
+import { missions } from '@platform/modules/missions/mission.service';
+import { settings } from '@platform/modules/settings/settings.service';
+import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
+import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
+import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 
 /**
  * App layer orchestrator. Wires platform modules to the event bus.
@@ -137,13 +137,13 @@ export class App {
         if (reward) {
           trackDailyClaim({
             day: reward.day,
-            coins: reward.reward.coins,
             gems: reward.reward.gems,
+            coins: reward.reward.coins,
           });
           eventBus.emit('daily:claim:result', {
             success: true,
-            coins: reward.reward.coins,
             gems: reward.reward.gems,
+            coins: reward.reward.coins,
           });
         } else {
           eventBus.emit('daily:claim:result', {

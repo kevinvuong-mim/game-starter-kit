@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { eventBus } from '@platform/core/events';
-import { HUD } from '@platform/ui/hud/HUD';
-import { ObjectPool } from '@game/utils/ObjectPool';
+
 import { gameConfig } from '@game/config';
+import { HUD } from '@platform/ui/hud/HUD';
+import { eventBus } from '@platform/core/events';
+import { ObjectPool } from '@game/utils/ObjectPool';
 
 interface FallingObject {
-  sprite: Phaser.GameObjects.Arc;
   speed: number;
+  sprite: Phaser.GameObjects.Arc;
 }
 
 /**
@@ -14,17 +15,17 @@ interface FallingObject {
  * Replace this scene with your own game mechanics.
  */
 export class GameplayScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Arc;
-  private score = 0;
-  private jumps = 0;
   private hud!: HUD;
-  private isJumping = false;
-  private gameActive = true;
+  private jumps = 0;
+  private score = 0;
   private startTime = 0;
+  private gameActive = true;
+  private isJumping = false;
+  private player!: Phaser.GameObjects.Arc;
   private pool!: ObjectPool<FallingObject>;
-  private activeObjects = new Set<FallingObject>();
   private spawnTimer?: Phaser.Time.TimerEvent;
   private unsubscribers: Array<() => void> = [];
+  private activeObjects = new Set<FallingObject>();
 
   constructor() {
     super({ key: 'Gameplay' });

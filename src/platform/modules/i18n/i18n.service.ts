@@ -1,6 +1,6 @@
+import { logger } from '@platform/core/error';
 import { storage } from '@platform/core/storage';
 import { usePlatformStore } from '@platform/core/state';
-import { logger } from '@platform/core/error';
 
 interface TranslationNode {
   [key: string]: string | TranslationNode;

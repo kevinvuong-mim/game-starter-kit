@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
 import { EventBus } from './EventBus';
+import { it, vi, expect, describe } from 'vitest';
 
 describe('EventBus', () => {
   it('emits events to subscribers', () => {

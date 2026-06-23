@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+
 import { eventBus, AnalyticsEvents } from '@platform/core/events';
 
 export class BootScene extends Phaser.Scene {
@@ -9,6 +10,7 @@ export class BootScene extends Phaser.Scene {
   preload(): void {
     const { width, height } = this.cameras.main;
     const gfx = this.make.graphics({ x: 0, y: 0 });
+
     gfx.fillStyle(0x4a90d9);
     gfx.fillCircle(16, 16, 16);
     gfx.generateTexture('particle', 32, 32);
@@ -26,6 +28,7 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
     eventBus.emit('app:ready', undefined);
+
     this.scene.start('Preload');
   }
 }

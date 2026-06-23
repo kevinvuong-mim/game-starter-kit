@@ -1,38 +1,38 @@
-import { getConfig } from '../config';
-import { apiClient } from '../api';
 import { logger } from '../error';
-import type { IIapProvider, IapProduct, IapPurchase, IapVerifyResult } from './types';
+import { apiClient } from '../api';
+import { getConfig } from '../config';
+import type { IapProduct, IapPurchase, IIapProvider, IapVerifyResult } from './types';
 
 export class MockIapProvider implements IIapProvider {
   readonly name = 'mock';
 
   private products: IapProduct[] = [
     {
+      price: '$0.99',
+      currency: 'USD',
       id: 'coins_100',
+      priceAmount: 0.99,
+      type: 'consumable',
       title: '100 Coins',
       description: 'Small coin pack',
-      price: '$0.99',
-      priceAmount: 0.99,
-      currency: 'USD',
-      type: 'consumable',
     },
     {
+      price: '$3.99',
       id: 'coins_500',
+      currency: 'USD',
+      priceAmount: 3.99,
+      type: 'consumable',
       title: '500 Coins',
       description: 'Medium coin pack',
-      price: '$3.99',
-      priceAmount: 3.99,
-      currency: 'USD',
-      type: 'consumable',
     },
     {
-      id: 'remove_ads',
-      title: 'Remove Ads',
-      description: 'Permanent ad removal',
       price: '$4.99',
-      priceAmount: 4.99,
       currency: 'USD',
+      id: 'remove_ads',
+      priceAmount: 4.99,
+      title: 'Remove Ads',
       type: 'non_consumable',
+      description: 'Permanent ad removal',
     },
   ];
 

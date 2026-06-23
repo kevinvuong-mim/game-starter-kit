@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
-import { eventBus } from '@platform/core/events';
+
 import { t } from '@platform/ui/i18n';
-import { screenManager } from '@platform/ui/screen/ScreenManager';
-import { ModalScreen } from '@platform/ui/modal/ModalScreen';
-import { ShopScreen } from '@platform/ui/shop/ShopScreen';
-import { toast } from '@platform/ui/toast/ToastManager';
+import { eventBus } from '@platform/core/events';
 import { FONT_FAMILY } from '@platform/ui/typography';
+import { toast } from '@platform/ui/toast/ToastManager';
+import { ShopScreen } from '@platform/ui/shop/ShopScreen';
+import { ModalScreen } from '@platform/ui/modal/ModalScreen';
+import { screenManager } from '@platform/ui/screen/ScreenManager';
 
 export class HomeScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -25,7 +26,7 @@ export class HomeScene extends Phaser.Scene {
     screenManager.register(new ModalScreen(this));
     screenManager.register(new ShopScreen(this));
 
-    this.createButton(width / 2, height * 0.60, t('home.play'), () => {
+    this.createButton(width / 2, height * 0.6, t('home.play'), () => {
       this.scene.start('Gameplay');
     });
 

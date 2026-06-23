@@ -1,16 +1,16 @@
-import { eventBus } from '@platform/core/events';
-import { usePlatformStore } from '@platform/core/state';
-import { apiClient } from '@platform/core/api';
-import { storage } from '@platform/core/storage';
 import { logger } from '@platform/core/error';
+import { apiClient } from '@platform/core/api';
+import { eventBus } from '@platform/core/events';
+import { storage } from '@platform/core/storage';
+import { usePlatformStore } from '@platform/core/state';
 import type { LeaderboardEntry, LeaderboardState } from '@platform/core/state';
 
 export type LeaderboardBoard = 'daily' | 'weekly' | 'allTime';
 
 interface QueuedSubmission {
   score: number;
-  board: LeaderboardBoard;
   timestamp: number;
+  board: LeaderboardBoard;
 }
 
 const CACHE_KEY = 'leaderboard:cache';

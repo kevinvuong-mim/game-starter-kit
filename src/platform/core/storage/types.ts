@@ -1,10 +1,10 @@
-export type StorageProviderType = 'localStorage' | 'indexedDB' | 'memory';
+export type StorageProviderType = 'memory' | 'indexedDB' | 'localStorage';
 
 export interface StorageProvider {
-  readonly type: StorageProviderType;
-  save<T>(key: string, value: T): Promise<void>;
-  load<T>(key: string): Promise<T | null>;
-  remove(key: string): Promise<void>;
   clear(): Promise<void>;
   keys(): Promise<string[]>;
+  readonly type: StorageProviderType;
+  remove(key: string): Promise<void>;
+  load<T>(key: string): Promise<T | null>;
+  save<T>(key: string, value: T): Promise<void>;
 }

@@ -1,24 +1,24 @@
-import { getConfig } from '../config';
 import type {
-  ApiResponse,
-  ErrorInterceptor,
   IApiClient,
+  ApiResponse,
   RequestConfig,
+  ErrorInterceptor,
   RequestInterceptor,
   ResponseInterceptor,
 } from './types';
+import { getConfig } from '../config';
 import { ApiError as ApiErrorClass } from './types';
 
-const DEFAULT_TIMEOUT = 15_000;
 const DEFAULT_RETRIES = 2;
+const DEFAULT_TIMEOUT = 15_000;
 const DEFAULT_RETRY_DELAY = 1_000;
 
 export class ApiClient implements IApiClient {
   private baseUrl: string;
   private authToken: string | null = null;
+  private errorInterceptors: ErrorInterceptor[] = [];
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
-  private errorInterceptors: ErrorInterceptor[] = [];
 
   constructor(baseUrl?: string) {
     this.baseUrl = baseUrl ?? getConfig().apiUrl;
