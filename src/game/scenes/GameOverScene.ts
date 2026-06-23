@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
 import { t } from '@platform/ui/i18n';
+import { FONT_FAMILY } from '@platform/ui/typography';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -16,7 +17,7 @@ export class GameOverScene extends Phaser.Scene {
       .text(width / 2, height * 0.25, t('game.gameOver'), {
         fontSize: '42px',
         color: '#f44336',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
         fontStyle: 'bold',
       })
       .setOrigin(0.5);
@@ -25,7 +26,7 @@ export class GameOverScene extends Phaser.Scene {
       .text(width / 2, height * 0.4, t('game.score', { score: data.score }), {
         fontSize: '28px',
         color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(0.5);
 
@@ -47,7 +48,7 @@ export class GameOverScene extends Phaser.Scene {
     const text = this.add.text(x, y, label, {
       fontSize: '22px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
     });
     text.setOrigin(0.5);
 

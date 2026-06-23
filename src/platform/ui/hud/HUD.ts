@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FONT_FAMILY } from '@platform/ui/typography';
 import { usePlatformStore } from '@platform/core/state';
 import { formatNumber } from '@platform/core/utils';
 
@@ -25,7 +26,7 @@ export class HUD extends Phaser.GameObjects.Container {
     this.coinText = this.scene.add.text(padding + 20, padding + 16, '0', {
       fontSize: '18px',
       color: '#ffd700',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
     });
     this.coinText.setOrigin(0, 0.5);
 
@@ -34,14 +35,14 @@ export class HUD extends Phaser.GameObjects.Container {
     this.gemText = this.scene.add.text(padding + 160, padding + 16, '0', {
       fontSize: '18px',
       color: '#00bcd4',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
     });
     this.gemText.setOrigin(0, 0.5);
 
     this.scoreText = this.scene.add.text(this.scene.cameras.main.width / 2, padding + 16, '0', {
       fontSize: '28px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
     });
     this.scoreText.setOrigin(0.5);

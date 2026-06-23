@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { ToastOptions, UIToastType } from '../types';
+import { FONT_FAMILY } from '../typography';
 
 const TOAST_COLORS: Record<UIToastType, number> = {
   info: 0x4a90d9,
@@ -54,7 +55,7 @@ export class ToastManager {
       const text = this.scene.add.text(0, 0, options.message, {
         fontSize: '16px',
         color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
       });
       text.setOrigin(0.5);
 

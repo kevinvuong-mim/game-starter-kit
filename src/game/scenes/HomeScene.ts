@@ -5,6 +5,7 @@ import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { toast } from '@platform/ui/toast/ToastManager';
+import { FONT_FAMILY } from '@platform/ui/typography';
 
 export class HomeScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -78,9 +79,10 @@ export class HomeScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, height * 0.84, t('dailyReward.claim'), {
-        fontSize: '22px',
+        fontSize: '36px',
         color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
+        fontStyle: 'bold',
       })
       .setOrigin(0.5);
 
@@ -101,9 +103,10 @@ export class HomeScene extends Phaser.Scene {
     bg.setInteractive({ useHandCursor: true });
 
     const text = this.add.text(x, y, label, {
-      fontSize: '22px',
+      fontSize: '36px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
+      fontStyle: 'bold',
     });
     text.setOrigin(0.5);
 

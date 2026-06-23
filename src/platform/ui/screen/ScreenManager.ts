@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { IUIScreen, UIScreenConfig, UIScreenId } from '../types';
+import { FONT_FAMILY } from '../typography';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
   abstract readonly id: string;
@@ -63,7 +64,7 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
     const label = this.scene.add.text(0, 0, text, {
       fontSize: '20px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
     });
     label.setOrigin(0.5);
 

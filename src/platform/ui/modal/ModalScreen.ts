@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BaseScreen } from '../screen/ScreenManager';
 import { t } from '../i18n';
+import { FONT_FAMILY } from '../typography';
 
 export class ModalScreen extends BaseScreen {
   readonly id = 'modal';
@@ -30,7 +31,7 @@ export class ModalScreen extends BaseScreen {
     this.content = this.scene.add.text(width / 2, height / 2 - 30, '', {
       fontSize: '22px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       wordWrap: { width: width * 0.7 },
       align: 'center',
     });

@@ -16,6 +16,8 @@ export class GameEngine {
     try {
       await app.init();
       await initCapacitorPlugins();
+      await document.fonts.load('16px "Baloo 2"');
+      await document.fonts.ready;
     } catch (error) {
       errorBoundary.capture(error, 'app.init');
       throw error;

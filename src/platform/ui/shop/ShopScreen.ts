@@ -4,6 +4,7 @@ import { t } from '../i18n';
 import { shop } from '@platform/modules/shop/shop.service';
 import type { ShopItem } from '@platform/modules/shop/shop.service';
 import { toast } from '../toast/ToastManager';
+import { FONT_FAMILY } from '../typography';
 
 export class ShopScreen extends BaseScreen {
   readonly id = 'shop';
@@ -32,7 +33,7 @@ export class ShopScreen extends BaseScreen {
     const title = this.scene.add.text(width / 2, height * 0.16, t('shop.title'), {
       fontSize: '28px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
     });
     title.setOrigin(0.5);
@@ -80,7 +81,7 @@ export class ShopScreen extends BaseScreen {
     const nameText = this.scene.add.text(-270, -10, item.name, {
       fontSize: '18px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
     });
     container.add(nameText);
@@ -88,7 +89,7 @@ export class ShopScreen extends BaseScreen {
     const descText = this.scene.add.text(-270, 12, item.description, {
       fontSize: '14px',
       color: '#aaaaaa',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       wordWrap: { width: 360 },
     });
     container.add(descText);
@@ -101,7 +102,7 @@ export class ShopScreen extends BaseScreen {
       const buyLabel = this.scene.add.text(220, 0, t('shop.buy'), {
         fontSize: '16px',
         color: '#ffffff',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
       });
       buyLabel.setOrigin(0.5);
 
@@ -114,7 +115,7 @@ export class ShopScreen extends BaseScreen {
       const ownedText = this.scene.add.text(220, 0, priceLabel, {
         fontSize: '14px',
         color: '#ffd700',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
       });
       ownedText.setOrigin(0.5);
       container.add(ownedText);

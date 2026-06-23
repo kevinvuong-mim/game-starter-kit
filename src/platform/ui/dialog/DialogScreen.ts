@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BaseScreen } from '../screen/ScreenManager';
 import { t } from '@platform/modules/i18n/i18n.service';
+import { FONT_FAMILY } from '../typography';
 
 export interface DialogButton {
   label: string;
@@ -37,7 +38,7 @@ export class DialogScreen extends BaseScreen {
     this.titleText = this.scene.add.text(width / 2, height / 2 - 80, '', {
       fontSize: '26px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       fontStyle: 'bold',
     });
     this.titleText.setOrigin(0.5);
@@ -46,7 +47,7 @@ export class DialogScreen extends BaseScreen {
     this.messageText = this.scene.add.text(width / 2, height / 2 - 20, '', {
       fontSize: '18px',
       color: '#cccccc',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       wordWrap: { width: width * 0.75 },
       align: 'center',
     });

@@ -1,4 +1,5 @@
 export * from './types';
+export { FONT_FAMILY } from './typography';
 export { t, i18n } from './i18n';
 export { BaseScreen, ScreenManager, screenManager, registerScreen } from './screen/ScreenManager';
 export { ModalScreen } from './modal/ModalScreen';

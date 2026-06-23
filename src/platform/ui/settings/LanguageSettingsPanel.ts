@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { t, i18n } from '../i18n';
 import { settings } from '@platform/modules/settings/settings.service';
 import { toast } from '../toast/ToastManager';
+import { FONT_FAMILY } from '../typography';
 
 const LANGUAGES = [
   { code: 'en', labelKey: 'settings.languageEn' as const },
@@ -27,7 +28,7 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
       .text(centerX, startY, t('settings.language'), {
         fontSize: '20px',
         color: '#aaaaaa',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(0.5);
 
@@ -53,7 +54,7 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
     const text = this.scene.add.text(x, y, active ? `${label} ✓` : label, {
       fontSize: '20px',
       color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
     });
     text.setOrigin(0.5);
     this.add(text);
