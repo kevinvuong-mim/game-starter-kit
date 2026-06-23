@@ -6,7 +6,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image('home-background', '/assets/ui/home-background-image.webp');
+    this.load.image('home-screen-background', '/assets/ui/home-screen-background.webp');
   }
 
   create(): void {

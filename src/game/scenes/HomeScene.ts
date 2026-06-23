@@ -92,7 +92,7 @@ export class HomeScene extends Phaser.Scene {
   }
 
   private addBackgroundImage(width: number, height: number): void {
-    const bg = this.add.image(width / 2, height / 2, 'home-background');
+    const bg = this.add.image(width / 2, height / 2, 'home-screen-background');
     const scale = Math.max(width / bg.width, height / bg.height);
     bg.setScale(scale).setDepth(-1);
   }
