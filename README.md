@@ -126,13 +126,9 @@ Copy `.env.example` to `.env` and adjust per environment:
 ```bash
 # .env
 VITE_APP_ENV=dev          # dev | staging | production
-VITE_API_URL=http://localhost:3000/api
-VITE_ANALYTICS_ENABLED=false
-VITE_ADS_ENABLED=false
 VITE_IAP_ENABLED=false
-VITE_APP_VERSION=1.0.0
 
-# Firebase Analytics (required when VITE_ANALYTICS_ENABLED=true)
+# Firebase Analytics (required for staging/production)
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
@@ -143,16 +139,14 @@ VITE_FIREBASE_MEASUREMENT_ID=
 | Variable                       | Description                                          |
 | ------------------------------ | ---------------------------------------------------- |
 | `VITE_APP_ENV`                 | Runtime environment (`dev`, `staging`, `production`) |
-| `VITE_API_URL`                 | Backend API base URL                                 |
-| `VITE_ANALYTICS_ENABLED`       | Enables Firebase analytics provider                  |
-| `VITE_ADS_ENABLED`             | Enables ad providers                                 |
 | `VITE_IAP_ENABLED`             | Enables in-app purchase provider                     |
-| `VITE_APP_VERSION`             | App version string exposed at runtime                |
 | `VITE_FIREBASE_API_KEY`        | Firebase web API key                                 |
 | `VITE_FIREBASE_AUTH_DOMAIN`    | Firebase auth domain                                 |
 | `VITE_FIREBASE_PROJECT_ID`     | Firebase project ID                                  |
 | `VITE_FIREBASE_APP_ID`         | Firebase app ID                                      |
 | `VITE_FIREBASE_MEASUREMENT_ID` | GA4 measurement ID                                   |
+
+API URL, ads, and analytics toggles are defined per environment in `src/platform/core/config/index.ts` — not via env vars.
 
 See [docs/analytics.md](./docs/analytics.md) for Firebase setup and DebugView.
 

@@ -108,11 +108,7 @@ npm run cap:ios
 
 ```
 VITE_APP_ENV=production
-VITE_API_URL=https://api.studio.games/api
-VITE_ANALYTICS_ENABLED=true
-VITE_ADS_ENABLED=true
 VITE_IAP_ENABLED=true
-VITE_APP_VERSION=1.0.0
 VITE_FIREBASE_API_KEY=<from-secrets>
 VITE_FIREBASE_AUTH_DOMAIN=<project>.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=<project-id>
@@ -126,7 +122,7 @@ Store Firebase values in CI secrets — never commit real keys to the repo.
 
 ### Analytics
 
-Firebase is registered automatically when `VITE_ANALYTICS_ENABLED=true`. See [docs/analytics.md](./docs/analytics.md).
+Firebase is registered automatically in staging/production (see `ENV_CONFIGS` in `src/platform/core/config/index.ts`). See [docs/analytics.md](./docs/analytics.md).
 
 To add another provider:
 

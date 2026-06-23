@@ -106,8 +106,7 @@ Environment config lives in `src/platform/core/config/index.ts`:
 
 | Variable | Description |
 |----------|-------------|
-| `VITE_APP_ENV` | `dev` \| `staging` \| `production` |
-| `VITE_ANALYTICS_ENABLED` | Master toggle for Firebase provider |
+| `VITE_APP_ENV` | `dev` \| `staging` \| `production` — controls `analyticsEnabled` via `ENV_CONFIGS` |
 | `VITE_FIREBASE_API_KEY` | Firebase web API key |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
@@ -132,7 +131,7 @@ Copy `.env.example` to `.env` and fill Firebase values for staging/production.
 4. Set env vars in `.env`:
 
 ```env
-VITE_ANALYTICS_ENABLED=true
+VITE_APP_ENV=staging
 VITE_FIREBASE_API_KEY=your-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your-project-id
@@ -202,7 +201,7 @@ Firebase receives `setUserId` and `setUserProperties` natively.
 
 ## Disabling analytics
 
-Set `VITE_ANALYTICS_ENABLED=false` or use the `dev` environment. Firebase is not registered; console still logs in debug mode when events are emitted.
+Use the `dev` environment (`VITE_APP_ENV=dev`). Firebase is not registered; console still logs in debug mode when events are emitted.
 
 ## File structure
 

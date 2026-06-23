@@ -12,7 +12,6 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
-  version: string;
   adsEnabled: boolean;
   iapEnabled: boolean;
   firebase: FirebaseConfig;
@@ -72,15 +71,13 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   const base = ENV_CONFIGS[env];
 
   return {
+    apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: 'game-starter-kit',
     firebase: resolveFirebaseConfig(),
-    version: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
+    adsEnabled: base.adsEnabled ?? false,
+    analyticsEnabled: base.analyticsEnabled ?? false,
     iapEnabled: import.meta.env.VITE_IAP_ENABLED === 'true',
-    apiUrl: import.meta.env.VITE_API_URL ?? base.apiUrl ?? '',
-    adsEnabled: import.meta.env.VITE_ADS_ENABLED === 'true' || base.adsEnabled === true,
-    analyticsEnabled:
-      import.meta.env.VITE_ANALYTICS_ENABLED === 'true' || base.analyticsEnabled === true,
     ...overrides,
   };
 }
