@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
+import { createUIButton } from '@platform/ui/button/UIButton';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 
 export class SettingsScene extends Phaser.Scene {
@@ -28,8 +29,13 @@ export class SettingsScene extends Phaser.Scene {
 
     new LanguageSettingsPanel(this, 0, height * 0.22);
 
-    this.createButton(width / 2, height * 0.85, t('settings.back'), () => {
-      this.scene.start('Home');
+    createUIButton(this, {
+      height: 48,
+      width: 200,
+      x: width / 2,
+      y: height * 0.85,
+      label: t('settings.back'),
+      onClick: () => this.scene.start('Home'),
     });
 
     this.unsubscribers.push(
@@ -42,21 +48,5 @@ export class SettingsScene extends Phaser.Scene {
   shutdown(): void {
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
-  }
-
-  private createButton(x: number, y: number, label: string, onClick: () => void): void {
-    const bg = this.add.rectangle(x, y, 200, 48, 0x4a90d9);
-    bg.setStrokeStyle(2, 0xffffff);
-    bg.setInteractive({ useHandCursor: true });
-
-    this.add
-      .text(x, y, label, {
-        fontSize: '20px',
-        color: '#ffffff',
-        fontFamily: FREDOKA_FONT,
-      })
-      .setOrigin(0.5);
-
-    bg.on('pointerdown', onClick);
   }
 }

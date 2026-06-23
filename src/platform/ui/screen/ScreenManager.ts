@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '../typography';
-import type { IUIScreen, UIScreenId, UIScreenConfig } from '../types';
+import { createUIButton } from '../button/UIButton';
+import type { IUIScreen, UIScreenId } from '../types';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
   abstract readonly id: string;
@@ -56,23 +56,17 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
     onClick: () => void,
     width = 200,
     height = 50
-  ): Phaser.GameObjects.Container {
-    const container = this.scene.add.container(x, y);
-    const bg = this.scene.add.rectangle(0, 0, width, height, 0x4a90d9, 1);
-    bg.setStrokeStyle(2, 0xffffff);
-    bg.setInteractive({ useHandCursor: true });
-
-    const label = this.scene.add.text(0, 0, text, {
-      color: '#ffffff',
-      fontSize: '20px',
-      fontFamily: FREDOKA_FONT,
+  ): Phaser.GameObjects.GameObject {
+    const button = createUIButton(this.scene, {
+      x,
+      y,
+      label: text,
+      onClick,
+      width,
+      height,
     });
-    label.setOrigin(0.5);
-
-    bg.on('pointerdown', onClick);
-    container.add([bg, label]);
-    this.add(container);
-    return container;
+    this.add(button);
+    return button;
   }
 }
 
@@ -81,7 +75,24 @@ export class ScreenManager {
   private activeStack: UIScreenId[] = [];
 
   register(screen: IUIScreen): void {
+    const existing = this.screens.get(screen.id);
+    if (existing) {
+      existing.destroy();
+      const idx = this.activeStack.indexOf(screen.id);
+      if (idx >= 0) this.activeStack.splice(idx, 1);
+    }
     this.screens.set(screen.id, screen);
+  }
+
+  unregisterForScene(scene: Phaser.Scene): void {
+    for (const [id, screen] of this.screens) {
+      if (screen instanceof BaseScreen && screen.scene === scene) {
+        screen.destroy();
+        this.screens.delete(id);
+        const idx = this.activeStack.indexOf(id);
+        if (idx >= 0) this.activeStack.splice(idx, 1);
+      }
+    }
   }
 
   open(id: UIScreenId, data?: Record<string, unknown>): void {
@@ -127,10 +138,3 @@ export class ScreenManager {
 }
 
 export const screenManager = new ScreenManager();
-
-export function registerScreen(config: UIScreenConfig): void {
-  if (config.scene) {
-    // Screens self-register via scene create
-    void config;
-  }
-}

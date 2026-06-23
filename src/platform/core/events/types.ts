@@ -46,7 +46,6 @@ export interface PlatformEventMap {
   'iap:purchase': { productId: string };
   'mission:complete': { missionId: string };
   'daily:claim': { day: number; streak: number };
-  'settings:set': { key: string; value: unknown };
   'error:report': { error: Error; context?: string };
   'settings:change': { key: string; value: unknown };
   'shop:purchase': { itemId: string; price: number };

@@ -44,7 +44,6 @@ export class App {
 
     registerAnalyticsProviders();
 
-    await settings.init();
     await Promise.all([
       i18n.init(),
       analytics.init(),
@@ -58,6 +57,7 @@ export class App {
     analytics.setUserProperty('game_id', getConfig().gameId);
 
     await saveService.loadLocal();
+    await settings.init();
     missions.init();
 
     this.bindPlatformEvents();
@@ -111,21 +111,8 @@ export class App {
         trackMissionComplete({ missionId });
       }),
 
-      eventBus.on('settings:set', async ({ key, value }) => {
-        if (key === 'language' && typeof value === 'string') {
-          await settings.setLanguage(value);
-        } else if (key === 'soundEnabled' && typeof value === 'boolean') {
-          await settings.setSoundEnabled(value);
-        } else if (key === 'musicEnabled' && typeof value === 'boolean') {
-          await settings.setMusicEnabled(value);
-        } else if (key === 'vibrationEnabled' && typeof value === 'boolean') {
-          await settings.setVibrationEnabled(value);
-        } else if (
-          key === 'graphicsQuality' &&
-          (value === 'low' || value === 'medium' || value === 'high')
-        ) {
-          await settings.setGraphicsQuality(value);
-        }
+      eventBus.on('settings:change', () => {
+        void saveService.saveLocal();
       }),
 
       eventBus.on('daily:status:request', () => {

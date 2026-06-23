@@ -59,16 +59,26 @@ export class MissionService {
   }
 
   private initializeMissions(): void {
-    const missions: Record<string, MissionProgress> = {};
+    const existing = usePlatformStore.getState().missions.missions;
+    const missions: Record<string, MissionProgress> = { ...existing };
 
     for (const def of this.definitions) {
-      missions[def.id] = {
-        id: def.id,
-        type: def.missionType,
-        progress: 0,
-        target: def.target,
-        status: 'active',
-      };
+      const saved = missions[def.id];
+      if (saved) {
+        missions[def.id] = {
+          ...saved,
+          type: def.missionType,
+          target: def.target,
+        };
+      } else {
+        missions[def.id] = {
+          id: def.id,
+          type: def.missionType,
+          progress: 0,
+          target: def.target,
+          status: 'active',
+        };
+      }
     }
 
     usePlatformStore.getState().setMissions(missions);

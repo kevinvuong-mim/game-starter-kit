@@ -3,6 +3,7 @@ import type Phaser from 'phaser';
 import { gameConfig } from '@game/config';
 import { gameScenes } from '@game/scenes';
 import { app } from '@platform/bootstrap/App';
+import { toast } from '@platform/ui/toast/ToastManager';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
 import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
@@ -57,6 +58,7 @@ export class GameEngine {
     };
 
     this.game = new PhaserLib.Game(phaserConfig);
+    toast.init(this.game);
 
     return this.game;
   }

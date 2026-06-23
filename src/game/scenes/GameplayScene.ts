@@ -105,15 +105,6 @@ export class GameplayScene extends Phaser.Scene {
         }
       }
     }
-
-    const groundY = this.cameras.main.height - 80;
-    if (this.isJumping || this.player.y < groundY) {
-      this.player.y += 400 * (delta / 1000);
-      if (this.player.y >= groundY) {
-        this.player.y = groundY;
-        this.isJumping = false;
-      }
-    }
   }
 
   private jump(): void {
@@ -122,12 +113,17 @@ export class GameplayScene extends Phaser.Scene {
     this.jumps++;
     eventBus.emit('jump', { count: 1 });
 
+    const groundY = this.cameras.main.height - 80;
     this.tweens.add({
       targets: this.player,
-      y: this.player.y - 120,
+      y: groundY - 120,
       duration: 300,
       ease: 'Power2',
-      yoyo: false,
+      yoyo: true,
+      onComplete: () => {
+        this.player.y = groundY;
+        this.isJumping = false;
+      },
     });
   }
 

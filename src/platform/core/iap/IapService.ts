@@ -111,9 +111,9 @@ export class IapService {
     if (getConfig().apiUrl) {
       try {
         await apiClient.post('/iap/verify', {
+          platform: 'mock',
           receipt: purchase.receipt,
           productId: purchase.productId,
-          platform: 'mock',
         });
       } catch (e) {
         logger.warn('[IAP] Server verification failed, using local verify', e);

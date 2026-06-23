@@ -13,10 +13,10 @@ const TOAST_COLORS: Record<UIToastType, number> = {
 export class ToastManager {
   private showing = false;
   private queue: ToastOptions[] = [];
-  private scene: Phaser.Scene | null = null;
+  private game: Phaser.Game | null = null;
 
-  init(scene: Phaser.Scene): void {
-    this.scene = scene;
+  init(game: Phaser.Game): void {
+    this.game = game;
   }
 
   show(options: ToastOptions): void {
@@ -24,8 +24,14 @@ export class ToastManager {
     if (!this.showing) void this.processQueue();
   }
 
+  private getActiveScene(): Phaser.Scene | null {
+    if (!this.game) return null;
+    const scenes = this.game.scene.getScenes(true);
+    return scenes[scenes.length - 1] ?? null;
+  }
+
   private async processQueue(): Promise<void> {
-    if (!this.scene || this.queue.length === 0) {
+    if (this.queue.length === 0) {
       this.showing = false;
       return;
     }
@@ -38,22 +44,23 @@ export class ToastManager {
 
   private displayToast(options: ToastOptions): Promise<void> {
     return new Promise((resolve) => {
-      if (!this.scene) {
+      const scene = this.getActiveScene();
+      if (!scene) {
         resolve();
         return;
       }
 
-      const { width, height } = this.scene.cameras.main;
+      const { width, height } = scene.cameras.main;
       const type = options.type ?? 'info';
       const duration = options.duration ?? 2500;
 
-      const container = this.scene.add.container(width / 2, height - 80);
+      const container = scene.add.container(width / 2, height - 80);
       container.setDepth(2000);
 
-      const bg = this.scene.add.rectangle(0, 0, width * 0.85, 48, TOAST_COLORS[type], 0.95);
+      const bg = scene.add.rectangle(0, 0, width * 0.85, 48, TOAST_COLORS[type], 0.95);
       bg.setStrokeStyle(1, 0xffffff, 0.3);
 
-      const text = this.scene.add.text(0, 0, options.message, {
+      const text = scene.add.text(0, 0, options.message, {
         color: '#ffffff',
         fontSize: '16px',
         fontFamily: FREDOKA_FONT,
@@ -63,15 +70,15 @@ export class ToastManager {
       container.add([bg, text]);
       container.setAlpha(0);
 
-      this.scene.tweens.add({
+      scene.tweens.add({
         targets: container,
         alpha: 1,
         y: height - 100,
         duration: 200,
         ease: 'Power2',
         onComplete: () => {
-          this.scene?.time.delayedCall(duration, () => {
-            this.scene?.tweens.add({
+          scene.time.delayedCall(duration, () => {
+            scene.tweens.add({
               targets: container,
               alpha: 0,
               y: height - 60,

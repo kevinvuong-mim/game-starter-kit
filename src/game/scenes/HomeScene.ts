@@ -6,6 +6,7 @@ import { FREDOKA_FONT } from '@platform/ui/typography';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
+import { createUIButton } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 
 export class HomeScene extends Phaser.Scene {
@@ -21,21 +22,40 @@ export class HomeScene extends Phaser.Scene {
 
     this.addBackgroundImage(width, height);
 
-    toast.init(this);
-
     screenManager.register(new ModalScreen(this));
     screenManager.register(new ShopScreen(this));
 
-    this.createButton(width / 2, height * 0.6, t('home.play'), () => {
-      this.scene.start('Gameplay');
+    createUIButton(this, {
+      height: 64,
+      width: 256,
+      x: width / 2,
+      y: height * 0.6,
+      fontSize: '36px',
+      variant: 'rounded',
+      label: t('home.play'),
+      onClick: () => this.scene.start('Gameplay'),
     });
 
-    this.createButton(width / 2, height * 0.68, t('home.shop'), () => {
-      screenManager.open('shop');
+    createUIButton(this, {
+      height: 64,
+      width: 256,
+      x: width / 2,
+      fontSize: '36px',
+      y: height * 0.68,
+      variant: 'rounded',
+      label: t('home.shop'),
+      onClick: () => screenManager.open('shop'),
     });
 
-    this.createButton(width / 2, height * 0.76, t('home.settings'), () => {
-      this.scene.start('Settings');
+    createUIButton(this, {
+      height: 64,
+      width: 256,
+      x: width / 2,
+      fontSize: '36px',
+      y: height * 0.76,
+      variant: 'rounded',
+      label: t('home.settings'),
+      onClick: () => this.scene.start('Settings'),
     });
 
     this.bindPlatformEvents();
@@ -43,6 +63,7 @@ export class HomeScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    screenManager.unregisterForScene(this);
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
   }
@@ -96,32 +117,5 @@ export class HomeScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'home-screen-background');
     const scale = Math.max(width / bg.width, height / bg.height);
     bg.setScale(scale).setDepth(-1);
-  }
-
-  private createButton(x: number, y: number, label: string, onClick: () => void): void {
-    const width = 256;
-    const height = 64;
-    const radius = 16;
-
-    const bg = this.add.graphics({ x, y });
-    bg.fillStyle(0xffffff, 1);
-    bg.fillRoundedRect(-width / 2, -height / 2, width, height, radius);
-    bg.fillStyle(0x4a90d9, 1);
-    bg.fillRoundedRect(-width / 2 + 2, -height / 2 + 2, width - 4, height - 4, radius - 2);
-    bg.setInteractive(
-      new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
-      Phaser.Geom.Rectangle.Contains
-    );
-    bg.input!.cursor = 'pointer';
-
-    const text = this.add.text(x, y, label, {
-      color: '#ffffff',
-      fontSize: '36px',
-      fontStyle: 'bold',
-      fontFamily: FREDOKA_FONT,
-    });
-    text.setOrigin(0.5);
-
-    bg.on('pointerdown', onClick);
   }
 }

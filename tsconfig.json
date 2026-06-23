@@ -1,6 +1,6 @@
 {
   "exclude": ["dist", "node_modules"],
-  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "vite.config.ts"],
   "compilerOptions": {
     "baseUrl": ".",
     "noEmit": true,

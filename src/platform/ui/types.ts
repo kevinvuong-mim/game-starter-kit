@@ -1,13 +1,4 @@
-import Phaser from 'phaser';
-
 export type UIScreenId = string;
-
-export interface UIScreenConfig {
-  id: UIScreenId;
-  modal?: boolean;
-  scene?: Phaser.Scene;
-  data?: Record<string, unknown>;
-}
 
 export interface IUIComponent {
   hide(): void;
