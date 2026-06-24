@@ -1,14 +1,12 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FREDOKA_FONT } from '@platform/ui/typography';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
-import { LeaderboardPanel, type LeaderboardBoard } from '@platform/ui/leaderboard/LeaderboardPanel';
+import { t, FREDOKA_FONT, LeaderboardPanel, type LeaderboardBoard } from '@platform/ui/index';
 
 interface LeaderboardSceneData {
-  board?: LeaderboardBoard;
   returnTo?: string;
+  board?: LeaderboardBoard;
   returnData?: Record<string, unknown>;
 }
 

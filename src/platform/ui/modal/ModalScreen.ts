@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
-import { t } from '../i18n';
-import { FREDOKA_FONT } from '../typography';
+import { FREDOKA_FONT } from '@platform/ui/index';
 import { BaseScreen } from '../screen/ScreenManager';
+import { t } from '@platform/modules/i18n/i18n.service';
 
 export class ModalScreen extends BaseScreen {
   readonly id = 'modal';

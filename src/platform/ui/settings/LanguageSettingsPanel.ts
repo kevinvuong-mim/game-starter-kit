@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
-import { t, i18n } from '../i18n';
-import { FREDOKA_FONT } from '../typography';
 import { toast } from '../toast/ToastManager';
+import { FREDOKA_FONT } from '@platform/ui/index';
+import { t, i18n } from '@platform/modules/i18n/i18n.service';
 import { settings } from '@platform/modules/settings/settings.service';
 
 const LANGUAGES = [

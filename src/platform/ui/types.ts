@@ -1,4 +1,10 @@
+import type Phaser from 'phaser';
+
 export type UIScreenId = string;
+
+export type ToastPosition = 'top' | 'bottom';
+
+export type UIToastType = 'info' | 'error' | 'success' | 'warning';
 
 export interface IUIComponent {
   hide(): void;
@@ -13,10 +19,6 @@ export interface IUIScreen extends IUIComponent {
   open(data?: Record<string, unknown>): void;
 }
 
-export type UIToastType = 'info' | 'error' | 'success' | 'warning';
-
-export type ToastPosition = 'top' | 'bottom';
-
 export interface ToastOffset {
   x?: number;
   y?: number;
@@ -26,6 +28,87 @@ export interface ToastOptions {
   message: string;
   duration?: number;
   type?: UIToastType;
-  position?: ToastPosition;
   offset?: ToastOffset;
+  position?: ToastPosition;
 }
+
+export type UIButtonSize = {
+  width: number;
+  height: number;
+};
+
+export type UIButtonPosition = {
+  x: number;
+  y: number;
+};
+
+export type UIButtonTextStyle = {
+  color?: string;
+  stroke?: string;
+  fontSize?: number;
+  fontStyle?: string;
+  fontFamily?: string;
+  strokeThickness?: number;
+};
+
+export interface UIButtonText {
+  content: string;
+  offset?: UIButtonPosition;
+  style?: UIButtonTextStyle;
+}
+
+export interface UIButtonIcon {
+  key: string;
+  size?: UIButtonSize;
+  offset?: UIButtonPosition;
+}
+
+export interface UIButtonBadge {
+  depth?: number;
+  content?: string;
+  visible?: boolean;
+  minSize?: {
+    width?: number;
+    height?: number;
+  };
+  background?: {
+    color: number;
+    radius?: number;
+    border?: {
+      color: number;
+      width: number;
+    };
+  };
+  position?: UIButtonPosition;
+  padding?: {
+    vertical: number;
+    horizontal: number;
+  };
+  textStyle?: UIButtonTextStyle;
+}
+
+export interface UIButtonOptions {
+  origin?: {
+    x: number;
+    y: number;
+  };
+  background: {
+    key: string;
+  };
+  depth?: number;
+  disabled?: boolean;
+  icon?: UIButtonIcon;
+  scene: Phaser.Scene;
+  size?: UIButtonSize;
+  text?: UIButtonText;
+  onClick?: () => void;
+  badge?: UIButtonBadge;
+  position: UIButtonPosition;
+}
+
+export type UIButton = Phaser.GameObjects.Container & {
+  setText(content: string): void;
+  setEnabled(enabled: boolean): void;
+  setBadgeContent(content: string): void;
+  setBadgeVisible(visible: boolean): void;
+};

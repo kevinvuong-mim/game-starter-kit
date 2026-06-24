@@ -1,5 +1,5 @@
 {
-  "name": "@studio/game-starter-kit",
+  "name": "game-starter-kit",
   "version": "1.0.0",
   "description": "Production-grade starter kit for hyper-casual / casual mobile games",
   "type": "module",

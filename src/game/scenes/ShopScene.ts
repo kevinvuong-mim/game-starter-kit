@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FREDOKA_FONT } from '@platform/ui/typography';
+import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { ShopPanel } from '@platform/ui/shop/ShopPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 

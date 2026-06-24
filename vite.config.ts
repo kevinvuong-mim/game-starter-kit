@@ -16,9 +16,9 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2022',
     outDir: 'dist',
     sourcemap: true,
+    target: 'es2022',
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {

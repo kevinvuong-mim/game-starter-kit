@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
-import { t } from '../i18n';
-import { FREDOKA_FONT } from '../typography';
 import { toast } from '../toast/ToastManager';
+import { FREDOKA_FONT } from '@platform/ui/index';
+import { t } from '@platform/modules/i18n/i18n.service';
 import { shop } from '@platform/modules/shop/shop.service';
 import type { ShopItem } from '@platform/modules/shop/shop.service';
 import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';

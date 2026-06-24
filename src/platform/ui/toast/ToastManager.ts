@@ -1,17 +1,16 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '../typography';
+import { FREDOKA_FONT } from '@platform/ui/index';
 import type { ToastOptions, ToastPosition, UIToastType } from '../types';
 
+const TOAST_EDGE_MARGIN = 80;
+const TOAST_ANIMATION_OFFSET = 20;
 const TOAST_COLORS: Record<UIToastType, number> = {
   info: 0x4a90d9,
   error: 0xf44336,
   success: 0x4caf50,
   warning: 0xff9800,
 };
-
-const TOAST_EDGE_MARGIN = 80;
-const TOAST_ANIMATION_OFFSET = 20;
 
 function resolveToastCoords(
   width: number,

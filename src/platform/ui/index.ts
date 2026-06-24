@@ -1,22 +1,14 @@
 export * from './types';
-export type {
-  UIButton,
-  UIButtonSize,
-  UIButtonIcon,
-  UIButtonText,
-  UIButtonBadge,
-  UIButtonOptions,
-  UIButtonPosition,
-  UIButtonTextStyle,
-} from './button/UIButton';
 export { HUD } from './hud/HUD';
-export { t, i18n } from './i18n';
 export { ShopPanel } from './shop/ShopPanel';
 export { ModalScreen } from './modal/ModalScreen';
 export { createUIButton } from './button/UIButton';
-export { NUNITO_FONT, FREDOKA_FONT } from './typography';
+export const FREDOKA_FONT = '"Fredoka", sans-serif';
+export const NUNITO_FONT = '"Nunito Sans", sans-serif';
 export { UIButtonBackgroundKey } from './button/UIButton';
 export { toast, ToastManager } from './toast/ToastManager';
+export { t, i18n } from '@platform/modules/i18n/i18n.service';
+export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';
-export { LeaderboardPanel, type LeaderboardBoard } from './leaderboard/LeaderboardPanel';
+export { type LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.service';

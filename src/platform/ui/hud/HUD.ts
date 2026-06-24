@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
+import { FREDOKA_FONT } from '@platform/ui/index';
 import { formatNumber } from '@platform/core/utils';
-import { FREDOKA_FONT } from '@platform/ui/typography';
 
 export class HUD extends Phaser.GameObjects.Container {
   private scoreText?: Phaser.GameObjects.Text;

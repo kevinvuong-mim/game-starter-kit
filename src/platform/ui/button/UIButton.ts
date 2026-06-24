@@ -1,87 +1,15 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '../typography';
-
-export type UIButtonSize = {
-  width: number;
-  height: number;
-};
-
-export type UIButtonPosition = {
-  x: number;
-  y: number;
-};
-
-export type UIButtonTextStyle = {
-  color?: string;
-  stroke?: string;
-  fontSize?: number;
-  fontStyle?: string;
-  fontFamily?: string;
-  strokeThickness?: number;
-};
-
-export interface UIButtonText {
-  content: string;
-  offset?: UIButtonPosition;
-  style?: UIButtonTextStyle;
-}
-
-export interface UIButtonIcon {
-  key: string;
-  size?: UIButtonSize;
-  offset?: UIButtonPosition;
-}
-
-export interface UIButtonBadge {
-  depth?: number;
-  content?: string;
-  visible?: boolean;
-  minSize?: {
-    width?: number;
-    height?: number;
-  };
-  background?: {
-    color: number;
-    radius?: number;
-    border?: {
-      color: number;
-      width: number;
-    };
-  };
-  position?: UIButtonPosition;
-  padding?: {
-    vertical: number;
-    horizontal: number;
-  };
-  textStyle?: UIButtonTextStyle;
-}
-
-export interface UIButtonOptions {
-  size?: UIButtonSize;
-  origin?: {
-    x: number;
-    y: number;
-  };
-  background: {
-    key: string;
-  };
-  depth?: number;
-  disabled?: boolean;
-  icon?: UIButtonIcon;
-  scene: Phaser.Scene;
-  text?: UIButtonText;
-  onClick?: () => void;
-  badge?: UIButtonBadge;
-  position: UIButtonPosition;
-}
-
-export type UIButton = Phaser.GameObjects.Container & {
-  setText(content: string): void;
-  setEnabled(enabled: boolean): void;
-  setBadgeContent(content: string): void;
-  setBadgeVisible(visible: boolean): void;
-};
+import type {
+  UIButton,
+  UIButtonIcon,
+  UIButtonSize,
+  UIButtonText,
+  UIButtonBadge,
+  UIButtonOptions,
+  UIButtonTextStyle,
+} from '../types';
+import { FREDOKA_FONT } from '@platform/ui/index';
 
 export const UIButtonBackgroundKey = {
   Primary: '__ui-button-primary',

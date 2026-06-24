@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
-import { FREDOKA_FONT } from '@platform/ui/typography';
+import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { screenManager } from '@platform/ui/screen/ScreenManager';

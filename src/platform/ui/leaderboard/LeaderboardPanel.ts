@@ -1,13 +1,11 @@
 import Phaser from 'phaser';
 
-import { t } from '../i18n';
-import { FREDOKA_FONT } from '../typography';
+import { FREDOKA_FONT } from '@platform/ui/index';
+import { t } from '@platform/modules/i18n/i18n.service';
 import { usePlatformStore } from '@platform/core/state';
 import type { LeaderboardEntry } from '@platform/core/state';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import type { LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.service';
-
-export type { LeaderboardBoard };
 
 const MAX_ROWS = 8;
 const ROW_HEIGHT = 52;
