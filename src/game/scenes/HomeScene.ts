@@ -4,9 +4,7 @@ import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
 import { toast } from '@platform/ui/toast/ToastManager';
-import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
-import { DialogScreen } from '@platform/ui/dialog/DialogScreen';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
@@ -23,67 +21,7 @@ export class HomeScene extends Phaser.Scene {
 
     this.addBackgroundImage(width, height);
 
-    screenManager.register(new ShopScreen(this));
     screenManager.register(new ModalScreen(this));
-    screenManager.register(new DialogScreen(this));
-
-    let counter = 0;
-    const counterButton = createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.48 },
-      size: { width: 120, height: 48 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
-        content: String(counter),
-        style: { fontSize: 24, fontStyle: 'bold' },
-      },
-      badge: {
-        content: 'Ok',
-        visible: false,
-        position: { x: 48, y: -12 },
-        padding: { vertical: 2, horizontal: 8 },
-        minSize: { width: 32, height: 20 },
-        background: {
-          color: 0x2ed573,
-          radius: 10,
-          border: { color: 0xffffff, width: 1 },
-        },
-        textStyle: {
-          fontSize: 12,
-          fontStyle: 'bold',
-          color: '#ffffff',
-        },
-      },
-      onClick: () => {
-        counter += 1;
-        counterButton.setText(String(counter));
-
-        if (counter === 5) {
-          counterButton.setBadgeVisible(true);
-        }
-
-        if (counter === 10) {
-          counterButton.setEnabled(false);
-          screenManager.open('dialog', {
-            title: 'Counter',
-            message: 'You reached 10. Reset counter?',
-            buttons: [
-              { label: t('common.cancel'), onClick: () => {} },
-              {
-                label: t('common.ok'),
-                primary: true,
-                onClick: () => {
-                  counter = 0;
-                  counterButton.setText('0');
-                  counterButton.setBadgeVisible(false);
-                  counterButton.setEnabled(true);
-                },
-              },
-            ],
-          });
-        }
-      },
-    });
 
     createUIButton({
       scene: this,
@@ -112,7 +50,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.shop'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => screenManager.open('shop'),
+      onClick: () => this.scene.start('Shop'),
     });
 
     createUIButton({
@@ -137,6 +75,21 @@ export class HomeScene extends Phaser.Scene {
         style: { fontSize: 36, fontStyle: 'bold' },
       },
       onClick: () => this.scene.start('Settings'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.88 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.modal'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () =>
+        screenManager.open('modal', {
+          message: t('home.modalMessage'),
+        }),
     });
 
     this.bindPlatformEvents();
@@ -174,7 +127,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
 
-    const container = this.add.container(width / 2, height * 0.88);
+    const container = this.add.container(width / 2, height * 0.95);
     const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });

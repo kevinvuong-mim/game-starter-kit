@@ -15,8 +15,17 @@ export interface IUIScreen extends IUIComponent {
 
 export type UIToastType = 'info' | 'error' | 'success' | 'warning';
 
+export type ToastPosition = 'top' | 'bottom';
+
+export interface ToastOffset {
+  x?: number;
+  y?: number;
+}
+
 export interface ToastOptions {
   message: string;
   duration?: number;
   type?: UIToastType;
+  position?: ToastPosition;
+  offset?: ToastOffset;
 }

@@ -52,8 +52,6 @@ src/
     │   ├── shop/ShopScreen.ts
     │   ├── toast/ToastManager.ts
     │   ├── modal/ModalScreen.ts
-    │   ├── dialog/DialogScreen.ts
-    │   ├── popup/PopupScreen.ts
     │   ├── settings/LanguageSettingsPanel.ts
     │   ├── typography.ts        # FREDOKA_FONT, NUNITO_FONT
     │   └── i18n.ts              # Re-export t/i18n for game & UI layers
@@ -175,7 +173,7 @@ Phaser-native UI components:
 | `ToastManager`                               | Queued toasts; bound to `Phaser.Game` in `GameEngine`                   |
 | `ShopScreen`                                 | In-game shop UI                                                         |
 | `LanguageSettingsPanel`                      | Language picker for Settings scene                                      |
-| `ModalScreen`, `DialogScreen`, `PopupScreen` | Reusable overlay screens                                                |
+| `ModalScreen`                                | Reusable overlay screen                                                 |
 
 Import from `@platform/ui` or `@platform/ui/<component>`.
 

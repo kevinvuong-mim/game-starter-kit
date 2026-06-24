@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
-import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 import type { IUIScreen, UIScreenId } from '../types';
+import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
   abstract readonly id: string;

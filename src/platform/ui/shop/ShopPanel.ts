@@ -3,21 +3,24 @@ import Phaser from 'phaser';
 import { t } from '../i18n';
 import { FREDOKA_FONT } from '../typography';
 import { toast } from '../toast/ToastManager';
-import { BaseScreen } from '../screen/ScreenManager';
 import { shop } from '@platform/modules/shop/shop.service';
 import type { ShopItem } from '@platform/modules/shop/shop.service';
+import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
-export class ShopScreen extends BaseScreen {
-  readonly id = 'shop';
+/**
+ * Shop UI — lives in platform/ui so game scenes stay event-driven.
+ */
+export class ShopPanel extends Phaser.GameObjects.Container {
   private listContainer?: Phaser.GameObjects.Container;
 
   constructor(scene: Phaser.Scene) {
-    super(scene);
-    this.createOverlay(0.75);
-    this.buildUI();
+    super(scene, 0, 0);
+    scene.add.existing(this);
+    this.build();
+    this.renderItems();
   }
 
-  private buildUI(): void {
+  private build(): void {
     const { width, height } = this.scene.cameras.main;
 
     const panel = this.scene.add.rectangle(
@@ -31,29 +34,22 @@ export class ShopScreen extends BaseScreen {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    const title = this.scene.add.text(width / 2, height * 0.16, t('shop.title'), {
-      fontSize: '28px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-      fontFamily: FREDOKA_FONT,
-    });
-    title.setOrigin(0.5);
-    this.add(title);
-
     this.listContainer = this.scene.add.container(width / 2, height * 0.22);
     this.add(this.listContainer);
 
-    this.createButton(width / 2, height * 0.82, t('shop.restore'), () => {
-      void this.restorePurchases();
+    const restoreButton = createUIButton({
+      scene: this.scene,
+      position: { x: width / 2, y: height * 0.82 },
+      size: { width: 200, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('shop.restore'),
+      },
+      onClick: () => {
+        void this.restorePurchases();
+      },
     });
-
-    this.createButton(width / 2, height * 0.9, t('common.close'), () => this.close());
-  }
-
-  show(data?: Record<string, unknown>): void {
-    void data;
-    this.renderItems();
-    super.show(data);
+    this.add(restoreButton);
   }
 
   private renderItems(): void {
@@ -62,10 +58,9 @@ export class ShopScreen extends BaseScreen {
 
     const items = shop.getItems();
     const rowHeight = 72;
-    const startY = 0;
 
     items.forEach((item, index) => {
-      const row = this.createItemRow(item, startY + index * rowHeight);
+      const row = this.createItemRow(item, index * rowHeight);
       this.listContainer!.add(row);
     });
   }

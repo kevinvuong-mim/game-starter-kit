@@ -11,7 +11,9 @@
     "playBadge": "NEW",
     "shop": "Shop",
     "settings": "Settings",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "modal": "Modal",
+    "modalMessage": "This is a modal demo."
   },
   "game": {
     "score": "Score: {{score}}",

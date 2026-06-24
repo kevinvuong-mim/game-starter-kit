@@ -48,7 +48,7 @@ game-starter-kit/
 │   ├── platform/              # Reusable platform (keep as-is across games)
 │   │   ├── core/              # SDK: events, state, storage, api, analytics, ads, iap
 │   │   ├── modules/           # i18n, shop, missions, leaderboard, save, settings
-│   │   ├── ui/                # Phaser UI: modal, toast, dialog, hud, screen
+│   │   ├── ui/                # Phaser UI: modal, toast, hud, screen
 │   │   └── bootstrap/         # App orchestrator, GameEngine, API contracts
 │   ├── game/                  # YOUR game — customize per project
 │   │   ├── config.ts          # Game identity & screen size

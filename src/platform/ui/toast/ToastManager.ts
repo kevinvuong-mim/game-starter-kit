@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { FREDOKA_FONT } from '../typography';
-import type { UIToastType, ToastOptions } from '../types';
+import type { ToastOptions, ToastPosition, UIToastType } from '../types';
 
 const TOAST_COLORS: Record<UIToastType, number> = {
   info: 0x4a90d9,
@@ -9,6 +9,37 @@ const TOAST_COLORS: Record<UIToastType, number> = {
   success: 0x4caf50,
   warning: 0xff9800,
 };
+
+const TOAST_EDGE_MARGIN = 80;
+const TOAST_ANIMATION_OFFSET = 20;
+
+function resolveToastCoords(
+  width: number,
+  height: number,
+  position: ToastPosition,
+  offsetX = 0,
+  offsetY = 0
+): { x: number; startY: number; restY: number; exitY: number } {
+  const x = width / 2 + offsetX;
+
+  switch (position) {
+    case 'bottom':
+      return {
+        x,
+        startY: height - TOAST_EDGE_MARGIN + offsetY,
+        restY: height - TOAST_EDGE_MARGIN - TOAST_ANIMATION_OFFSET + offsetY,
+        exitY: height - TOAST_EDGE_MARGIN + TOAST_ANIMATION_OFFSET + offsetY,
+      };
+    case 'top':
+    default:
+      return {
+        x,
+        startY: TOAST_EDGE_MARGIN - TOAST_ANIMATION_OFFSET + offsetY,
+        restY: TOAST_EDGE_MARGIN + offsetY,
+        exitY: TOAST_EDGE_MARGIN + TOAST_ANIMATION_OFFSET + offsetY,
+      };
+  }
+}
 
 export class ToastManager {
   private showing = false;
@@ -53,8 +84,16 @@ export class ToastManager {
       const { width, height } = scene.cameras.main;
       const type = options.type ?? 'info';
       const duration = options.duration ?? 2500;
+      const position = options.position ?? 'top';
+      const { x, startY, restY, exitY } = resolveToastCoords(
+        width,
+        height,
+        position,
+        options.offset?.x,
+        options.offset?.y
+      );
 
-      const container = scene.add.container(width / 2, height - 80);
+      const container = scene.add.container(x, startY);
       container.setDepth(2000);
 
       const bg = scene.add.rectangle(0, 0, width * 0.85, 48, TOAST_COLORS[type], 0.95);
@@ -73,7 +112,7 @@ export class ToastManager {
       scene.tweens.add({
         targets: container,
         alpha: 1,
-        y: height - 100,
+        y: restY,
         duration: 200,
         ease: 'Power2',
         onComplete: () => {
@@ -81,7 +120,7 @@ export class ToastManager {
             scene.tweens.add({
               targets: container,
               alpha: 0,
-              y: height - 60,
+              y: exitY,
               duration: 200,
               onComplete: () => {
                 container.destroy();

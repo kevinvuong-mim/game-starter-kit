@@ -20,8 +20,6 @@ src/platform/ui/
 ├── hud/                  # HUD trong gameplay
 ├── shop/                 # Màn hình cửa hàng
 ├── modal/                # Modal đơn giản
-├── dialog/               # Dialog xác nhận
-├── popup/                # Popup tùy biến
 └── settings/             # Panel chọn ngôn ngữ
 ```
 
@@ -89,6 +87,8 @@ Cấu hình:
 message
 duration
 type
+position   // 'top' | 'bottom' (mặc định: 'top')
+offset     // { x?, y? } — dịch thêm so với vị trí preset
 ```
 
 ---
@@ -286,7 +286,6 @@ Dùng trong:
 * `HomeScene`
 * Shop
 * Modal
-* Popup
 
 ---
 
@@ -583,90 +582,6 @@ Thông báo một nút OK
 
 ---
 
-# `dialog/` — Dialog xác nhận
-
-Dialog nhiều hành động.
-
-## Files
-
-| File              | Vai trò        |
-| ----------------- | -------------- |
-| `DialogScreen.ts` | Confirm dialog |
-
----
-
-## Nội dung
-
-* title
-* message
-* nhiều buttons
-
----
-
-## Tuỳ biến
-
-```ts
-DialogButton[]
-```
-
----
-
-## Helper
-
-```ts
-dialog.confirm(
- scene,
- title,
- message,
- onConfirm,
- onCancel?
-)
-```
-
-Sinh nhanh:
-
-```text
-Cancel / OK
-```
-
-> Chưa được wire trong game scenes mẫu; dùng khi cần confirm flow.
-
----
-
-# `popup/` — Popup tùy biến
-
-Popup linh hoạt cho UI đặc biệt.
-
-## Files
-
-| File             | Vai trò |
-| ---------------- | ------- |
-| `PopupScreen.ts` | Popup   |
-
----
-
-## API
-
-```ts
-createPopup(
- scene,
- id,
- buildContent
-)
-```
-
----
-
-Ưu điểm:
-
-```text
-Custom UI linh hoạt hơn Modal/Dialog
-```
-
-> Chưa được wire trong game scenes mẫu; dùng khi cần overlay tuỳ biến.
-
----
-
 # `settings/` — Panel cài đặt
 
 UI quản lý ngôn ngữ.
@@ -741,7 +656,6 @@ toast[ToastManager]
 hud[HUD]
 shopUI[ShopScreen]
 modal[ModalScreen]
-dialog[DialogScreen]
 langPanel[LanguageSettingsPanel]
 i18nUI[i18n re-export]
 typo[typography]

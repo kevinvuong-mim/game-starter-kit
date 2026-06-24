@@ -11,7 +11,9 @@
     "playBadge": "MỚI",
     "shop": "Cửa hàng",
     "settings": "Cài đặt",
-    "leaderboard": "Bảng xếp hạng"
+    "leaderboard": "Bảng xếp hạng",
+    "modal": "Modal",
+    "modalMessage": "Đây là demo modal."
   },
   "game": {
     "score": "Điểm: {{score}}",
