@@ -28,13 +28,16 @@ export class HomeScene extends Phaser.Scene {
     screenManager.register(new LeaderboardScreen(this));
 
     createUIButton(this, {
-      height: 64,
+      height: 78,
       width: 256,
+      iconGap: 30,
       x: width / 2,
       y: height * 0.58,
       fontSize: '36px',
       variant: 'rounded',
       label: t('home.play'),
+      iconTexture: 'play-button-icon',
+      backgroundTexture: 'play-button-background',
       onClick: () => this.scene.start('Gameplay'),
     });
 
