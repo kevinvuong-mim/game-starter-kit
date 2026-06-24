@@ -12,8 +12,8 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       showSpinner: false,
-      launchAutoHide: true,
-      backgroundColor: '#1a1a2e',
+      launchAutoHide: false,
+      backgroundColor: '#6b97b2',
     },
   },
   appId: 'com.studio.gamestarterkit',
