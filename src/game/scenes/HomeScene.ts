@@ -6,6 +6,7 @@ import { FREDOKA_FONT } from '@platform/ui/typography';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
+import { DialogScreen } from '@platform/ui/dialog/DialogScreen';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
@@ -23,8 +24,9 @@ export class HomeScene extends Phaser.Scene {
 
     this.addBackgroundImage(width, height);
 
-    screenManager.register(new ModalScreen(this));
     screenManager.register(new ShopScreen(this));
+    screenManager.register(new ModalScreen(this));
+    screenManager.register(new DialogScreen(this));
     screenManager.register(new LeaderboardScreen(this));
 
     let counter = 0;
@@ -62,8 +64,25 @@ export class HomeScene extends Phaser.Scene {
           counterButton.setBadgeVisible(true);
         }
 
-        if (counter >= 10) {
+        if (counter === 10) {
           counterButton.setEnabled(false);
+          screenManager.open('dialog', {
+            title: 'Counter',
+            message: 'You reached 10. Reset counter?',
+            buttons: [
+              { label: t('common.cancel'), onClick: () => {} },
+              {
+                label: t('common.ok'),
+                primary: true,
+                onClick: () => {
+                  counter = 0;
+                  counterButton.setText('0');
+                  counterButton.setBadgeVisible(false);
+                  counterButton.setEnabled(true);
+                },
+              },
+            ],
+          });
         }
       },
     });
@@ -82,22 +101,6 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.play'),
         style: { fontSize: 36, fontStyle: 'bold' },
         offset: { x: 24, y: 0 },
-      },
-      badge: {
-        content: t('home.playBadge'),
-        position: { x: 200, y: -8 },
-        padding: { vertical: 4, horizontal: 10 },
-        minSize: { width: 48, height: 24 },
-        background: {
-          color: 0xff4757,
-          radius: 12,
-          border: { color: 0xffffff, width: 2 },
-        },
-        textStyle: {
-          fontSize: 14,
-          fontStyle: 'bold',
-          color: '#ffffff',
-        },
       },
       onClick: () => this.scene.start('Gameplay'),
     });

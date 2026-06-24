@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 
 import { t } from '../i18n';
 import { FREDOKA_FONT } from '../typography';
-import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 import { BaseScreen } from '../screen/ScreenManager';
+import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
 export interface DialogButton {
   label: string;

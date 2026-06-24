@@ -46,6 +46,10 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
     const { width, height } = this.scene.cameras.main;
     this.overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, alpha);
     this.overlay.setOrigin(0);
+    this.overlay.setInteractive(
+      new Phaser.Geom.Rectangle(0, 0, width, height),
+      Phaser.Geom.Rectangle.Contains
+    );
     this.add(this.overlay);
   }
 
