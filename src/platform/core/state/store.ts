@@ -200,7 +200,7 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
         ...s.dailyRewards,
         lastClaimAt: Date.now(),
         streak: s.dailyRewards.streak + 1,
-        claimedDays: [...s.dailyRewards.claimedDays, day],
+        claimedDays: day >= 7 ? [] : [...s.dailyRewards.claimedDays, day],
         currentDay: day >= 7 ? 1 : day + 1,
       },
     })),

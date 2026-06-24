@@ -12,6 +12,8 @@
     "shop": "Cửa hàng",
     "settings": "Cài đặt",
     "leaderboard": "Bảng xếp hạng",
+    "dailyReward": "Phần thưởng hàng ngày",
+    "missions": "Nhiệm vụ",
     "modal": "Modal",
     "modalMessage": "Đây là demo modal."
   },
@@ -63,13 +65,22 @@
     "music": "Nhạc",
     "vibration": "Rung",
     "graphics": "Chất lượng đồ họa",
+    "signIn": "Đăng nhập",
+    "signInGoogle": "Google",
+    "signInApple": "Apple",
     "back": "Quay lại"
   },
   "missions": {
     "title": "Nhiệm vụ",
     "daily": "Hàng ngày",
     "weekly": "Hàng tuần",
+    "permanent": "Vĩnh viễn",
     "claim": "Nhận",
+    "claimed": "Đã nhận",
+    "progress": "{{current}}/{{target}}",
+    "reward": "{{coins}} xu",
+    "claimSuccess": "Đã nhận {{coins}} xu!",
+    "claimFailed": "Chưa thể nhận thưởng",
     "jump100": "Nhảy 100 lần",
     "score1000": "Đạt 1000 điểm",
     "play10": "Chơi 10 ván",
@@ -78,8 +89,13 @@
   "dailyReward": {
     "title": "Phần thưởng hàng ngày",
     "claim": "Nhận",
+    "day": "Ngày {{day}}",
+    "coins": "{{coins}} xu",
+    "claimed": "Đã nhận",
     "streak": "Chuỗi: {{days}} ngày",
-    "comeBack": "Quay lại vào ngày mai!"
+    "cooldown": "Nhận sau {{time}}",
+    "comeBack": "Quay lại vào ngày mai!",
+    "claimSuccess": "+{{coins}} xu!"
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",

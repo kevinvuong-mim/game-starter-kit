@@ -2,8 +2,9 @@ import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
-import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
+import { SignInSettingsPanel } from '@platform/ui/settings/SignInSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class SettingsScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -26,11 +27,12 @@ export class SettingsScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    new LanguageSettingsPanel(this, 0, height * 0.22);
+    new LanguageSettingsPanel(this, 0, height * 0.15);
+    new SignInSettingsPanel(this, 0, height * 0.25);
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.85 },
+      position: { x: width / 2, y: height * 0.88 },
       size: { width: 200, height: 48 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {

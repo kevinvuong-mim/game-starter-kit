@@ -50,6 +50,7 @@ export interface PlatformEventMap {
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
   'leaderboard:submit': { score: number; board: string };
+  'auth:sign-in:request': { provider: 'google' | 'apple' };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };

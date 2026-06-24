@@ -1,16 +1,11 @@
 import Phaser from 'phaser';
 
-import { eventBus } from '@platform/core/events';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
-import { toast } from '@platform/ui/toast/ToastManager';
+import { t } from '@platform/ui/index';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class HomeScene extends Phaser.Scene {
-  private unsubscribers: Array<() => void> = [];
-  private dailyRewardButton?: Phaser.GameObjects.Container;
-
   constructor() {
     super({ key: 'Home' });
   }
@@ -46,18 +41,6 @@ export class HomeScene extends Phaser.Scene {
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
-        content: t('home.shop'),
-        style: { fontSize: 36, fontStyle: 'bold' },
-      },
-      onClick: () => this.scene.start('Shop'),
-    });
-
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.74 },
-      size: { width: 256, height: 78 },
-      background: { key: UIButtonBackgroundKey.Rounded },
-      text: {
         content: t('home.leaderboard'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
@@ -66,7 +49,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.81 },
+      position: { x: width / 2, y: height * 0.74 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -74,6 +57,42 @@ export class HomeScene extends Phaser.Scene {
         style: { fontSize: 36, fontStyle: 'bold' },
       },
       onClick: () => this.scene.start('Settings'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.81 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.shop'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () => this.scene.start('Shop'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.88 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.missions'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () => this.scene.start('Missions'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.95 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.dailyReward'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () => this.scene.start('DailyReward'),
     });
 
     // createUIButton({
@@ -90,63 +109,10 @@ export class HomeScene extends Phaser.Scene {
     //       message: t('home.modalMessage'),
     //     }),
     // });
-
-    this.bindPlatformEvents();
-    eventBus.emit('daily:status:request', undefined);
   }
 
   shutdown(): void {
     screenManager.unregisterForScene(this);
-    for (const unsub of this.unsubscribers) unsub();
-    this.unsubscribers = [];
-  }
-
-  private bindPlatformEvents(): void {
-    this.unsubscribers.push(
-      eventBus.on('daily:status', ({ canClaim }) => {
-        if (canClaim) {
-          this.showDailyRewardButton();
-        }
-      }),
-
-      eventBus.on('daily:claim:result', ({ success, coins, message }) => {
-        if (success) {
-          toast.show({
-            message: message ?? `+${coins ?? 0} coins!`,
-            type: 'success',
-          });
-          this.dailyRewardButton?.destroy();
-          this.dailyRewardButton = undefined;
-        }
-      })
-    );
-  }
-
-  private showDailyRewardButton(): void {
-    if (this.dailyRewardButton) return;
-    const { width, height } = this.cameras.main;
-
-    const container = this.add.container(width / 2, height * 0.88);
-    const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
-    bg.setStrokeStyle(2, 0xffffff);
-    bg.setInteractive({ useHandCursor: true });
-    container.add(bg);
-
-    const label = this.add
-      .text(0, 0, t('dailyReward.claim'), {
-        color: '#ffffff',
-        fontSize: '36px',
-        fontStyle: 'bold',
-        fontFamily: FREDOKA_FONT,
-      })
-      .setOrigin(0.5);
-    container.add(label);
-
-    bg.on('pointerdown', () => {
-      eventBus.emit('daily:claim:request', undefined);
-    });
-
-    this.dailyRewardButton = container;
   }
 
   private addBackgroundImage(width: number, height: number): void {

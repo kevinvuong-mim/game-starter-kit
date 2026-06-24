@@ -12,6 +12,8 @@
     "shop": "Shop",
     "settings": "Settings",
     "leaderboard": "Leaderboard",
+    "dailyReward": "Daily Reward",
+    "missions": "Missions",
     "modal": "Modal",
     "modalMessage": "This is a modal demo."
   },
@@ -63,13 +65,22 @@
     "music": "Music",
     "vibration": "Vibration",
     "graphics": "Graphics Quality",
+    "signIn": "Sign In",
+    "signInGoogle": "Google",
+    "signInApple": "Apple",
     "back": "Back"
   },
   "missions": {
     "title": "Missions",
     "daily": "Daily",
     "weekly": "Weekly",
+    "permanent": "Permanent",
     "claim": "Claim",
+    "claimed": "Claimed",
+    "progress": "{{current}}/{{target}}",
+    "reward": "{{coins}} coins",
+    "claimSuccess": "Claimed {{coins}} coins!",
+    "claimFailed": "Cannot claim yet",
     "jump100": "Jump 100 times",
     "score1000": "Reach 1000 points",
     "play10": "Play 10 games",
@@ -78,8 +89,13 @@
   "dailyReward": {
     "title": "Daily Reward",
     "claim": "Claim",
+    "day": "Day {{day}}",
+    "coins": "{{coins}} coins",
+    "claimed": "Claimed",
     "streak": "Streak: {{days}} days",
-    "comeBack": "Come back tomorrow!"
+    "cooldown": "Available in {{time}}",
+    "comeBack": "Come back tomorrow!",
+    "claimSuccess": "+{{coins}} coins!"
   },
   "leaderboard": {
     "title": "Leaderboard",
