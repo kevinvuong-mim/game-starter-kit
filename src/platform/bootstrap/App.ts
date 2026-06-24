@@ -128,13 +128,11 @@ export class App {
         if (reward) {
           trackDailyClaim({
             day: reward.day,
-            gems: reward.reward.gems,
             coins: reward.reward.coins,
           });
           await saveService.saveLocal();
           events.emit('daily:claim:result', {
             success: true,
-            gems: reward.reward.gems,
             coins: reward.reward.coins,
           });
         } else {

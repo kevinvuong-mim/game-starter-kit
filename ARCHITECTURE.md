@@ -171,7 +171,7 @@ Phaser-native UI components:
 | --------- | ------- |
 | `ScreenManager` / `BaseScreen` | Screen stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
 | `createUIButton` | Shared button factory (`primary` / `rounded` variants) |
-| `HUD` | Score, coins, gems — subscribes to store |
+| `HUD` | Score, coins — subscribes to store |
 | `ToastManager` | Queued toasts; bound to `Phaser.Game` in `GameEngine` |
 | `ShopScreen` | In-game shop UI |
 | `LanguageSettingsPanel` | Language picker for Settings scene |

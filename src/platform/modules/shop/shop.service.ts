@@ -15,8 +15,8 @@ export interface ShopItem {
   type: ShopItemType;
   description: string;
   iapProductId?: string;
-  currency: 'iap' | 'gems' | 'coins';
-  reward?: { gems?: number; coins?: number };
+  currency: 'iap' | 'coins';
+  reward?: { coins?: number };
 }
 
 export class ShopService {
@@ -61,12 +61,7 @@ export class ShopService {
       }
     }
 
-    const spent =
-      item.currency === 'coins'
-        ? store.spendCoins(item.price)
-        : item.currency === 'gems'
-          ? store.spendGems(item.price)
-          : false;
+    const spent = item.currency === 'coins' ? store.spendCoins(item.price) : false;
 
     if (!spent) return false;
 
@@ -99,7 +94,6 @@ export class ShopService {
     }
 
     if (item.reward?.coins) store.addCoins(item.reward.coins);
-    if (item.reward?.gems) store.addGems(item.reward.gems);
   }
 }
 

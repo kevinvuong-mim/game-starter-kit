@@ -322,7 +322,6 @@ status = completed
 Thưởng:
 
 * coins
-* gems
 
 ---
 
@@ -417,7 +416,7 @@ Quản lý hệ thống điểm danh.
 
 ```text
 7 ngày
-coins + gems tăng dần
+coins tăng dần
 ```
 
 ---
@@ -497,7 +496,6 @@ Quản lý kinh tế trong game.
 Hỗ trợ:
 
 * coins
-* gems
 * IAP
 
 ---

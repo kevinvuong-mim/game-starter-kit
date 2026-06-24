@@ -31,7 +31,6 @@
     "restoreEmpty": "Không có giao dịch để khôi phục",
     "currency": {
       "coins": "xu",
-      "gems": "ngọc",
       "iap": "USD"
     },
     "items": {

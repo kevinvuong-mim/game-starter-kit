@@ -428,7 +428,6 @@ Overlay hiển thị thông tin gameplay.
 ## Hiển thị
 
 * coins
-* gems
 * score
 
 ---
@@ -454,7 +453,6 @@ usePlatformStore
 Tự động cập nhật:
 
 * coins
-* gems
 
 ---
 

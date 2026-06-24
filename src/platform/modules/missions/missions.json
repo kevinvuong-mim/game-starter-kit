@@ -20,7 +20,7 @@
     "type": "play",
     "id": "play_10",
     "missionType": "weekly",
-    "reward": { "gems": 5 },
+    "reward": { "coins": 100 },
     "titleKey": "missions.play10"
   },
   {

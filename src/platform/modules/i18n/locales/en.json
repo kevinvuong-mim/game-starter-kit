@@ -31,7 +31,6 @@
     "restoreEmpty": "No purchases to restore",
     "currency": {
       "coins": "coins",
-      "gems": "gems",
       "iap": "USD"
     },
     "items": {

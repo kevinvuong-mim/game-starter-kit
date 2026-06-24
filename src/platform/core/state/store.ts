@@ -8,9 +8,7 @@ export interface PlatformStore extends PlatformState {
   setUser: (user: Partial<PlatformState['user']>) => void;
 
   // Currency
-  addGems: (amount: number) => void;
   addCoins: (amount: number) => void;
-  spendGems: (amount: number) => boolean;
   spendCoins: (amount: number) => boolean;
 
   // Inventory
@@ -67,21 +65,6 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
     if (currency.coins < amount) return false;
     set((s) => ({
       currency: { ...s.currency, coins: s.currency.coins - amount },
-    }));
-    return true;
-  },
-
-  addGems: (amount) => {
-    if (amount <= 0) return;
-    set((s) => ({ currency: { ...s.currency, gems: s.currency.gems + amount } }));
-  },
-
-  spendGems: (amount) => {
-    if (amount <= 0) return false;
-    const { currency } = get();
-    if (currency.gems < amount) return false;
-    set((s) => ({
-      currency: { ...s.currency, gems: s.currency.gems - amount },
     }));
     return true;
   },

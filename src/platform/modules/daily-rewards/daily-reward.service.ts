@@ -11,7 +11,7 @@ const DAILY_REWARD_KEY = 'daily-rewards';
 
 export interface DailyRewardDay {
   day: number;
-  reward: { coins?: number; gems?: number };
+  reward: { coins?: number };
 }
 
 const REWARD_CALENDAR: DailyRewardDay[] = [
@@ -19,9 +19,9 @@ const REWARD_CALENDAR: DailyRewardDay[] = [
   { day: 2, reward: { coins: 20 } },
   { day: 3, reward: { coins: 30 } },
   { day: 4, reward: { coins: 50 } },
-  { day: 5, reward: { gems: 1 } },
+  { day: 5, reward: { coins: 100 } },
   { day: 6, reward: { coins: 75 } },
-  { day: 7, reward: { gems: 5 } },
+  { day: 7, reward: { coins: 200 } },
 ];
 
 export class DailyRewardService {
@@ -76,7 +76,6 @@ export class DailyRewardService {
     const rewardDay = REWARD_CALENDAR.find((r) => r.day === calendarDay) ?? REWARD_CALENDAR[0];
 
     if (rewardDay.reward.coins) store.addCoins(rewardDay.reward.coins);
-    if (rewardDay.reward.gems) store.addGems(rewardDay.reward.gems);
 
     const newStreak = store.dailyRewards.streak + 1;
     store.claimDailyReward(rewardDay.day);

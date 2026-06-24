@@ -35,7 +35,6 @@ export interface PlatformEventMap {
   'save:sync': void;
   'shop:restore': void;
   'daily:claim:result': {
-    gems?: number;
     coins?: number;
     success: boolean;
     message?: string;

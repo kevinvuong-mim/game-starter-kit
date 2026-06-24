@@ -7,7 +7,6 @@ export interface UserState {
 }
 
 export interface CurrencyState {
-  gems: number;
   coins: number;
 }
 
@@ -127,5 +126,5 @@ export const DEFAULT_STATE: PlatformState = {
     vibrationEnabled: true,
     graphicsQuality: 'medium',
   },
-  currency: { coins: 0, gems: 0 },
+  currency: { coins: 0 },
 };

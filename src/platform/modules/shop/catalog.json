@@ -10,10 +10,10 @@
       "description": "A cool blue character skin"
     },
     {
-      "price": 50,
+      "price": 300,
       "type": "skin",
       "id": "skin_gold",
-      "currency": "gems",
+      "currency": "coins",
       "name": "Gold Skin",
       "icon": "skin_gold",
       "description": "Premium gold character skin"

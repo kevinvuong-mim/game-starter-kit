@@ -11,7 +11,7 @@ export interface MissionDefinition {
   target: number;
   titleKey: string;
   missionType: MissionType;
-  reward: { coins?: number; gems?: number };
+  reward: { coins?: number };
 }
 
 const EVENT_TYPE_MAP: Record<string, string> = {
@@ -70,7 +70,6 @@ export class MissionService {
 
     const def = this.getDefinition(id);
     if (def?.reward.coins) store.addCoins(def.reward.coins);
-    if (def?.reward.gems) store.addGems(def.reward.gems);
 
     store.claimMission(id);
     return true;

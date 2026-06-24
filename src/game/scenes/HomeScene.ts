@@ -159,12 +159,10 @@ export class HomeScene extends Phaser.Scene {
         }
       }),
 
-      eventBus.on('daily:claim:result', ({ success, coins, gems, message }) => {
+      eventBus.on('daily:claim:result', ({ success, coins, message }) => {
         if (success) {
-          const amount = coins ?? gems ?? 0;
-          const unit = coins !== undefined ? 'coins' : 'gems';
           toast.show({
-            message: message ?? `+${amount} ${unit}!`,
+            message: message ?? `+${coins ?? 0} coins!`,
             type: 'success',
           });
           this.dailyRewardButton?.destroy();
