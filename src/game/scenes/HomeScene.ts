@@ -29,7 +29,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.58 },
+      position: { x: width / 2, y: height * 0.6 },
       size: { width: 256, height: 78 },
       background: { key: 'play-button-background' },
       icon: {
@@ -42,13 +42,29 @@ export class HomeScene extends Phaser.Scene {
         style: { fontSize: 36, fontStyle: 'bold' },
         offset: { x: 24, y: 0 },
       },
+      badge: {
+        content: t('home.playBadge'),
+        position: { x: 200, y: -8 },
+        padding: { vertical: 4, horizontal: 10 },
+        minSize: { width: 48, height: 24 },
+        background: {
+          color: 0xff4757,
+          radius: 12,
+          border: { color: 0xffffff, width: 2 },
+        },
+        textStyle: {
+          fontSize: 14,
+          fontStyle: 'bold',
+          color: '#ffffff',
+        },
+      },
       onClick: () => this.scene.start('Gameplay'),
     });
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.66 },
-      size: { width: 256, height: 64 },
+      position: { x: width / 2, y: height * 0.67 },
+      size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.shop'),
@@ -60,7 +76,7 @@ export class HomeScene extends Phaser.Scene {
     createUIButton({
       scene: this,
       position: { x: width / 2, y: height * 0.74 },
-      size: { width: 256, height: 64 },
+      size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.leaderboard'),
@@ -71,8 +87,8 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.82 },
-      size: { width: 256, height: 64 },
+      position: { x: width / 2, y: height * 0.81 },
+      size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.settings'),
@@ -118,7 +134,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
 
-    const container = this.add.container(width / 2, height * 0.9);
+    const container = this.add.container(width / 2, height * 0.88);
     const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });
