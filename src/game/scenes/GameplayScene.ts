@@ -56,10 +56,12 @@ export class GameplayScene extends Phaser.Scene {
     this.hud.setScore(0);
 
     this.pool = new ObjectPool<FallingObject>(
-      () => ({
-        sprite: this.add.circle(0, 0, 16, 0xffd700),
-        speed: 0,
-      }),
+      () => {
+        const sprite = this.add.circle(0, 0, 16, 0xffd700);
+        sprite.setVisible(false);
+        sprite.setActive(false);
+        return { sprite, speed: 0 };
+      },
       (obj) => {
         obj.sprite.setVisible(false);
         obj.sprite.setActive(false);
