@@ -12,13 +12,15 @@ export async function initCapacitorPlugins(): Promise<void> {
   if (!Capacitor.isNativePlatform() || capacitorInitialized) return;
 
   try {
-    const [{ App }, { StatusBar, Style }] = await Promise.all([
+    const [{ App }, { StatusBar }] = await Promise.all([
       import('@capacitor/app'),
       import('@capacitor/status-bar'),
     ]);
 
-    await StatusBar.setStyle({ style: Style.Dark });
-    await StatusBar.setBackgroundColor({ color: '#1a1a2e' });
+    if (Capacitor.getPlatform() === 'android') {
+      await StatusBar.setOverlaysWebView({ overlay: true });
+    }
+    await StatusBar.hide();
 
     await App.addListener('backButton', () => {
       eventBus.emit('app:back', undefined);

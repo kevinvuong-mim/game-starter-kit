@@ -13,8 +13,7 @@ const config: CapacitorConfig = {
       backgroundColor: '#1a1a2e',
     },
     StatusBar: {
-      style: 'DARK',
-      backgroundColor: '#1a1a2e',
+      overlaysWebView: true,
     },
   },
   appId: 'com.studio.gamestarterkit',
