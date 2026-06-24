@@ -40,11 +40,8 @@ export interface PlatformStore extends PlatformState {
   setDailyRewardState: (state: Partial<PlatformState['dailyRewards']>) => void;
 
   // Leaderboard
-  setLeaderboard: (
-    board: 'daily' | 'weekly' | 'allTime',
-    entries: PlatformState['leaderboard']['daily']
-  ) => void;
-  setPlayerRank: (board: string, rank: number) => void;
+  setLeaderboard: (entries: PlatformState['leaderboard']['allTime']) => void;
+  setPlayerRank: (rank: number) => void;
 
   // Bulk
   hydrate: (state: Partial<PlatformState>) => void;
@@ -210,20 +207,20 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
 
   setDailyRewardState: (state) => set((s) => ({ dailyRewards: { ...s.dailyRewards, ...state } })),
 
-  setLeaderboard: (board, entries) =>
+  setLeaderboard: (entries) =>
     set((s) => ({
       leaderboard: {
         ...s.leaderboard,
-        [board]: entries,
+        allTime: entries,
         lastFetchedAt: Date.now(),
       },
     })),
 
-  setPlayerRank: (board, rank) =>
+  setPlayerRank: (rank) =>
     set((s) => ({
       leaderboard: {
         ...s.leaderboard,
-        playerRanks: { ...s.leaderboard.playerRanks, [board]: rank },
+        playerRank: rank,
       },
     })),
 

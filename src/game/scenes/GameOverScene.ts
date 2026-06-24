@@ -55,7 +55,6 @@ export class GameOverScene extends Phaser.Scene {
       },
       onClick: () =>
         this.scene.start('Leaderboard', {
-          board: 'daily',
           returnTo: 'GameOver',
           returnData: { score },
         }),

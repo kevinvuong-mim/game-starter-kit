@@ -5,12 +5,11 @@ import { storage } from '@platform/core/storage';
 import { usePlatformStore } from '@platform/core/state';
 import type { LeaderboardEntry, LeaderboardState } from '@platform/core/state';
 
-export type LeaderboardBoard = 'daily' | 'weekly' | 'allTime';
+const BOARD = 'allTime' as const;
 
 interface QueuedSubmission {
   score: number;
   timestamp: number;
-  board: LeaderboardBoard;
 }
 
 const CACHE_KEY = 'leaderboard:cache';
@@ -32,12 +31,11 @@ export class LeaderboardService {
     }
   }
 
-  async submitScore(score: number, board: LeaderboardBoard = 'daily'): Promise<void> {
+  async submitScore(score: number): Promise<void> {
     const store = usePlatformStore.getState();
     const userId = store.user.id || 'anonymous';
     const displayName = store.user.displayName;
 
-    // Optimistic update
     const optimistic: LeaderboardEntry = {
       rank: 0,
       playerId: userId,
@@ -45,26 +43,26 @@ export class LeaderboardService {
       score,
     };
 
-    const current = store.leaderboard[board];
+    const current = store.leaderboard.allTime;
     const updated = [...current, optimistic]
       .sort((a, b) => b.score - a.score)
       .slice(0, 100)
       .map((e, i) => ({ ...e, rank: i + 1 }));
 
-    store.setLeaderboard(board, updated);
-    eventBus.emit('leaderboard:submit', { score, board });
+    store.setLeaderboard(updated);
+    eventBus.emit('leaderboard:submit', { score, board: BOARD });
 
     try {
-      await apiClient.post('/leaderboard/submit', { score, board, userId, displayName });
+      await apiClient.post('/leaderboard/submit', { score, board: BOARD, userId, displayName });
     } catch {
       logger.warn('[Leaderboard] Offline - queuing submission');
-      this.queue.push({ score, board, timestamp: Date.now() });
+      this.queue.push({ score, timestamp: Date.now() });
       await storage.save(QUEUE_KEY, this.queue);
     }
   }
 
-  async getLeaderboard(board: LeaderboardBoard = 'daily'): Promise<LeaderboardEntry[]> {
-    const cached = usePlatformStore.getState().leaderboard[board];
+  async getLeaderboard(): Promise<LeaderboardEntry[]> {
+    const cached = usePlatformStore.getState().leaderboard.allTime;
     const lastFetch = usePlatformStore.getState().leaderboard.lastFetchedAt;
     const cacheAge = Date.now() - lastFetch;
 
@@ -73,8 +71,8 @@ export class LeaderboardService {
     }
 
     try {
-      const data = await apiClient.get<LeaderboardEntry[]>(`/leaderboard/${board}`);
-      usePlatformStore.getState().setLeaderboard(board, data);
+      const data = await apiClient.get<LeaderboardEntry[]>(`/leaderboard/${BOARD}`);
+      usePlatformStore.getState().setLeaderboard(data);
       await this.persistCache();
       return data;
     } catch {
@@ -82,22 +80,22 @@ export class LeaderboardService {
     }
   }
 
-  async getRank(board: LeaderboardBoard = 'daily'): Promise<number> {
-    const cachedRank = usePlatformStore.getState().leaderboard.playerRanks[board];
-    if (cachedRank !== undefined && cachedRank >= 0) return cachedRank;
+  async getRank(): Promise<number> {
+    const cachedRank = usePlatformStore.getState().leaderboard.playerRank;
+    if (cachedRank >= 0) return cachedRank;
 
     const userId = usePlatformStore.getState().user.id;
     if (!userId) return -1;
 
     try {
       const { rank } = await apiClient.get<{ rank: number }>(
-        `/leaderboard/${board}/rank/${userId}`
+        `/leaderboard/${BOARD}/rank/${userId}`
       );
-      usePlatformStore.getState().setPlayerRank(board, rank);
+      usePlatformStore.getState().setPlayerRank(rank);
       return rank;
     } catch {
-      const board_data = usePlatformStore.getState().leaderboard[board];
-      const entry = board_data.find((e) => e.playerId === userId);
+      const entries = usePlatformStore.getState().leaderboard.allTime;
+      const entry = entries.find((e) => e.playerId === userId);
       return entry?.rank ?? -1;
     }
   }
@@ -111,7 +109,7 @@ export class LeaderboardService {
         const store = usePlatformStore.getState();
         await apiClient.post('/leaderboard/submit', {
           score: item.score,
-          board: item.board,
+          board: BOARD,
           userId: store.user.id,
           displayName: store.user.displayName,
         });

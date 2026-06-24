@@ -11,4 +11,3 @@ export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';
-export { type LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.service';

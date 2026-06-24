@@ -83,9 +83,6 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
-    "daily": "Daily",
-    "weekly": "Weekly",
-    "allTime": "All Time",
     "rank": "Your Rank: #{{rank}}",
     "empty": "No scores yet. Play a game to get on the board!",
     "you": "(You)",

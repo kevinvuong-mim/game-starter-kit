@@ -76,20 +76,20 @@ export class HomeScene extends Phaser.Scene {
       onClick: () => this.scene.start('Settings'),
     });
 
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.88 },
-      size: { width: 256, height: 78 },
-      background: { key: UIButtonBackgroundKey.Rounded },
-      text: {
-        content: t('home.modal'),
-        style: { fontSize: 36, fontStyle: 'bold' },
-      },
-      onClick: () =>
-        screenManager.open('modal', {
-          message: t('home.modalMessage'),
-        }),
-    });
+    // createUIButton({
+    //   scene: this,
+    //   position: { x: width / 2, y: height * 0.95 },
+    //   size: { width: 256, height: 78 },
+    //   background: { key: UIButtonBackgroundKey.Rounded },
+    //   text: {
+    //     content: t('home.modal'),
+    //     style: { fontSize: 36, fontStyle: 'bold' },
+    //   },
+    //   onClick: () =>
+    //     screenManager.open('modal', {
+    //       message: t('home.modalMessage'),
+    //     }),
+    // });
 
     this.bindPlatformEvents();
     eventBus.emit('daily:status:request', undefined);
@@ -126,7 +126,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.dailyRewardButton) return;
     const { width, height } = this.cameras.main;
 
-    const container = this.add.container(width / 2, height * 0.95);
+    const container = this.add.container(width / 2, height * 0.88);
     const bg = this.add.rectangle(0, 0, 256, 64, 0x6c5ce7);
     bg.setStrokeStyle(2, 0xffffff);
     bg.setInteractive({ useHandCursor: true });

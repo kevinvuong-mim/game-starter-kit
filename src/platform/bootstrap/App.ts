@@ -97,7 +97,7 @@ export class App {
 
       events.on('game:over', async ({ score, duration, jumps }) => {
         trackGameOver({ score, duration, jumps });
-        await leaderboard.submitScore(score, 'daily');
+        await leaderboard.submitScore(score);
         await saveService.saveLocal();
       }),
 

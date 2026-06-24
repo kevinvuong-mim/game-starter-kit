@@ -70,10 +70,8 @@ export interface LeaderboardEntry {
 
 export interface LeaderboardState {
   lastFetchedAt: number;
-  daily: LeaderboardEntry[];
-  weekly: LeaderboardEntry[];
   allTime: LeaderboardEntry[];
-  playerRanks: Record<string, number>;
+  playerRank: number;
 }
 
 export interface PlatformState {
@@ -95,10 +93,8 @@ export const DEFAULT_STATE: PlatformState = {
     claimedDays: [],
   },
   leaderboard: {
-    daily: [],
-    weekly: [],
     allTime: [],
-    playerRanks: {},
+    playerRank: -1,
     lastFetchedAt: 0,
   },
   missions: {

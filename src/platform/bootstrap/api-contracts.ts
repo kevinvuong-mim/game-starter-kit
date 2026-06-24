@@ -2,7 +2,7 @@ export interface SubmitScoreDto {
   score: number;
   userId: string;
   displayName: string;
-  board: 'daily' | 'weekly' | 'allTime';
+  board: 'allTime';
 }
 
 export interface LeaderboardResponse {

@@ -5,27 +5,21 @@ import { t } from '@platform/modules/i18n/i18n.service';
 import { usePlatformStore } from '@platform/core/state';
 import type { LeaderboardEntry } from '@platform/core/state';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
-import type { LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.service';
 
 const MAX_ROWS = 8;
 const ROW_HEIGHT = 52;
-const BOARDS: LeaderboardBoard[] = ['daily', 'weekly', 'allTime'];
 
 /**
  * Leaderboard UI — lives in platform/ui so game scenes stay event-driven.
  */
 export class LeaderboardPanel extends Phaser.GameObjects.Container {
-  private loading = false;
   private rankText?: Phaser.GameObjects.Text;
   private statusText?: Phaser.GameObjects.Text;
-  private activeBoard: LeaderboardBoard;
   private listContainer?: Phaser.GameObjects.Container;
-  private tabButtons = new Map<LeaderboardBoard, Phaser.GameObjects.Rectangle>();
 
-  constructor(scene: Phaser.Scene, initialBoard: LeaderboardBoard = 'daily') {
+  constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
     scene.add.existing(this);
-    this.activeBoard = BOARDS.includes(initialBoard) ? initialBoard : 'daily';
     this.build();
     void this.refresh();
   }
@@ -44,10 +38,8 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    this.buildTabs(width, height * 0.2);
-
     this.rankText = this.scene.add
-      .text(width / 2, height * 0.27, '', {
+      .text(width / 2, height * 0.22, '', {
         fontSize: '18px',
         color: '#ffd700',
         fontFamily: FREDOKA_FONT,
@@ -64,66 +56,21 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
     this.add(this.statusText);
 
-    this.listContainer = this.scene.add.container(width / 2, height * 0.34);
+    this.listContainer = this.scene.add.container(width / 2, height * 0.3);
     this.add(this.listContainer);
   }
 
-  private buildTabs(width: number, y: number): void {
-    const tabWidth = 110;
-    const gap = 12;
-    const totalWidth = BOARDS.length * tabWidth + (BOARDS.length - 1) * gap;
-    const startX = width / 2 - totalWidth / 2 + tabWidth / 2;
-
-    BOARDS.forEach((board, index) => {
-      const x = startX + index * (tabWidth + gap);
-      const tab = this.scene.add.rectangle(x, y, tabWidth, 40, 0x1a1a2e, 1);
-      tab.setStrokeStyle(1, 0x4a90d9);
-      tab.setInteractive({ useHandCursor: true });
-      this.tabButtons.set(board, tab);
-      this.add(tab);
-
-      const label = this.scene.add.text(x, y, t(`leaderboard.${board}`), {
-        fontSize: '14px',
-        color: '#ffffff',
-        fontFamily: FREDOKA_FONT,
-      });
-      label.setOrigin(0.5);
-      this.add(label);
-
-      tab.on('pointerdown', () => {
-        void this.switchBoard(board);
-      });
-    });
-  }
-
-  private async switchBoard(board: LeaderboardBoard): Promise<void> {
-    if (this.loading || this.activeBoard === board) return;
-    this.activeBoard = board;
-    await this.refresh();
-  }
-
   private async refresh(): Promise<void> {
-    this.loading = true;
-    this.updateTabStyles();
     this.setStatus(t('common.loading'));
     this.clearList();
 
     const [entries, rank] = await Promise.all([
-      leaderboard.getLeaderboard(this.activeBoard),
-      leaderboard.getRank(this.activeBoard),
+      leaderboard.getLeaderboard(),
+      leaderboard.getRank(),
     ]);
 
-    this.loading = false;
     this.updateRank(rank);
     this.renderEntries(entries);
-  }
-
-  private updateTabStyles(): void {
-    for (const [board, tab] of this.tabButtons) {
-      const active = board === this.activeBoard;
-      tab.setFillStyle(active ? 0x4a90d9 : 0x1a1a2e, 1);
-      tab.setStrokeStyle(active ? 2 : 1, active ? 0xffffff : 0x4a90d9);
-    }
   }
 
   private updateRank(rank: number): void {
