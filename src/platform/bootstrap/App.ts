@@ -13,13 +13,13 @@ import { generateId } from '@platform/core/utils';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
 import { i18n } from '@platform/modules/i18n/i18n.service';
+import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
 import { settings } from '@platform/modules/settings/settings.service';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
-import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 
 const { events, analytics, ads, iap, config } = services;
 

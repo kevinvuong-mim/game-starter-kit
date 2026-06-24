@@ -1,7 +1,7 @@
-import { ConsoleAnalyticsProvider, FirebaseAnalyticsProvider } from '@platform/core/analytics';
 import { services } from '@platform/core/services';
+import { ConsoleAnalyticsProvider, FirebaseAnalyticsProvider } from '@platform/core/analytics';
 
-const { analytics, config } = services;
+const { config, analytics } = services;
 
 /**
  * Registers analytics providers based on runtime config.
