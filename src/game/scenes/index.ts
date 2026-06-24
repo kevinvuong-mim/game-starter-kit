@@ -11,6 +11,8 @@ import { HowToPlayScene } from './HowToPlayScene';
 import { DailyRewardScene } from './DailyRewardScene';
 import { LeaderboardScene } from './LeaderboardScene';
 
+// Phaser auto-starts the first scene; Boot → Preload → Home via scene.start().
+// Order of the remaining scenes only registers them for later navigation.
 export const gameScenes = [
   BootScene,
   HomeScene,
