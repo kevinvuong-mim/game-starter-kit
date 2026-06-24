@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
-import { createUIButton } from '@platform/ui/button/UIButton';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
 
@@ -37,33 +37,39 @@ export class GameOverScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    createUIButton(this, {
-      height: 52,
-      width: 240,
-      x: width / 2,
-      y: height * 0.58,
-      fontSize: '22px',
-      label: t('game.retry'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.58 },
+      size: { width: 240, height: 52 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('game.retry'),
+        style: { fontSize: 22 },
+      },
       onClick: () => this.scene.start('Gameplay'),
     });
 
-    createUIButton(this, {
-      height: 52,
-      width: 240,
-      x: width / 2,
-      fontSize: '22px',
-      y: height * 0.68,
-      label: t('game.leaderboard'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.68 },
+      size: { width: 240, height: 52 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('game.leaderboard'),
+        style: { fontSize: 22 },
+      },
       onClick: () => screenManager.open('leaderboard', { board: 'daily' }),
     });
 
-    createUIButton(this, {
-      height: 52,
-      width: 240,
-      x: width / 2,
-      fontSize: '22px',
-      y: height * 0.78,
-      label: t('game.home'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.78 },
+      size: { width: 240, height: 52 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('game.home'),
+        style: { fontSize: 22 },
+      },
       onClick: () => {
         eventBus.emit('game:destroy', undefined);
         this.scene.start('Home');

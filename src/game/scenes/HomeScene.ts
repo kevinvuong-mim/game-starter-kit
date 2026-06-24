@@ -6,7 +6,7 @@ import { FREDOKA_FONT } from '@platform/ui/typography';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
-import { createUIButton } from '@platform/ui/button/UIButton';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
 
@@ -27,50 +27,57 @@ export class HomeScene extends Phaser.Scene {
     screenManager.register(new ShopScreen(this));
     screenManager.register(new LeaderboardScreen(this));
 
-    createUIButton(this, {
-      height: 78,
-      width: 256,
-      iconGap: 30,
-      x: width / 2,
-      y: height * 0.58,
-      fontSize: '36px',
-      variant: 'rounded',
-      label: t('home.play'),
-      iconTexture: 'play-button-icon',
-      backgroundTexture: 'play-button-background',
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.58 },
+      size: { width: 256, height: 78 },
+      background: { key: 'play-button-background' },
+      icon: {
+        key: 'play-button-icon',
+        size: { width: 43, height: 43 },
+        offset: { x: -72, y: 0 },
+      },
+      text: {
+        content: t('home.play'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+        offset: { x: 24, y: 0 },
+      },
       onClick: () => this.scene.start('Gameplay'),
     });
 
-    createUIButton(this, {
-      height: 64,
-      width: 256,
-      x: width / 2,
-      fontSize: '36px',
-      y: height * 0.66,
-      variant: 'rounded',
-      label: t('home.shop'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.66 },
+      size: { width: 256, height: 64 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.shop'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
       onClick: () => screenManager.open('shop'),
     });
 
-    createUIButton(this, {
-      height: 64,
-      width: 256,
-      x: width / 2,
-      fontSize: '36px',
-      y: height * 0.74,
-      variant: 'rounded',
-      label: t('home.leaderboard'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.74 },
+      size: { width: 256, height: 64 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.leaderboard'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
       onClick: () => screenManager.open('leaderboard'),
     });
 
-    createUIButton(this, {
-      height: 64,
-      width: 256,
-      x: width / 2,
-      fontSize: '36px',
-      y: height * 0.82,
-      variant: 'rounded',
-      label: t('home.settings'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.82 },
+      size: { width: 256, height: 64 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.settings'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
       onClick: () => this.scene.start('Settings'),
     });
 

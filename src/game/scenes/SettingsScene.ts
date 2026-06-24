@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
-import { createUIButton } from '@platform/ui/button/UIButton';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 
 export class SettingsScene extends Phaser.Scene {
@@ -29,12 +29,14 @@ export class SettingsScene extends Phaser.Scene {
 
     new LanguageSettingsPanel(this, 0, height * 0.22);
 
-    createUIButton(this, {
-      height: 48,
-      width: 200,
-      x: width / 2,
-      y: height * 0.85,
-      label: t('settings.back'),
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.85 },
+      size: { width: 200, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('settings.back'),
+      },
       onClick: () => this.scene.start('Home'),
     });
 

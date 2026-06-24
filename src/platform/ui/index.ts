@@ -10,5 +10,14 @@ export { dialog, DialogScreen } from './dialog/DialogScreen';
 export { PopupScreen, createPopup } from './popup/PopupScreen';
 export { LeaderboardScreen } from './leaderboard/LeaderboardScreen';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
-export type { UIButtonOptions, UIButtonVariant } from './button/UIButton';
+export type {
+  Size,
+  Position,
+  TextStyle,
+  UIButtonIcon,
+  UIButtonText,
+  UIButtonBadge,
+  UIButtonOptions,
+} from './button/UIButton';
+export { UIButtonBackgroundKey } from './button/UIButton';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';

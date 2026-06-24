@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { createUIButton } from '../button/UIButton';
+import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 import type { IUIScreen, UIScreenId } from '../types';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
@@ -57,13 +57,15 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
     width = 200,
     height = 50
   ): Phaser.GameObjects.GameObject {
-    const button = createUIButton(this.scene, {
-      x,
-      y,
-      label: text,
+    const button = createUIButton({
+      scene: this.scene,
+      position: { x, y },
+      size: { width, height },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: text,
+      },
       onClick,
-      width,
-      height,
     });
     this.add(button);
     return button;
