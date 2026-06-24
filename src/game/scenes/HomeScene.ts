@@ -27,6 +27,47 @@ export class HomeScene extends Phaser.Scene {
     screenManager.register(new ShopScreen(this));
     screenManager.register(new LeaderboardScreen(this));
 
+    let counter = 0;
+    const counterButton = createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.48 },
+      size: { width: 120, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: String(counter),
+        style: { fontSize: 24, fontStyle: 'bold' },
+      },
+      badge: {
+        content: 'Ok',
+        visible: false,
+        position: { x: 48, y: -12 },
+        padding: { vertical: 2, horizontal: 8 },
+        minSize: { width: 32, height: 20 },
+        background: {
+          color: 0x2ed573,
+          radius: 10,
+          border: { color: 0xffffff, width: 1 },
+        },
+        textStyle: {
+          fontSize: 12,
+          fontStyle: 'bold',
+          color: '#ffffff',
+        },
+      },
+      onClick: () => {
+        counter += 1;
+        counterButton.setText(String(counter));
+
+        if (counter === 5) {
+          counterButton.setBadgeVisible(true);
+        }
+
+        if (counter >= 10) {
+          counterButton.setEnabled(false);
+        }
+      },
+    });
+
     createUIButton({
       scene: this,
       position: { x: width / 2, y: height * 0.6 },

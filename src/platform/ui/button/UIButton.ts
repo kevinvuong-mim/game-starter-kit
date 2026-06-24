@@ -2,17 +2,17 @@ import Phaser from 'phaser';
 
 import { FREDOKA_FONT } from '../typography';
 
-export type Size = {
+export type UIButtonSize = {
   width: number;
   height: number;
 };
 
-export type Position = {
+export type UIButtonPosition = {
   x: number;
   y: number;
 };
 
-export type TextStyle = {
+export type UIButtonTextStyle = {
   color?: string;
   stroke?: string;
   fontSize?: number;
@@ -23,14 +23,14 @@ export type TextStyle = {
 
 export interface UIButtonText {
   content: string;
-  offset?: Position;
-  style?: TextStyle;
+  offset?: UIButtonPosition;
+  style?: UIButtonTextStyle;
 }
 
 export interface UIButtonIcon {
   key: string;
-  size?: Size;
-  offset?: Position;
+  size?: UIButtonSize;
+  offset?: UIButtonPosition;
 }
 
 export interface UIButtonBadge {
@@ -49,16 +49,16 @@ export interface UIButtonBadge {
       width: number;
     };
   };
-  position?: Position;
+  position?: UIButtonPosition;
   padding?: {
     vertical: number;
     horizontal: number;
   };
-  textStyle?: TextStyle;
+  textStyle?: UIButtonTextStyle;
 }
 
 export interface UIButtonOptions {
-  size?: Size;
+  size?: UIButtonSize;
   origin?: {
     x: number;
     y: number;
@@ -68,15 +68,20 @@ export interface UIButtonOptions {
   };
   depth?: number;
   disabled?: boolean;
-  position: Position;
   icon?: UIButtonIcon;
   scene: Phaser.Scene;
   text?: UIButtonText;
   onClick?: () => void;
-  onHover?: () => void;
-  onPress?: () => void;
   badge?: UIButtonBadge;
+  position: UIButtonPosition;
 }
+
+export type UIButton = Phaser.GameObjects.Container & {
+  setText(content: string): void;
+  setEnabled(enabled: boolean): void;
+  setBadgeContent(content: string): void;
+  setBadgeVisible(visible: boolean): void;
+};
 
 export const UIButtonBackgroundKey = {
   Primary: '__ui-button-primary',
@@ -84,9 +89,9 @@ export const UIButtonBackgroundKey = {
 } as const;
 
 const PRESS_SCALE = 0.95;
-const DEFAULT_SIZE: Size = { width: 200, height: 50 };
+const DEFAULT_SIZE: UIButtonSize = { width: 200, height: 50 };
 
-function applyTextStyle(textObject: Phaser.GameObjects.Text, style?: TextStyle): void {
+function applyTextStyle(textObject: Phaser.GameObjects.Text, style?: UIButtonTextStyle): void {
   const fontSize = style?.fontSize !== undefined ? `${style.fontSize}px` : '20px';
   const fontFamily = style?.fontFamily ?? FREDOKA_FONT;
 
@@ -159,7 +164,7 @@ function addButtonText(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
   text: UIButtonText
-): void {
+): Phaser.GameObjects.Text {
   const textObject = scene.add.text(
     text.offset?.x ?? 0,
     text.offset?.y ?? 0,
@@ -168,6 +173,7 @@ function addButtonText(
   applyTextStyle(textObject, text.style);
   textObject.setOrigin(0.5);
   container.add(textObject);
+  return textObject;
 }
 
 function addButtonIcon(
@@ -185,80 +191,109 @@ function addButtonIcon(
   container.add(iconObject);
 }
 
+function measureBadge(
+  textObject: Phaser.GameObjects.Text,
+  badge: UIButtonBadge
+): { width: number; height: number } {
+  const paddingH = badge.padding?.horizontal ?? 8;
+  const paddingV = badge.padding?.vertical ?? 4;
+  const minWidth = badge.minSize?.width ?? 0;
+  const minHeight = badge.minSize?.height ?? 0;
+
+  return {
+    width: Math.max(textObject.width + paddingH * 2, minWidth),
+    height: Math.max(textObject.height + paddingV * 2, minHeight),
+  };
+}
+
+function drawBadgeBackground(
+  background: Phaser.GameObjects.Graphics,
+  badge: UIButtonBadge,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): void {
+  background.clear();
+
+  if (!badge.background) return;
+
+  const radius = badge.background.radius ?? height / 2;
+
+  background.fillStyle(badge.background.color, 1);
+  background.fillRoundedRect(x, y, width, height, radius);
+
+  if (badge.background.border) {
+    background.lineStyle(badge.background.border.width, badge.background.border.color, 1);
+    background.strokeRoundedRect(x, y, width, height, radius);
+  }
+}
+
 function addButtonBadge(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
   badge: UIButtonBadge,
   offsetX: number,
   offsetY: number
-): void {
-  if (badge.visible === false) return;
-
+): { textObject: Phaser.GameObjects.Text; background?: Phaser.GameObjects.Graphics } {
   const content = badge.content ?? '';
-  const paddingH = badge.padding?.horizontal ?? 8;
-  const paddingV = badge.padding?.vertical ?? 4;
   const textObject = scene.add.text(0, 0, content);
   applyTextStyle(textObject, badge.textStyle);
   textObject.setOrigin(0.5);
 
-  const minWidth = badge.minSize?.width ?? 0;
-  const minHeight = badge.minSize?.height ?? 0;
-  const badgeWidth = Math.max(textObject.width + paddingH * 2, minWidth);
-  const badgeHeight = Math.max(textObject.height + paddingV * 2, minHeight);
+  const { width: badgeWidth, height: badgeHeight } = measureBadge(textObject, badge);
   const badgeX = offsetX + (badge.position?.x ?? 0);
   const badgeY = offsetY + (badge.position?.y ?? 0);
-  const radius = badge.background?.radius ?? badgeHeight / 2;
 
-  const background = scene.add.graphics();
+  let background: Phaser.GameObjects.Graphics | undefined;
   if (badge.background) {
-    background.fillStyle(badge.background.color, 1);
-    background.fillRoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, radius);
+    background = scene.add.graphics();
+    drawBadgeBackground(background, badge, badgeX, badgeY, badgeWidth, badgeHeight);
 
-    if (badge.background.border) {
-      background.lineStyle(badge.background.border.width, badge.background.border.color, 1);
-      background.strokeRoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, radius);
+    if (badge.depth !== undefined) {
+      background.setDepth(badge.depth);
     }
+
+    container.add(background);
   }
 
   textObject.setPosition(badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
 
   if (badge.depth !== undefined) {
-    background.setDepth(badge.depth);
     textObject.setDepth(badge.depth);
   }
 
-  container.add([background, textObject]);
+  const visible = badge.visible !== false;
+  textObject.setVisible(visible);
+  background?.setVisible(visible);
+
+  container.add(textObject);
+
+  return { textObject, background };
 }
 
 function bindButtonInteractions(
   scene: Phaser.Scene,
   inputTarget: Phaser.GameObjects.GameObject,
   visualTarget: Phaser.GameObjects.GameObject,
-  handlers: {
-    onClick?: () => void;
-    onHover?: () => void;
-    onPress?: () => void;
-  }
+  onClick?: () => void
 ): void {
-  const { onClick, onHover, onPress } = handlers;
   let isPressed = false;
 
   const release = (shouldClick: boolean) => {
     if (!isPressed) return;
     isPressed = false;
+    if (shouldClick) {
+      onClick?.();
+    }
     scene.tweens.killTweensOf(visualTarget);
     scene.tweens.add({
       targets: visualTarget,
       scale: 1,
       duration: 100,
       ease: 'Back.easeOut',
-      onComplete: shouldClick ? onClick : undefined,
     });
   };
-
-  inputTarget.on('pointerover', () => {
-    onHover?.();
-  });
 
   inputTarget.on('pointerdown', () => {
     if (scene.sound.locked) {
@@ -266,7 +301,6 @@ function bindButtonInteractions(
     }
 
     isPressed = true;
-    onPress?.();
     scene.tweens.killTweensOf(visualTarget);
     scene.tweens.add({
       targets: visualTarget,
@@ -280,14 +314,27 @@ function bindButtonInteractions(
   inputTarget.on('pointerout', () => release(false));
 }
 
-export function createUIButton(options: UIButtonOptions): Phaser.GameObjects.Container {
-  const { scene, position, background, text, icon, badge, depth, disabled, onClick, onHover, onPress } =
-    options;
+function createHitZone(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  offsetX: number,
+  offsetY: number,
+  width: number,
+  height: number
+): Phaser.GameObjects.Zone {
+  const hitZone = scene.add.zone(offsetX + width / 2, offsetY + height / 2, width, height);
+  hitZone.setInteractive({ useHandCursor: true });
+  container.add(hitZone);
+  return hitZone;
+}
+
+export function createUIButton(options: UIButtonOptions): UIButton {
+  const { scene, position, background, text, icon, badge, depth, disabled, onClick } = options;
 
   ensureDefaultButtonTextures(scene);
 
   const { width, height, offsetX, offsetY } = getButtonLayout(options);
-  const container = scene.add.container(position.x, position.y);
+  const container = scene.add.container(position.x, position.y) as UIButton;
 
   if (depth !== undefined) {
     container.setDepth(depth);
@@ -297,28 +344,78 @@ export function createUIButton(options: UIButtonOptions): Phaser.GameObjects.Con
   backgroundImage.setDisplaySize(width, height);
   container.add(backgroundImage);
 
-  if (text) {
-    addButtonText(scene, container, text);
-  }
+  const textObject = text ? addButtonText(scene, container, text) : undefined;
 
   if (icon) {
     addButtonIcon(scene, container, icon);
   }
 
-  if (badge) {
-    addButtonBadge(scene, container, badge, offsetX, offsetY);
-  }
+  const badgeParts = badge ? addButtonBadge(scene, container, badge, offsetX, offsetY) : undefined;
 
-  if (disabled) {
+  let hitZone: Phaser.GameObjects.Zone | undefined;
+  let enabled = !disabled;
+
+  const ensureInteractive = () => {
+    if (!hitZone) {
+      hitZone = createHitZone(scene, container, offsetX, offsetY, width, height);
+      bindButtonInteractions(scene, hitZone, container, onClick);
+    } else {
+      hitZone.setInteractive({ useHandCursor: true });
+    }
+  };
+
+  const disableInteractive = () => {
+    hitZone?.disableInteractive();
+    scene.tweens.killTweensOf(container);
+    container.setScale(1);
+  };
+
+  if (enabled) {
+    ensureInteractive();
+  } else {
     container.setAlpha(0.5);
-    return container;
   }
 
-  const hitZone = scene.add.zone(offsetX + width / 2, offsetY + height / 2, width, height);
-  hitZone.setInteractive({ useHandCursor: true });
-  container.add(hitZone);
+  container.setEnabled = (nextEnabled: boolean) => {
+    if (nextEnabled === enabled) return;
+    enabled = nextEnabled;
 
-  bindButtonInteractions(scene, hitZone, container, { onClick, onHover, onPress });
+    if (enabled) {
+      container.setAlpha(1);
+      ensureInteractive();
+      return;
+    }
+
+    disableInteractive();
+    container.setAlpha(0.5);
+  };
+
+  container.setText = (content: string) => {
+    if (!textObject) return;
+    textObject.setText(content);
+  };
+
+  container.setBadgeContent = (content: string) => {
+    if (!badgeParts || !badge) return;
+
+    badgeParts.textObject.setText(content);
+
+    const { width: badgeWidth, height: badgeHeight } = measureBadge(badgeParts.textObject, badge);
+    const badgeX = offsetX + (badge.position?.x ?? 0);
+    const badgeY = offsetY + (badge.position?.y ?? 0);
+
+    badgeParts.textObject.setPosition(badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+
+    if (badgeParts.background) {
+      drawBadgeBackground(badgeParts.background, badge, badgeX, badgeY, badgeWidth, badgeHeight);
+    }
+  };
+
+  container.setBadgeVisible = (visible: boolean) => {
+    if (!badgeParts) return;
+    badgeParts.textObject.setVisible(visible);
+    badgeParts.background?.setVisible(visible);
+  };
 
   return container;
 }
