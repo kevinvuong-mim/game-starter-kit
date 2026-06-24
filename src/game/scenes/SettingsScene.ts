@@ -32,7 +32,31 @@ export class SettingsScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.88 },
+      position: { x: width / 2, y: height * 0.72 },
+      size: { width: 280, height: 48 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('settings.howToPlay'),
+        style: { fontSize: 20 },
+      },
+      onClick: () => this.scene.start('HowToPlay'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.8 },
+      size: { width: 280, height: 48 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('settings.termsPrivacy'),
+        style: { fontSize: 20 },
+      },
+      onClick: () => this.scene.start('Legal'),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.9 },
       size: { width: 200, height: 48 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {

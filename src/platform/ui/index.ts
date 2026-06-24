@@ -1,6 +1,7 @@
 export * from './types';
 export { HUD } from './hud/HUD';
 export { ShopPanel } from './shop/ShopPanel';
+export { LegalPanel } from './legal/LegalPanel';
 export { ModalScreen } from './modal/ModalScreen';
 export { createUIButton } from './button/UIButton';
 export const FREDOKA_FONT = '"Fredoka", sans-serif';
@@ -8,6 +9,7 @@ export const NUNITO_FONT = '"Nunito Sans", sans-serif';
 export { MissionsPanel } from './missions/MissionsPanel';
 export { UIButtonBackgroundKey } from './button/UIButton';
 export { toast, ToastManager } from './toast/ToastManager';
+export { HowToPlayPanel } from './how-to-play/HowToPlayPanel';
 export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { DailyRewardPanel } from './daily-reward/DailyRewardPanel';

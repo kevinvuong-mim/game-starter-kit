@@ -68,6 +68,8 @@
     "signIn": "Đăng nhập",
     "signInGoogle": "Google",
     "signInApple": "Apple",
+    "termsPrivacy": "Điều khoản & Quyền riêng tư",
+    "howToPlay": "Hướng dẫn chơi",
     "back": "Quay lại"
   },
   "missions": {
@@ -103,5 +105,16 @@
     "empty": "Chưa có điểm nào. Chơi một ván để lên bảng!",
     "you": "(Bạn)",
     "rankUnavailable": "Chưa có hạng của bạn"
+  },
+  "legal": {
+    "title": "Điều khoản & Quyền riêng tư",
+    "tabTerms": "Điều khoản",
+    "tabPrivacy": "Quyền riêng tư",
+    "termsContent": "Cập nhật lần cuối: Tháng 6/2026\n\n1. Chấp nhận điều khoản\nBằng việc tải, cài đặt hoặc sử dụng trò chơi này, bạn đồng ý với các Điều khoản Dịch vụ. Nếu không đồng ý, vui lòng không sử dụng trò chơi.\n\n2. Giấy phép\nChúng tôi cấp cho bạn giấy phép hạn chế, không độc quyền, không thể chuyển nhượng để sử dụng trò chơi cho mục đích giải trí cá nhân, phi thương mại.\n\n3. Vật phẩm ảo\nXu, skin và các vật phẩm ảo khác không có giá trị tiền thật và không thể đổi thành tiền mặt. Chúng tôi có thể sửa đổi hoặc gỡ bỏ vật phẩm ảo bất cứ lúc nào.\n\n4. Hành vi người dùng\nBạn cam kết không gian lận, khai thác lỗi, quấy rối người chơi khác hoặc sử dụng trò chơi trái với pháp luật.\n\n5. Thay đổi\nChúng tôi có thể cập nhật điều khoản theo thời gian. Việc tiếp tục sử dụng trò chơi sau khi thay đổi đồng nghĩa với việc chấp nhận điều khoản mới.\n\n6. Liên hệ\nMọi thắc mắc về điều khoản, vui lòng liên hệ support@example.com.",
+    "privacyContent": "Cập nhật lần cuối: Tháng 6/2026\n\n1. Thông tin chúng tôi thu thập\nChúng tôi có thể thu thập dữ liệu chơi game (điểm số, tiến độ, loại thiết bị), sự kiện phân tích và thông tin tài khoản tùy chọn khi bạn đăng nhập bằng Google hoặc Apple.\n\n2. Cách sử dụng thông tin\nDữ liệu được dùng để vận hành trò chơi, cải thiện tính năng, hiển thị bảng xếp hạng, xử lý giao dịch và gửi thông báo phù hợp.\n\n3. Dịch vụ bên thứ ba\nTrò chơi có thể sử dụng các dịch vụ như Firebase Analytics, mạng quảng cáo và nhà cung cấp thanh toán. Mỗi dịch vụ có chính sách riêng tư riêng.\n\n4. Lưu trữ dữ liệu\nTiến độ game có thể được lưu cục bộ trên thiết bị và đồng bộ lên máy chủ khi bạn đăng nhập.\n\n5. Quyền riêng tư trẻ em\nTrò chơi không hướng tới trẻ em dưới 13 tuổi. Chúng tôi không cố ý thu thập thông tin cá nhân từ trẻ em.\n\n6. Quyền của bạn\nTùy khu vực, bạn có thể yêu cầu truy cập, chỉnh sửa hoặc xóa dữ liệu cá nhân bằng cách liên hệ support@example.com.\n\n7. Thay đổi\nChúng tôi có thể cập nhật chính sách này theo thời gian. Thông báo thay đổi quan trọng sẽ được gửi qua ứng dụng hoặc website."
+  },
+  "howToPlay": {
+    "title": "Hướng dẫn chơi",
+    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: hoàn thành thử thách hàng ngày, hàng tuần và vĩnh viễn để nhận xu\n• Phần thưởng hàng ngày: nhận xu miễn phí mỗi 24 giờ\n• Cửa hàng: dùng xu mua skin và boost\n• Bảng xếp hạng: so sánh điểm cao nhất với người chơi khác"
   }
 }
