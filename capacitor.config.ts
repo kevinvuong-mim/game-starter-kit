@@ -7,13 +7,13 @@ const config: CapacitorConfig = {
   },
   appName: 'Game Starter Kit',
   plugins: {
+    StatusBar: {
+      overlaysWebView: true,
+    },
     SplashScreen: {
       showSpinner: false,
       launchAutoHide: true,
       backgroundColor: '#1a1a2e',
-    },
-    StatusBar: {
-      overlaysWebView: true,
     },
   },
   appId: 'com.studio.gamestarterkit',
