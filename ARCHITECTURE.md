@@ -77,15 +77,15 @@ src/
 
 ## Design Principles
 
-| Principle          | Implementation                                  |
-| ------------------ | ----------------------------------------------- |
-| Clone per game     | One repo = one game; clone this kit to start    |
-| Modularity         | Each platform module is self-contained          |
-| Reusability        | `src/platform/` ships with every cloned project |
-| Event Driven       | Typed EventBus decouples game from platform     |
-| Data Driven        | Shop catalog, missions defined in JSON          |
-| Offline First      | IndexedDB save + offline queue for leaderboard  |
-| Mobile Performance | Object pooling, lazy load, 60 FPS target        |
+| Principle          | Implementation                                     |
+| ------------------ | -------------------------------------------------- |
+| Clone per game     | One repo = one game; clone this kit to start       |
+| Modularity         | Each platform module is self-contained             |
+| Reusability        | `src/platform/` ships with every cloned project    |
+| Event Driven       | Typed EventBus decouples game from platform        |
+| Data Driven        | Shop catalog, missions defined in JSON             |
+| Offline First      | IndexedDB save + offline queue for leaderboard     |
+| Mobile Performance | Object pooling, lazy load, 60 FPS target           |
 | Single persistence | SaveService owns durable state; store is in-memory |
 
 ## Layer 1: Game Layer
@@ -106,13 +106,13 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 ### Game layer guidelines
 
-| Preferred | Avoid |
-| --------- | ----- |
-| `@platform/core/events` (emit) | `@platform/core/api` |
-| `@game/*` | `@platform/core/storage` |
-| Phaser APIs | Direct store mutations (`@platform/core/state`) |
-| `@platform/ui/*` (HUD, toast, `createUIButton`, `t`) | `@platform/modules/*` |
-| `@game/utils/*` (e.g. `ObjectPool`) | `@platform/core/utils` |
+| Preferred                                            | Avoid                                           |
+| ---------------------------------------------------- | ----------------------------------------------- |
+| `@platform/core/events` (emit)                       | `@platform/core/api`                            |
+| `@game/*`                                            | `@platform/core/storage`                        |
+| Phaser APIs                                          | Direct store mutations (`@platform/core/state`) |
+| `@platform/ui/*` (HUD, toast, `createUIButton`, `t`) | `@platform/modules/*`                           |
+| `@game/utils/*` (e.g. `ObjectPool`)                  | `@platform/core/utils`                          |
 
 ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` in `eslint.config.js`.
 
@@ -122,15 +122,15 @@ ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` i
 
 **Location:** `src/platform/core/`
 
-| System | Role |
-| ------ | ---- |
-| **Event Bus** | Typed pub/sub between game, UI, and bootstrap |
-| **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware) |
-| **SaveService** | Durable persistence via IndexedDB + optional cloud sync (see modules) |
-| **Config** | `dev` / `staging` / `production` runtime config |
-| **Storage** | `StorageService` with localStorage, IndexedDB, memory providers (used by modules) |
-| **API Client** | REST client with retry, timeout, auth interceptors |
-| **Providers** | Analytics, advertising, IAP — swappable interfaces |
+| System           | Role                                                                              |
+| ---------------- | --------------------------------------------------------------------------------- |
+| **Event Bus**    | Typed pub/sub between game, UI, and bootstrap                                     |
+| **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware)                |
+| **SaveService**  | Durable persistence via IndexedDB + optional cloud sync (see modules)             |
+| **Config**       | `dev` / `staging` / `production` runtime config                                   |
+| **Storage**      | `StorageService` with localStorage, IndexedDB, memory providers (used by modules) |
+| **API Client**   | REST client with retry, timeout, auth interceptors                                |
+| **Providers**    | Analytics, advertising, IAP — swappable interfaces                                |
 
 ### Persistence model
 
@@ -167,15 +167,15 @@ Modules are initialized and wired in `bootstrap/App.ts`. Mission progress is **m
 
 Phaser-native UI components:
 
-| Component | Purpose |
-| --------- | ------- |
-| `ScreenManager` / `BaseScreen` | Screen stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
-| `createUIButton` | Shared button factory (`primary` / `rounded` variants) |
-| `HUD` | Score, coins — subscribes to store |
-| `ToastManager` | Queued toasts; bound to `Phaser.Game` in `GameEngine` |
-| `ShopScreen` | In-game shop UI |
-| `LanguageSettingsPanel` | Language picker for Settings scene |
-| `ModalScreen`, `DialogScreen`, `PopupScreen` | Reusable overlay screens |
+| Component                                    | Purpose                                                                 |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| `ScreenManager` / `BaseScreen`               | Screen stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
+| `createUIButton`                             | Shared button factory (`primary` / `rounded` variants)                  |
+| `HUD`                                        | Score, coins — subscribes to store                                      |
+| `ToastManager`                               | Queued toasts; bound to `Phaser.Game` in `GameEngine`                   |
+| `ShopScreen`                                 | In-game shop UI                                                         |
+| `LanguageSettingsPanel`                      | Language picker for Settings scene                                      |
+| `ModalScreen`, `DialogScreen`, `PopupScreen` | Reusable overlay screens                                                |
 
 Import from `@platform/ui` or `@platform/ui/<component>`.
 
@@ -183,13 +183,13 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File | Role |
-| ---- | ---- |
-| `App.ts` | Initializes modules, binds event bus handlers, lifecycle |
-| `GameEngine.ts` | Creates Phaser instance, preloads fonts, inits toast |
-| `analytics.ts` | Registers Console + Firebase analytics providers |
-| `capacitor.ts` | Capacitor plugin initialization |
-| `api-contracts.ts` | REST DTO definitions for backend reference |
+| File               | Role                                                     |
+| ------------------ | -------------------------------------------------------- |
+| `App.ts`           | Initializes modules, binds event bus handlers, lifecycle |
+| `GameEngine.ts`    | Creates Phaser instance, preloads fonts, inits toast     |
+| `analytics.ts`     | Registers Console + Firebase analytics providers         |
+| `capacitor.ts`     | Capacitor plugin initialization                          |
+| `api-contracts.ts` | REST DTO definitions for backend reference               |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
@@ -262,18 +262,18 @@ Boot → Preload → Home ⇄ Settings
 
 ## Technical Decisions
 
-| Decision                  | Rationale                                        |
-| ------------------------- | ------------------------------------------------ |
-| Clone-per-game            | Each game is independent; no multi-game monorepo |
-| `platform/` root folder   | Single home for all shared code                  |
-| `game/` not `games/`      | Singular — one game per repo                     |
-| i18n colocated            | Service + locale JSON in `modules/i18n/`         |
-| `@platform/ui/i18n` facade | Game/UI import `t` without touching modules     |
-| `advertising/` not `ads/` | Avoids browser ad-blocker URL filtering in dev   |
-| Zustand vanilla           | No React dependency with Phaser                  |
-| SaveService over store persist | One persistence path; cloud sync ready       |
-| Provider pattern          | Swap AdMob/Firebase/RevenueCat per game          |
-| Event Bus                 | Enforces game/platform boundary                  |
+| Decision                       | Rationale                                        |
+| ------------------------------ | ------------------------------------------------ |
+| Clone-per-game                 | Each game is independent; no multi-game monorepo |
+| `platform/` root folder        | Single home for all shared code                  |
+| `game/` not `games/`           | Singular — one game per repo                     |
+| i18n colocated                 | Service + locale JSON in `modules/i18n/`         |
+| `@platform/ui/i18n` facade     | Game/UI import `t` without touching modules      |
+| `advertising/` not `ads/`      | Avoids browser ad-blocker URL filtering in dev   |
+| Zustand vanilla                | No React dependency with Phaser                  |
+| SaveService over store persist | One persistence path; cloud sync ready           |
+| Provider pattern               | Swap AdMob/Firebase/RevenueCat per game          |
+| Event Bus                      | Enforces game/platform boundary                  |
 
 ## Related docs
 

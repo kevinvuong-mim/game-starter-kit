@@ -43,13 +43,7 @@ export class App {
 
     registerAnalyticsProviders();
 
-    await Promise.all([
-      i18n.init(),
-      analytics.init(),
-      ads.init(),
-      iap.init(),
-      leaderboard.init(),
-    ]);
+    await Promise.all([i18n.init(), analytics.init(), ads.init(), iap.init(), leaderboard.init()]);
 
     analytics.setUserId(usePlatformStore.getState().user.id);
     analytics.setUserProperty('game_id', config().gameId);

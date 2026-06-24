@@ -2,33 +2,37 @@ import Phaser from 'phaser';
 
 import { t } from '../i18n';
 import { FREDOKA_FONT } from '../typography';
-import { BaseScreen } from '../screen/ScreenManager';
 import { usePlatformStore } from '@platform/core/state';
 import type { LeaderboardEntry } from '@platform/core/state';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import type { LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.service';
 
+export type { LeaderboardBoard };
+
 const MAX_ROWS = 8;
 const ROW_HEIGHT = 52;
 const BOARDS: LeaderboardBoard[] = ['daily', 'weekly', 'allTime'];
 
-export class LeaderboardScreen extends BaseScreen {
-  readonly id = 'leaderboard';
-
+/**
+ * Leaderboard UI — lives in platform/ui so game scenes stay event-driven.
+ */
+export class LeaderboardPanel extends Phaser.GameObjects.Container {
   private loading = false;
   private rankText?: Phaser.GameObjects.Text;
   private statusText?: Phaser.GameObjects.Text;
-  private activeBoard: LeaderboardBoard = 'daily';
+  private activeBoard: LeaderboardBoard;
   private listContainer?: Phaser.GameObjects.Container;
   private tabButtons = new Map<LeaderboardBoard, Phaser.GameObjects.Rectangle>();
 
-  constructor(scene: Phaser.Scene) {
-    super(scene);
-    this.createOverlay(0.75);
-    this.buildUI();
+  constructor(scene: Phaser.Scene, initialBoard: LeaderboardBoard = 'daily') {
+    super(scene, 0, 0);
+    scene.add.existing(this);
+    this.activeBoard = BOARDS.includes(initialBoard) ? initialBoard : 'daily';
+    this.build();
+    void this.refresh();
   }
 
-  private buildUI(): void {
+  private build(): void {
     const { width, height } = this.scene.cameras.main;
 
     const panel = this.scene.add.rectangle(
@@ -42,37 +46,28 @@ export class LeaderboardScreen extends BaseScreen {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    const title = this.scene.add.text(width / 2, height * 0.12, t('leaderboard.title'), {
-      fontSize: '28px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-      fontFamily: FREDOKA_FONT,
-    });
-    title.setOrigin(0.5);
-    this.add(title);
-
     this.buildTabs(width, height * 0.2);
 
-    this.rankText = this.scene.add.text(width / 2, height * 0.27, '', {
-      fontSize: '18px',
-      color: '#ffd700',
-      fontFamily: FREDOKA_FONT,
-    });
-    this.rankText.setOrigin(0.5);
+    this.rankText = this.scene.add
+      .text(width / 2, height * 0.27, '', {
+        fontSize: '18px',
+        color: '#ffd700',
+        fontFamily: FREDOKA_FONT,
+      })
+      .setOrigin(0.5);
     this.add(this.rankText);
 
-    this.statusText = this.scene.add.text(width / 2, height * 0.5, '', {
-      fontSize: '18px',
-      color: '#aaaaaa',
-      fontFamily: FREDOKA_FONT,
-    });
-    this.statusText.setOrigin(0.5);
+    this.statusText = this.scene.add
+      .text(width / 2, height * 0.5, '', {
+        fontSize: '18px',
+        color: '#aaaaaa',
+        fontFamily: FREDOKA_FONT,
+      })
+      .setOrigin(0.5);
     this.add(this.statusText);
 
     this.listContainer = this.scene.add.container(width / 2, height * 0.34);
     this.add(this.listContainer);
-
-    this.createButton(width / 2, height * 0.9, t('common.close'), () => this.close());
   }
 
   private buildTabs(width: number, y: number): void {
@@ -86,8 +81,8 @@ export class LeaderboardScreen extends BaseScreen {
       const tab = this.scene.add.rectangle(x, y, tabWidth, 40, 0x1a1a2e, 1);
       tab.setStrokeStyle(1, 0x4a90d9);
       tab.setInteractive({ useHandCursor: true });
-      this.add(tab);
       this.tabButtons.set(board, tab);
+      this.add(tab);
 
       const label = this.scene.add.text(x, y, t(`leaderboard.${board}`), {
         fontSize: '14px',
@@ -101,15 +96,6 @@ export class LeaderboardScreen extends BaseScreen {
         void this.switchBoard(board);
       });
     });
-  }
-
-  show(data?: Record<string, unknown>): void {
-    const board = data?.board as LeaderboardBoard | undefined;
-    if (board && BOARDS.includes(board)) {
-      this.activeBoard = board;
-    }
-    super.show(data);
-    void this.refresh();
   }
 
   private async switchBoard(board: LeaderboardBoard): Promise<void> {

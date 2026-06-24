@@ -7,9 +7,8 @@ import { toast } from '@platform/ui/toast/ToastManager';
 import { ShopScreen } from '@platform/ui/shop/ShopScreen';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { DialogScreen } from '@platform/ui/dialog/DialogScreen';
-import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
-import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class HomeScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -27,7 +26,6 @@ export class HomeScene extends Phaser.Scene {
     screenManager.register(new ShopScreen(this));
     screenManager.register(new ModalScreen(this));
     screenManager.register(new DialogScreen(this));
-    screenManager.register(new LeaderboardScreen(this));
 
     let counter = 0;
     const counterButton = createUIButton({
@@ -126,7 +124,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.leaderboard'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => screenManager.open('leaderboard'),
+      onClick: () => this.scene.start('Leaderboard'),
     });
 
     createUIButton({

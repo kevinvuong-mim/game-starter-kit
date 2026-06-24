@@ -165,11 +165,7 @@ function addButtonText(
   container: Phaser.GameObjects.Container,
   text: UIButtonText
 ): Phaser.GameObjects.Text {
-  const textObject = scene.add.text(
-    text.offset?.x ?? 0,
-    text.offset?.y ?? 0,
-    text.content
-  );
+  const textObject = scene.add.text(text.offset?.x ?? 0, text.offset?.y ?? 0, text.content);
   applyTextStyle(textObject, text.style);
   textObject.setOrigin(0.5);
   container.add(textObject);
@@ -340,7 +336,11 @@ export function createUIButton(options: UIButtonOptions): UIButton {
     container.setDepth(depth);
   }
 
-  const backgroundImage = scene.add.image(offsetX + width / 2, offsetY + height / 2, background.key);
+  const backgroundImage = scene.add.image(
+    offsetX + width / 2,
+    offsetY + height / 2,
+    background.key
+  );
   backgroundImage.setDisplaySize(width, height);
   container.add(backgroundImage);
 

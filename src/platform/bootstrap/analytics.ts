@@ -1,7 +1,4 @@
-import {
-  ConsoleAnalyticsProvider,
-  FirebaseAnalyticsProvider,
-} from '@platform/core/analytics';
+import { ConsoleAnalyticsProvider, FirebaseAnalyticsProvider } from '@platform/core/analytics';
 import { services } from '@platform/core/services';
 
 const { analytics, config } = services;

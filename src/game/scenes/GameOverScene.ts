@@ -4,8 +4,6 @@ import { t } from '@platform/ui/i18n';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/typography';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
-import { screenManager } from '@platform/ui/screen/ScreenManager';
-import { LeaderboardScreen } from '@platform/ui/leaderboard/LeaderboardScreen';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -15,8 +13,6 @@ export class GameOverScene extends Phaser.Scene {
   create(data: { score?: number; jumps?: number } = {}): void {
     const score = data.score ?? 0;
     const { width, height } = this.cameras.main;
-
-    screenManager.register(new LeaderboardScreen(this));
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e, 0.95);
 
@@ -58,7 +54,12 @@ export class GameOverScene extends Phaser.Scene {
         content: t('game.leaderboard'),
         style: { fontSize: 22 },
       },
-      onClick: () => screenManager.open('leaderboard', { board: 'daily' }),
+      onClick: () =>
+        this.scene.start('Leaderboard', {
+          board: 'daily',
+          returnTo: 'GameOver',
+          returnData: { score },
+        }),
     });
 
     createUIButton({
@@ -75,9 +76,5 @@ export class GameOverScene extends Phaser.Scene {
         this.scene.start('Home');
       },
     });
-  }
-
-  shutdown(): void {
-    screenManager.unregisterForScene(this);
   }
 }

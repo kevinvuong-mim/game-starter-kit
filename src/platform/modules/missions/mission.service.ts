@@ -30,9 +30,7 @@ function startOfUtcWeek(timestamp: number): number {
   const date = new Date(timestamp);
   const day = date.getUTCDay();
   const daysFromMonday = day === 0 ? 6 : day - 1;
-  const monday = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  );
+  const monday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   monday.setUTCDate(monday.getUTCDate() - daysFromMonday);
   return monday.getTime();
 }

@@ -30,7 +30,9 @@ export interface PlatformStore extends PlatformState {
   updateMissionProgress: (id: string, progress: number) => void;
   setMissions: (missions: PlatformState['missions']['missions']) => void;
   updateMissionsState: (
-    update: Partial<Pick<PlatformState['missions'], 'missions' | 'lastDailyReset' | 'lastWeeklyReset'>>
+    update: Partial<
+      Pick<PlatformState['missions'], 'missions' | 'lastDailyReset' | 'lastWeeklyReset'>
+    >
   ) => void;
 
   // Daily rewards
