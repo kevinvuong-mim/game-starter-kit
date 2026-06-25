@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
-import type { RewardDayProgress, RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
+import type {
+  RewardDayProgress,
+  RewardProgress,
+} from '@platform/modules/daily-rewards/daily-reward.model';
 import { FREDOKA_FONT } from '@platform/ui/index';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { toast } from '../toast/ToastManager';

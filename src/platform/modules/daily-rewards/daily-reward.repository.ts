@@ -26,7 +26,9 @@ export class DailyRewardRepository {
       return migrated;
     }
 
-    const legacyStorage = await storage.load<LegacyDailyRewardState>(LEGACY_DAILY_REWARD_STORAGE_KEY);
+    const legacyStorage = await storage.load<LegacyDailyRewardState>(
+      LEGACY_DAILY_REWARD_STORAGE_KEY
+    );
     if (legacyStorage) {
       const migrated = migrateLegacyState(legacyStorage);
       await this.save(migrated);

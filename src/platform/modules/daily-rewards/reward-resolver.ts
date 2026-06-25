@@ -64,7 +64,11 @@ export class RewardResolver {
     };
   }
 
-  getPreviewLabel(day: number): { label: string; type: 'coins' | 'random' | 'chest'; coins?: number } {
+  getPreviewLabel(day: number): {
+    label: string;
+    type: 'coins' | 'random' | 'chest';
+    coins?: number;
+  } {
     const definition = this.getRewardForDay(day);
 
     if (definition.type === 'random') {
