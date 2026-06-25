@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
-import { DailyRewardPanel } from '@platform/ui/daily-reward/DailyRewardPanel';
+import { DailyRewardPopup } from '@platform/ui/daily-reward/DailyRewardPopup';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 interface DailyRewardSceneData {
@@ -38,7 +38,7 @@ export class DailyRewardScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    new DailyRewardPanel(this);
+    new DailyRewardPopup(this);
 
     createUIButton({
       scene: this,

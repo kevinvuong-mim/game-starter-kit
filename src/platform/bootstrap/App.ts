@@ -3,7 +3,6 @@ import {
   trackGameOver,
   trackPurchase,
   trackGameStart,
-  trackDailyClaim,
   trackSessionEnd,
   trackLevelComplete,
   trackMissionComplete,
@@ -20,6 +19,7 @@ import { settings } from '@platform/modules/settings/settings.service';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
+import { dailyRewardController } from '@platform/modules/daily-rewards/daily-reward.controller';
 
 const { ads, iap, config, events, analytics } = services;
 
@@ -30,6 +30,7 @@ const { ads, iap, config, events, analytics } = services;
 export class App {
   private initialized = false;
   private unsubscribers: Array<() => void> = [];
+  private dailyRewardUnsubscribe?: () => void;
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -54,6 +55,7 @@ export class App {
     missions.init();
 
     this.bindPlatformEvents();
+    this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
     this.bindLifecycle();
 
     this.initialized = true;
@@ -113,30 +115,6 @@ export class App {
         void saveService.saveLocal();
       }),
 
-      events.on('daily:status:request', () => {
-        events.emit('daily:status', { canClaim: dailyRewards.canClaim() });
-      }),
-
-      events.on('daily:claim:request', async () => {
-        const reward = await dailyRewards.claim();
-        if (reward) {
-          trackDailyClaim({
-            day: reward.day,
-            coins: reward.reward.coins,
-          });
-          await saveService.saveLocal();
-          events.emit('daily:claim:result', {
-            success: true,
-            coins: reward.reward.coins,
-          });
-        } else {
-          events.emit('daily:claim:result', {
-            success: false,
-            message: 'Cooldown active',
-          });
-        }
-      }),
-
       events.on('shop:purchase', ({ itemId, price }) => {
         trackPurchase({ itemId, price });
         void saveService.saveLocal();
@@ -182,6 +160,8 @@ export class App {
     await analytics.shutdown();
     analytics.clearProviders();
     missions.destroy();
+    this.dailyRewardUnsubscribe?.();
+    this.dailyRewardUnsubscribe = undefined;
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
     this.initialized = false;

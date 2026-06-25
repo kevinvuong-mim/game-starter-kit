@@ -36,7 +36,6 @@ export interface PlatformStore extends PlatformState {
   ) => void;
 
   // Daily rewards
-  claimDailyReward: (day: number) => void;
   setDailyRewardState: (state: Partial<PlatformState['dailyRewards']>) => void;
 
   // Leaderboard
@@ -192,17 +191,6 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
   updateMissionsState: (update) =>
     set((s) => ({
       missions: { ...s.missions, ...update },
-    })),
-
-  claimDailyReward: (day) =>
-    set((s) => ({
-      dailyRewards: {
-        ...s.dailyRewards,
-        lastClaimAt: Date.now(),
-        streak: s.dailyRewards.streak + 1,
-        claimedDays: day >= 7 ? [] : [...s.dailyRewards.claimedDays, day],
-        currentDay: day >= 7 ? 1 : day + 1,
-      },
     })),
 
   setDailyRewardState: (state) => set((s) => ({ dailyRewards: { ...s.dailyRewards, ...state } })),

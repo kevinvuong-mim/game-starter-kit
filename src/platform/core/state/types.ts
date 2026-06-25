@@ -54,10 +54,18 @@ export interface MissionsState {
 }
 
 export interface DailyRewardState {
-  streak: number;
+  version: number;
   currentDay: number;
-  lastClaimAt: number;
-  claimedDays: number[];
+  lastClaimDate: string | null;
+  lastClaimWallClock: number;
+  lastSessionTimestamp: number;
+  timeManipulated: boolean;
+  /** @deprecated Legacy field — used only for save migration. */
+  streak?: number;
+  /** @deprecated Legacy field — used only for save migration. */
+  lastClaimAt?: number;
+  /** @deprecated Legacy field — used only for save migration. */
+  claimedDays?: number[];
 }
 
 export interface LeaderboardEntry {
@@ -87,10 +95,12 @@ export interface PlatformState {
 
 export const DEFAULT_STATE: PlatformState = {
   dailyRewards: {
-    streak: 0,
+    version: 2,
     currentDay: 1,
-    lastClaimAt: 0,
-    claimedDays: [],
+    lastClaimDate: null,
+    lastClaimWallClock: 0,
+    lastSessionTimestamp: 0,
+    timeManipulated: false,
   },
   leaderboard: {
     allTime: [],

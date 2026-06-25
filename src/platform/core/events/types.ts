@@ -3,6 +3,7 @@
  * App modules subscribe and react.
  */
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
+import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -35,13 +36,18 @@ export interface PlatformEventMap {
   'save:sync': void;
   'shop:restore': void;
   'daily:claim:result': {
+    day?: number;
     coins?: number;
+    itemId?: string;
     success: boolean;
     message?: string;
+    rewardType?: 'coins' | 'chest';
   };
   'daily:claim:request': void;
+  'daily:progress:request': void;
+  'daily:progress': RewardProgress;
   'daily:status:request': void;
-  'daily:status': { canClaim: boolean };
+  'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'iap:purchase': { productId: string };
   'mission:complete': { missionId: string };
   'daily:claim': { day: number; streak: number };

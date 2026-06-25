@@ -1,92 +1,156 @@
 import { logger } from '@platform/core/error';
-import { apiClient } from '@platform/core/api';
-import { storage } from '@platform/core/storage';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
-import type { DailyRewardState } from '@platform/core/state';
 
-const COOLDOWN_MS = 24 * 60 * 60 * 1000;
-const STREAK_RESET_MS = COOLDOWN_MS * 2;
-const DAILY_REWARD_KEY = 'daily-rewards';
+import {
+  createDefaultModel,
+  getLocalDateString,
+  hasClaimedToday,
+  type ClaimResult,
+  type DailyRewardModel,
+  type RewardProgress,
+} from './daily-reward.model';
+import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
+import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
 
-export interface DailyRewardDay {
-  day: number;
-  reward: { coins?: number };
-}
-
-const REWARD_CALENDAR: DailyRewardDay[] = [
-  { day: 1, reward: { coins: 10 } },
-  { day: 2, reward: { coins: 20 } },
-  { day: 3, reward: { coins: 30 } },
-  { day: 4, reward: { coins: 50 } },
-  { day: 5, reward: { coins: 100 } },
-  { day: 6, reward: { coins: 75 } },
-  { day: 7, reward: { coins: 200 } },
-];
+const BACKWARD_CLOCK_TOLERANCE_MS = 60_000;
 
 export class DailyRewardService {
-  async init(): Promise<void> {
-    const saved = await storage.load<DailyRewardState>(DAILY_REWARD_KEY);
-    if (saved) {
-      usePlatformStore.getState().setDailyRewardState(saved);
-    }
-  }
+  private model: DailyRewardModel = createDefaultModel();
+  private initialized = false;
 
-  getCalendar(): DailyRewardDay[] {
-    return REWARD_CALENDAR;
+  constructor(
+    private readonly repository: DailyRewardRepository = dailyRewardRepository,
+    private readonly resolver: RewardResolver = rewardResolver
+  ) {}
+
+  async init(): Promise<void> {
+    const storeState = usePlatformStore.getState().dailyRewards;
+    const migratedFromStore = this.repository.migrateFromStoreState(storeState);
+
+    this.model = migratedFromStore ?? (await this.repository.load());
+
+    if (this.detectTimeManipulation()) {
+      this.model.timeManipulated = true;
+    } else {
+      this.model.lastSessionTimestamp = Date.now();
+    }
+
+    await this.persist();
+    this.initialized = true;
+    logger.info('[DailyReward] Initialized', { currentDay: this.model.currentDay });
   }
 
   canClaim(): boolean {
-    const { lastClaimAt } = usePlatformStore.getState().dailyRewards;
-    if (!lastClaimAt) return true;
-    return Date.now() - lastClaimAt >= COOLDOWN_MS;
+    if (!this.initialized) return false;
+    if (this.model.timeManipulated) return false;
+    if (hasClaimedToday(this.model)) return false;
+    return true;
   }
 
-  getCooldownRemaining(): number {
-    const { lastClaimAt } = usePlatformStore.getState().dailyRewards;
-    if (!lastClaimAt) return 0;
-    const remaining = COOLDOWN_MS - (Date.now() - lastClaimAt);
-    return Math.max(0, remaining);
-  }
-
-  async getServerTimestamp(): Promise<number> {
-    try {
-      const { timestamp } = await apiClient.get<{ timestamp: number }>('/time');
-      return timestamp;
-    } catch {
-      return Date.now();
-    }
-  }
-
-  async claim(): Promise<DailyRewardDay | null> {
+  async claim(): Promise<ClaimResult | null> {
     if (!this.canClaim()) {
-      logger.warn('[DailyReward] Cooldown active');
+      logger.warn('[DailyReward] Claim blocked');
       return null;
     }
 
-    const store = usePlatformStore.getState();
-    const { lastClaimAt } = store.dailyRewards;
+    const rewardDay = this.model.currentDay;
+    const resolved = this.resolver.resolveClaim(rewardDay);
+    this.applyReward(resolved);
 
-    if (lastClaimAt && Date.now() - lastClaimAt > STREAK_RESET_MS) {
-      store.setDailyRewardState({ streak: 0, currentDay: 1, claimedDays: [] });
+    const now = Date.now();
+    this.model.lastClaimDate = getLocalDateString();
+    this.model.lastClaimWallClock = now;
+    this.model.lastSessionTimestamp = now;
+    this.model.currentDay = rewardDay >= 7 ? 1 : rewardDay + 1;
+
+    await this.persist();
+
+    const result = toClaimResult(resolved);
+    eventBus.emit('daily:claim', { day: result.day, streak: rewardDay });
+    logger.info('[DailyReward] Claimed', result);
+    return result;
+  }
+
+  getCurrentReward(): ResolvedReward {
+    const definition = this.resolver.getRewardForDay(this.model.currentDay);
+    if (definition.type === 'random') {
+      return { day: definition.day, type: 'coins' };
+    }
+    return this.resolver.resolveClaim(this.model.currentDay);
+  }
+
+  getRewardProgress(): RewardProgress {
+    return {
+      currentDay: this.model.currentDay,
+      canClaim: this.canClaim(),
+      timeManipulated: this.model.timeManipulated,
+      days: this.resolver.buildProgress(this.model.currentDay),
+    };
+  }
+
+  detectTimeManipulation(now = Date.now()): boolean {
+    if (this.model.timeManipulated) return true;
+
+    const { lastSessionTimestamp, lastClaimWallClock } = this.model;
+
+    if (lastSessionTimestamp > 0 && now < lastSessionTimestamp - BACKWARD_CLOCK_TOLERANCE_MS) {
+      return true;
     }
 
-    const currentDay = usePlatformStore.getState().dailyRewards.currentDay;
-    const calendarDay = ((currentDay - 1) % 7) + 1;
-    const rewardDay = REWARD_CALENDAR.find((r) => r.day === calendarDay) ?? REWARD_CALENDAR[0];
+    if (lastClaimWallClock > 0 && now < lastClaimWallClock - BACKWARD_CLOCK_TOLERANCE_MS) {
+      return true;
+    }
 
-    if (rewardDay.reward.coins) store.addCoins(rewardDay.reward.coins);
+    if (lastClaimWallClock > now + BACKWARD_CLOCK_TOLERANCE_MS) {
+      return true;
+    }
 
-    const newStreak = store.dailyRewards.streak + 1;
-    store.claimDailyReward(rewardDay.day);
-
-    await storage.save(DAILY_REWARD_KEY, store.dailyRewards);
-
-    eventBus.emit('daily:claim', { day: rewardDay.day, streak: newStreak });
-    logger.info(`[DailyReward] Claimed day ${rewardDay.day}, streak: ${newStreak}`);
-
-    return rewardDay;
+    return false;
   }
+
+  async reset(): Promise<void> {
+    this.model = createDefaultModel();
+    await this.repository.reset();
+    await this.persist();
+  }
+
+  refreshSessionTimestamp(): void {
+    if (this.detectTimeManipulation()) {
+      this.model.timeManipulated = true;
+    } else {
+      this.model.lastSessionTimestamp = Date.now();
+    }
+    void this.persist();
+  }
+
+  private applyReward(reward: ResolvedReward): void {
+    const store = usePlatformStore.getState();
+
+    if (reward.type === 'coins' && reward.coins) {
+      store.addCoins(reward.coins);
+      return;
+    }
+
+    if (reward.type === 'chest' && reward.itemId) {
+      store.addItem(reward.itemId, reward.itemQuantity ?? 1);
+    }
+  }
+
+  private async persist(): Promise<void> {
+    await this.repository.save(this.model);
+    usePlatformStore.getState().setDailyRewardState(this.repository.toStoreState(this.model));
+  }
+}
+
+function toClaimResult(reward: ResolvedReward): ClaimResult {
+  return {
+    day: reward.day,
+    rewardType: reward.type,
+    coins: reward.coins,
+    itemId: reward.itemId,
+    itemQuantity: reward.itemQuantity,
+  };
 }
 
 export const dailyRewards = new DailyRewardService();
