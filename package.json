@@ -11,7 +11,7 @@
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios",
-    "assets:generate": "capacitor-assets generate",
+    "assets:generate": "capacitor-assets generate --android --ios",
     "build:android": "npm run build && npm run assets:generate && cap sync android && node scripts/apply-android-native.mjs",
     "build:ios": "npm run build && npm run assets:generate && cap sync ios && node scripts/apply-ios-native.mjs",
     "lint": "tsc --noEmit && eslint src",
