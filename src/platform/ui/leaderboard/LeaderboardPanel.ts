@@ -1,31 +1,55 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '@platform/ui/index';
-import { t } from '@platform/modules/i18n/i18n.service';
-import { usePlatformStore } from '@platform/core/state';
-import type { LeaderboardEntry } from '@platform/core/state';
-import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
+import { eventBus } from '@platform/core/events';
+import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
+import { maskGuestId } from '@platform/modules/leaderboard';
+import type { UIButton } from '@platform/ui/types';
+import type {
+  LeaderboardBoard,
+  LeaderboardEntry,
+  LeaderboardView,
+} from '@platform/modules/leaderboard';
 
-const MAX_ROWS = 8;
-const ROW_HEIGHT = 52;
+const MAX_ROWS = 7;
+const ROW_HEIGHT = 64;
+const SKELETON_ROWS = 5;
+const AUTO_REFRESH_MS = 30_000;
 
 /**
- * Leaderboard UI — lives in platform/ui so game scenes stay event-driven.
+ * Leaderboard UI. Fully event-driven: it emits `leaderboard:request` /
+ * `leaderboard:refresh` and renders whatever `leaderboard:update` delivers.
+ * It never touches the API or the store directly.
  */
 export class LeaderboardPanel extends Phaser.GameObjects.Container {
-  private rankText?: Phaser.GameObjects.Text;
-  private statusText?: Phaser.GameObjects.Text;
-  private listContainer?: Phaser.GameObjects.Container;
+  private board: LeaderboardBoard = 'global';
+  private globalTab!: UIButton;
+  private weeklyTab!: UIButton;
+  private refreshButton!: UIButton;
+  private retryButton!: UIButton;
+  private statusText!: Phaser.GameObjects.Text;
+  private rankText!: Phaser.GameObjects.Text;
+  private updatedText!: Phaser.GameObjects.Text;
+  private listContainer!: Phaser.GameObjects.Container;
+  private skeletonContainer!: Phaser.GameObjects.Container;
+  private unsubscribers: Array<() => void> = [];
+  private autoRefreshTimer?: Phaser.Time.TimerEvent;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
     scene.add.existing(this);
     this.build();
-    void this.refresh();
+    this.bindEvents();
+    this.request();
+  }
+
+  private get layout() {
+    const { width, height } = this.scene.cameras.main;
+    return { width, height };
   }
 
   private build(): void {
-    const { width, height } = this.scene.cameras.main;
+    const { width, height } = this.layout;
 
     const panel = this.scene.add.rectangle(
       width / 2,
@@ -38,8 +62,31 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
+    this.buildTabs();
+    this.buildRefresh();
+    this.updateTabStyles();
+
+    this.listContainer = this.scene.add.container(width / 2, height * 0.3);
+    this.add(this.listContainer);
+
+    this.skeletonContainer = this.scene.add.container(width / 2, height * 0.3);
+    this.skeletonContainer.setVisible(false);
+    this.add(this.skeletonContainer);
+    this.buildSkeleton();
+
+    this.statusText = this.scene.add
+      .text(width / 2, height * 0.5, '', {
+        fontSize: '20px',
+        color: '#cfd3ff',
+        align: 'center',
+        fontFamily: FREDOKA_FONT,
+        wordWrap: { width: width * 0.7 },
+      })
+      .setOrigin(0.5);
+    this.add(this.statusText);
+
     this.rankText = this.scene.add
-      .text(width / 2, height * 0.22, '', {
+      .text(width / 2, height * 0.82, '', {
         fontSize: '18px',
         color: '#ffd700',
         fontFamily: FREDOKA_FONT,
@@ -47,69 +94,164 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
     this.add(this.rankText);
 
-    this.statusText = this.scene.add
-      .text(width / 2, height * 0.5, '', {
-        fontSize: '18px',
-        color: '#aaaaaa',
+    this.updatedText = this.scene.add
+      .text(width / 2, height * 0.86, '', {
+        fontSize: '13px',
+        color: '#8a8fb5',
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
-    this.add(this.statusText);
+    this.add(this.updatedText);
 
-    this.listContainer = this.scene.add.container(width / 2, height * 0.3);
-    this.add(this.listContainer);
+    this.buildRetry();
   }
 
-  private async refresh(): Promise<void> {
-    this.setStatus(t('common.loading'));
-    this.clearList();
+  private buildTabs(): void {
+    const { width, height } = this.layout;
+    const y = height * 0.2;
 
-    const [entries, rank] = await Promise.all([
-      leaderboard.getLeaderboard(),
-      leaderboard.getRank(),
-    ]);
+    this.globalTab = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.34, y },
+      size: { width: 180, height: 46 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: { content: t('leaderboard.global'), style: { fontSize: 18 } },
+      onClick: () => this.switchBoard('global'),
+    });
+    this.add(this.globalTab);
 
-    this.updateRank(rank);
-    this.renderEntries(entries);
+    this.weeklyTab = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.58, y },
+      size: { width: 180, height: 46 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: { content: t('leaderboard.weekly'), style: { fontSize: 18 } },
+      onClick: () => this.switchBoard('weekly'),
+    });
+    this.add(this.weeklyTab);
   }
 
-  private updateRank(rank: number): void {
-    if (!this.rankText) return;
+  private buildRefresh(): void {
+    const { width, height } = this.layout;
+    this.refreshButton = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.82, y: height * 0.2 },
+      size: { width: 110, height: 46 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: { content: t('leaderboard.refresh'), style: { fontSize: 15 } },
+      onClick: () => this.refresh(),
+    });
+    this.add(this.refreshButton);
+  }
 
-    if (rank > 0) {
-      this.rankText.setText(t('leaderboard.rank', { rank }));
+  private buildRetry(): void {
+    const { width, height } = this.layout;
+    this.retryButton = createUIButton({
+      scene: this.scene,
+      position: { x: width / 2, y: height * 0.58 },
+      size: { width: 180, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: { content: t('leaderboard.retry'), style: { fontSize: 18 } },
+      onClick: () => this.refresh(),
+    });
+    this.retryButton.setVisible(false);
+    this.add(this.retryButton);
+  }
+
+  private buildSkeleton(): void {
+    for (let i = 0; i < SKELETON_ROWS; i++) {
+      const row = this.scene.add.rectangle(0, i * ROW_HEIGHT, 620, 52, 0x35355c, 1);
+      row.setStrokeStyle(1, 0x3f3f6b);
+      this.skeletonContainer.add(row);
+    }
+  }
+
+  private bindEvents(): void {
+    this.unsubscribers.push(
+      eventBus.on('leaderboard:update', (view) => {
+        if (view.board === this.board) this.render(view);
+      })
+    );
+
+    this.autoRefreshTimer = this.scene.time.addEvent({
+      delay: AUTO_REFRESH_MS,
+      loop: true,
+      callback: () => {
+        if (typeof navigator === 'undefined' || navigator.onLine !== false) this.refresh();
+      },
+    });
+  }
+
+  private switchBoard(board: LeaderboardBoard): void {
+    if (board === this.board) return;
+    this.board = board;
+    this.updateTabStyles();
+    this.request();
+  }
+
+  private updateTabStyles(): void {
+    this.globalTab.setAlpha(this.board === 'global' ? 1 : 0.6);
+    this.weeklyTab.setAlpha(this.board === 'weekly' ? 1 : 0.6);
+  }
+
+  private request(): void {
+    eventBus.emit('leaderboard:request', { board: this.board });
+  }
+
+  private refresh(): void {
+    eventBus.emit('leaderboard:refresh', { board: this.board });
+  }
+
+  private render(view: LeaderboardView): void {
+    const loading = view.status === 'loading';
+    const refreshing = view.status === 'refreshing';
+    const errored = view.status === 'error';
+
+    this.skeletonContainer.setVisible(loading);
+    this.retryButton.setVisible(errored);
+    this.refreshButton.setEnabled(!loading && !refreshing);
+
+    if (loading) {
+      this.listContainer.removeAll(true);
+      this.setStatus(t('common.loading'));
+      this.rankText.setText('');
+      this.updatedText.setText('');
       return;
     }
 
-    this.rankText.setText(t('leaderboard.rankUnavailable'));
-  }
+    if (errored) {
+      this.listContainer.removeAll(true);
+      this.setStatus(t(view.error ?? 'leaderboard.error'));
+      this.rankText.setText('');
+      this.updatedText.setText('');
+      return;
+    }
 
-  private setStatus(message: string): void {
-    this.statusText?.setText(message);
-    this.statusText?.setVisible(true);
-  }
-
-  private clearList(): void {
-    this.listContainer?.removeAll(true);
-  }
-
-  private renderEntries(entries: LeaderboardEntry[]): void {
-    if (!this.listContainer) return;
-
-    this.clearList();
-    this.statusText?.setVisible(false);
-
-    if (entries.length === 0) {
+    if (view.isEmpty) {
+      this.listContainer.removeAll(true);
       this.setStatus(t('leaderboard.empty'));
-      return;
+    } else {
+      this.statusText.setVisible(false);
+      this.renderEntries(view);
     }
 
-    const userId = usePlatformStore.getState().user.id;
-    const visibleEntries = entries.slice(0, MAX_ROWS);
+    this.renderMyRank(view);
+    this.renderUpdated(view);
+  }
 
-    visibleEntries.forEach((entry, index) => {
-      const row = this.createEntryRow(entry, index * ROW_HEIGHT, entry.playerId === userId);
-      this.listContainer!.add(row);
+  private renderEntries(view: LeaderboardView): void {
+    this.listContainer.removeAll(true);
+
+    view.entries.slice(0, MAX_ROWS).forEach((entry, index) => {
+      const isMe = !!view.myGuestId && entry.guestId === view.myGuestId;
+      this.listContainer.add(this.createEntryRow(entry, index * ROW_HEIGHT, isMe));
+    });
+
+    this.scene.tweens.add({
+      targets: this.listContainer,
+      alpha: { from: 0.35, to: 1 },
+      duration: 220,
+      ease: 'Quad.easeOut',
     });
   }
 
@@ -121,12 +263,11 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     const container = this.scene.add.container(0, y);
     const bgColor = isCurrentPlayer ? 0x3d5a80 : 0x1a1a2e;
 
-    const bg = this.scene.add.rectangle(0, 0, 620, 46, bgColor, 1);
+    const bg = this.scene.add.rectangle(0, 0, 620, 52, bgColor, 1);
     bg.setStrokeStyle(1, isCurrentPlayer ? 0xffd700 : 0x4a90d9);
     container.add(bg);
 
-    const rankLabel = this.formatRank(entry.rank);
-    const rankText = this.scene.add.text(-280, 0, rankLabel, {
+    const rankText = this.scene.add.text(-285, 0, `#${entry.rank}`, {
       fontSize: '18px',
       color: isCurrentPlayer ? '#ffd700' : '#ffffff',
       fontStyle: 'bold',
@@ -135,19 +276,19 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     rankText.setOrigin(0, 0.5);
     container.add(rankText);
 
-    const name = isCurrentPlayer
-      ? `${entry.displayName} ${t('leaderboard.you')}`
-      : entry.displayName;
-    const nameText = this.scene.add.text(-220, 0, name, {
-      fontSize: '16px',
+    const label = isCurrentPlayer
+      ? `${maskGuestId(entry.guestId)} ${t('leaderboard.you')}`
+      : maskGuestId(entry.guestId);
+    const nameText = this.scene.add.text(-200, 0, label, {
+      fontSize: '17px',
       color: '#ffffff',
       fontFamily: FREDOKA_FONT,
-      wordWrap: { width: 320 },
+      wordWrap: { width: 340 },
     });
     nameText.setOrigin(0, 0.5);
     container.add(nameText);
 
-    const scoreText = this.scene.add.text(280, 0, String(entry.score), {
+    const scoreText = this.scene.add.text(285, 0, String(entry.score), {
       fontSize: '18px',
       color: '#4a90d9',
       fontStyle: 'bold',
@@ -159,8 +300,43 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     return container;
   }
 
-  private formatRank(rank: number): string {
-    if (rank <= 0) return '-';
-    return `#${rank}`;
+  private renderMyRank(view: LeaderboardView): void {
+    if (view.myRank && view.myRank > 0) {
+      this.rankText.setText(t('leaderboard.rank', { rank: view.myRank }));
+      this.rankText.setVisible(true);
+      return;
+    }
+
+    if (view.myGuestId) {
+      this.rankText.setText(t('leaderboard.rankUnavailable'));
+      this.rankText.setVisible(true);
+      return;
+    }
+
+    this.rankText.setVisible(false);
+  }
+
+  private renderUpdated(view: LeaderboardView): void {
+    if (!view.lastUpdated) {
+      this.updatedText.setText('');
+      return;
+    }
+
+    const seconds = Math.max(0, Math.round((Date.now() - view.lastUpdated) / 1000));
+    const when = t('leaderboard.updatedAgo', { seconds });
+    this.updatedText.setText(view.fromCache ? `${t('leaderboard.cached')} · ${when}` : when);
+  }
+
+  private setStatus(message: string): void {
+    this.statusText.setText(message);
+    this.statusText.setVisible(true);
+  }
+
+  destroy(fromScene?: boolean): void {
+    for (const unsub of this.unsubscribers) unsub();
+    this.unsubscribers = [];
+    this.autoRefreshTimer?.destroy();
+    this.autoRefreshTimer = undefined;
+    super.destroy(fromScene);
   }
 }

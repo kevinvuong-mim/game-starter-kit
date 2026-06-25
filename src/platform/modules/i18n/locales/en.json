@@ -103,10 +103,18 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
+    "global": "Global",
+    "weekly": "Weekly",
+    "refresh": "Refresh",
+    "retry": "Retry",
     "rank": "Your Rank: #{{rank}}",
     "empty": "No scores yet. Play a game to get on the board!",
     "you": "(You)",
-    "rankUnavailable": "Your rank is not available yet"
+    "rankUnavailable": "Your rank is not available yet",
+    "error": "Couldn't load the leaderboard. Check your connection and try again.",
+    "offline": "You're offline — showing the last saved leaderboard.",
+    "cached": "Cached",
+    "updatedAgo": "Updated {{seconds}}s ago"
   },
   "legal": {
     "title": "Terms & Privacy",

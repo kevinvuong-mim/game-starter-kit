@@ -13,6 +13,7 @@ export class LeaderboardScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
   private returnTo = 'Home';
   private returnData?: Record<string, unknown>;
+  private panel?: LeaderboardPanel;
 
   constructor() {
     super({ key: 'Leaderboard' });
@@ -37,7 +38,7 @@ export class LeaderboardScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    new LeaderboardPanel(this);
+    this.panel = new LeaderboardPanel(this);
 
     createUIButton({
       scene: this,
@@ -56,6 +57,8 @@ export class LeaderboardScene extends Phaser.Scene {
   shutdown(): void {
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
+    this.panel?.destroy();
+    this.panel = undefined;
   }
 
   private goBack(): void {

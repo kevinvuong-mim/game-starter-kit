@@ -3,7 +3,9 @@
  * App modules subscribe and react.
  */
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
+import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
+import type { LeaderboardView, LeaderboardBoard } from '@platform/modules/leaderboard/leaderboard.model';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -55,7 +57,10 @@ export interface PlatformEventMap {
   'settings:change': { key: string; value: unknown };
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
-  'leaderboard:submit': { score: number; board: string };
+  'game:synced': SyncResponse;
+  'leaderboard:request': { board?: LeaderboardBoard };
+  'leaderboard:refresh': { board?: LeaderboardBoard };
+  'leaderboard:update': LeaderboardView;
   'auth:sign-in:request': { provider: 'google' | 'apple' };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };

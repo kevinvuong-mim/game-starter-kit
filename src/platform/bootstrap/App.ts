@@ -8,6 +8,7 @@ import {
   trackMissionComplete,
 } from '@platform/core/analytics/events';
 import { logger } from '@platform/core/error';
+import { guest } from '@platform/modules/guest';
 import { generateId } from '@platform/core/utils';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
@@ -16,8 +17,9 @@ import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
 import { settings } from '@platform/modules/settings/settings.service';
+import { gameSyncController } from '@platform/modules/game-sync';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
-import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
+import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 import { dailyRewardController } from '@platform/modules/daily-rewards/daily-reward.controller';
 
@@ -30,6 +32,7 @@ const { ads, iap, config, events, analytics } = services;
 export class App {
   private initialized = false;
   private unsubscribers: Array<() => void> = [];
+  private controllerUnsubscribers: Array<() => void> = [];
   private dailyRewardUnsubscribe?: () => void;
 
   async init(): Promise<void> {
@@ -44,7 +47,14 @@ export class App {
 
     registerAnalyticsProviders();
 
-    await Promise.all([i18n.init(), analytics.init(), ads.init(), iap.init(), leaderboard.init()]);
+    await Promise.all([
+      i18n.init(),
+      ads.init(),
+      iap.init(),
+      guest.init(),
+      analytics.init(),
+      leaderboard.init(),
+    ]);
 
     analytics.setUserId(usePlatformStore.getState().user.id);
     analytics.setUserProperty('game_id', config().gameId);
@@ -56,6 +66,10 @@ export class App {
 
     this.bindPlatformEvents();
     this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
+    this.controllerUnsubscribers.push(
+      leaderboardController.bind(events),
+      gameSyncController.bind(events)
+    );
     this.bindLifecycle();
 
     this.initialized = true;
@@ -99,7 +113,6 @@ export class App {
 
       events.on('game:over', async ({ score, duration, jumps }) => {
         trackGameOver({ score, duration, jumps });
-        await leaderboard.submitScore(score);
         await saveService.saveLocal();
       }),
 
@@ -162,6 +175,8 @@ export class App {
     missions.destroy();
     this.dailyRewardUnsubscribe?.();
     this.dailyRewardUnsubscribe = undefined;
+    for (const unsub of this.controllerUnsubscribers) unsub();
+    this.controllerUnsubscribers = [];
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
     this.initialized = false;

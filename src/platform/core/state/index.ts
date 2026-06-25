@@ -9,8 +9,6 @@ export type {
   InventoryState,
   MissionProgress,
   DailyRewardState,
-  LeaderboardEntry,
-  LeaderboardState,
 } from './types';
 export { DEFAULT_STATE } from './types';
 export type { PlatformStore } from './store';

@@ -23,7 +23,9 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     debug: true,
     adsEnabled: false,
     analyticsEnabled: false,
-    apiUrl: 'http://localhost:3000/api',
+    // Game Leaderboard API (NestJS) mounts routes at the root, e.g.
+    // `/guest/init`, `/game/sync`, `/leaderboard/global` (see documents/game.md).
+    apiUrl: 'http://localhost:3000',
   },
   staging: {
     debug: true,

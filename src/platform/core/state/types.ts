@@ -68,20 +68,6 @@ export interface DailyRewardState {
   claimedDays?: number[];
 }
 
-export interface LeaderboardEntry {
-  rank: number;
-  score: number;
-  playerId: string;
-  avatarUrl?: string;
-  displayName: string;
-}
-
-export interface LeaderboardState {
-  lastFetchedAt: number;
-  allTime: LeaderboardEntry[];
-  playerRank: number;
-}
-
 export interface PlatformState {
   user: UserState;
   currency: CurrencyState;
@@ -89,7 +75,6 @@ export interface PlatformState {
   missions: MissionsState;
   settings: SettingsState;
   inventory: InventoryState;
-  leaderboard: LeaderboardState;
   dailyRewards: DailyRewardState;
 }
 
@@ -101,11 +86,6 @@ export const DEFAULT_STATE: PlatformState = {
     lastClaimWallClock: 0,
     lastSessionTimestamp: 0,
     timeManipulated: false,
-  },
-  leaderboard: {
-    allTime: [],
-    playerRank: -1,
-    lastFetchedAt: 0,
   },
   missions: {
     missions: {},
