@@ -35,7 +35,6 @@ export interface PlatformEventMap {
   'game:over': { score: number; jumps?: number; duration: number };
 
   // Platform
-  'save:sync': void;
   'shop:restore': void;
   'game:synced': SyncResponse;
   'daily:claim:request': void;

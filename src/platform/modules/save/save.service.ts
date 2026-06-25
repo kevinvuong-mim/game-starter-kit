@@ -1,11 +1,9 @@
 import { logger } from '@platform/core/error';
-import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import { usePlatformStore } from '@platform/core/state';
 import type { PlatformState } from '@platform/core/state';
 
 const SAVE_KEY = 'game-save';
-const CLOUD_SAVE_KEY = 'cloud-save';
 
 export interface SaveData {
   version: number;
@@ -14,8 +12,6 @@ export interface SaveData {
 }
 
 export class SaveService {
-  private syncInProgress = false;
-
   async saveLocal(): Promise<void> {
     const data: SaveData = {
       version: 1,
@@ -33,74 +29,6 @@ export class SaveService {
     usePlatformStore.getState().hydrate(data.state);
     logger.info('[Save] Local save loaded');
     return true;
-  }
-
-  async saveCloud(): Promise<void> {
-    const data: SaveData = {
-      version: 1,
-      timestamp: Date.now(),
-      state: this.extractSaveableState(),
-    };
-
-    try {
-      await apiClient.post('/save', data);
-      await storage.save(CLOUD_SAVE_KEY, data, 'indexedDB');
-      logger.info('[Save] Cloud save complete');
-    } catch (e) {
-      logger.warn('[Save] Cloud save failed, saved locally', e);
-      await storage.save(SAVE_KEY, data, 'indexedDB');
-    }
-  }
-
-  async loadCloud(): Promise<boolean> {
-    try {
-      const cloudData = await apiClient.get<SaveData>('/save');
-      const localData = await storage.load<SaveData>(SAVE_KEY, 'indexedDB');
-
-      const resolved = this.resolveConflict(localData, cloudData);
-      if (resolved?.state) {
-        usePlatformStore.getState().hydrate(resolved.state);
-        await storage.save(SAVE_KEY, resolved, 'indexedDB');
-        logger.info('[Save] Cloud save loaded (conflict resolved)');
-        return true;
-      }
-    } catch {
-      return this.loadLocal();
-    }
-    return false;
-  }
-
-  async sync(): Promise<void> {
-    if (this.syncInProgress) return;
-    this.syncInProgress = true;
-
-    try {
-      const localData = await storage.load<SaveData>(SAVE_KEY, 'indexedDB');
-
-      try {
-        const cloudData = await apiClient.get<SaveData>('/save');
-        const resolved = this.resolveConflict(localData, cloudData);
-
-        if (resolved) {
-          usePlatformStore.getState().hydrate(resolved.state);
-          await apiClient.post('/save', resolved);
-          await storage.save(SAVE_KEY, resolved, 'indexedDB');
-        }
-      } catch {
-        if (localData) {
-          await apiClient.post('/save', localData);
-        }
-      }
-    } finally {
-      this.syncInProgress = false;
-    }
-  }
-
-  private resolveConflict(local: SaveData | null, cloud: SaveData | null): SaveData | null {
-    if (!local && !cloud) return null;
-    if (!local) return cloud;
-    if (!cloud) return local;
-    return local.timestamp >= cloud.timestamp ? local : cloud;
   }
 
   private extractSaveableState(): Partial<PlatformState> {

@@ -143,10 +143,6 @@ export class App {
 
       events.on('ad:reward', ({ placement, reward }) => {
         trackAdReward({ placement, reward: JSON.stringify(reward) });
-      }),
-
-      events.on('save:sync', () => {
-        void saveService.sync();
       })
     );
   }
