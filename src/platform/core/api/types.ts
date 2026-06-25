@@ -47,4 +47,5 @@ export interface IApiClient {
   addResponseInterceptor(interceptor: ResponseInterceptor): () => void;
   put<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
   post<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
+  patch<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T>;
 }

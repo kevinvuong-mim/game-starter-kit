@@ -1,45 +1,67 @@
+import { apiClient } from '@platform/core/api';
 import { logger } from '@platform/core/error';
 
 import { guestRepository, type GuestRepository } from './guest.repository';
 
 /**
- * Manages the anonymous guest identity (`documents/game.md` §2).
+ * Manages the anonymous guest identity and session authentication.
  *
- * - The id is loaded from storage on boot (offline-safe, no network).
- * - It is created lazily via `POST /guest/init` the first time it is needed
- *   and then reused for the lifetime of the install.
- * - `ensureGuestId()` returns `null` when offline with no stored id, so the
- *   leaderboard can still load the public top list (guestId is optional there).
+ * - Credentials are loaded from storage on boot (offline-safe, no network).
+ * - Created lazily via `POST /guest/init` the first time they are needed.
+ * - `sessionToken` is applied to `apiClient` for protected endpoints.
  */
 export class GuestService {
   private guestId: string | null = null;
+  private sessionToken: string | null = null;
   private initialized = false;
   private inflight: Promise<string | null> | null = null;
 
   constructor(private readonly repository: GuestRepository = guestRepository) {}
 
-  /** Load the persisted guest id into memory. Never hits the network. */
+  /** Load persisted credentials into memory. Never hits the network. */
   async init(): Promise<void> {
     if (this.initialized) return;
+
     this.guestId = await this.repository.loadGuestId();
+    this.sessionToken = await this.repository.loadSessionToken();
+
+    // Legacy installs may have guestId without sessionToken — force re-create on next use.
+    if (this.guestId && !this.sessionToken) {
+      logger.warn('[Guest] Legacy guestId without sessionToken — clearing credentials');
+      this.guestId = null;
+      await this.repository.clear();
+    }
+
+    this.applySessionToken();
     this.initialized = true;
-    logger.info('[Guest] Initialized', { hasGuestId: this.guestId !== null });
+
+    logger.info('[Guest] Initialized', {
+      hasGuestId: this.guestId !== null,
+      hasSessionToken: this.sessionToken !== null,
+    });
   }
 
-  /** Synchronous accessor — returns the cached id or `null` if not yet created. */
   getGuestId(): string | null {
     return this.guestId;
   }
 
+  getSessionToken(): string | null {
+    return this.sessionToken;
+  }
+
   /**
-   * Returns the guest id, creating one via `/guest/init` if needed.
+   * Returns the guest id, creating credentials via `/guest/init` if needed.
    * Returns `null` (does not throw) when creation fails, e.g. offline.
    */
   async ensureGuestId(): Promise<string | null> {
-    if (this.guestId) return this.guestId;
+    if (this.guestId && this.sessionToken) {
+      this.applySessionToken();
+      return this.guestId;
+    }
+
     if (this.inflight) return this.inflight;
 
-    this.inflight = this.createGuestId().finally(() => {
+    this.inflight = this.createGuest().finally(() => {
       this.inflight = null;
     });
 
@@ -47,26 +69,42 @@ export class GuestService {
   }
 
   /**
-   * Discards the current identity and creates a new one. Used to recover from a
-   * `404 Guest player not found` after a server-side data wipe.
+   * Discards current credentials and creates a new guest. Used to recover from
+   * `401 Invalid session token` or `404 Guest player not found`.
    */
   async reinit(): Promise<string | null> {
     this.guestId = null;
+    this.sessionToken = null;
+    apiClient.setAuthToken(null);
     await this.repository.clear();
     return this.ensureGuestId();
   }
 
-  private async createGuestId(): Promise<string | null> {
+  async updateName(name: string): Promise<void> {
+    await this.ensureGuestId();
+    await this.repository.updateName(name);
+  }
+
+  private async createGuest(): Promise<string | null> {
     try {
-      const guestId = await this.repository.initGuest();
-      await this.repository.saveGuestId(guestId);
-      this.guestId = guestId;
+      const credentials = await this.repository.initGuest();
+      await this.repository.saveGuestId(credentials.guestId);
+      await this.repository.saveSessionToken(credentials.sessionToken);
+
+      this.guestId = credentials.guestId;
+      this.sessionToken = credentials.sessionToken;
+      this.applySessionToken();
+
       logger.info('[Guest] Created new guest identity');
-      return guestId;
+      return this.guestId;
     } catch (error) {
       logger.warn('[Guest] Failed to create guest identity (offline?)', error);
       return null;
     }
+  }
+
+  private applySessionToken(): void {
+    apiClient.setAuthToken(this.sessionToken);
   }
 }
 

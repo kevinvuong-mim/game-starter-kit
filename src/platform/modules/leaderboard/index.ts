@@ -13,5 +13,6 @@ export type {
   LeaderboardBoard,
   LeaderboardEntry,
   LeaderboardStatus,
+  LeaderboardPagination,
 } from './leaderboard.model';
 export type { FetchOptions } from './leaderboard.service';

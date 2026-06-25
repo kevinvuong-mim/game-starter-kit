@@ -36,11 +36,10 @@ export class GameSyncRepository {
     await Preferences.remove({ key: PENDING_RESULTS_KEY });
   }
 
-  /** Uploads a batch of results for a single `gameId` / `guestId`. */
-  async sync(gameId: string, guestId: string, results: GameResultPayload[]): Promise<SyncResponse> {
+  /** Uploads a batch of results for a single game. Guest auth via Bearer token. */
+  async sync(gameId: string, results: GameResultPayload[]): Promise<SyncResponse> {
     const envelope = await apiClient.post<ApiEnvelope<SyncResponse>>('/game/sync', {
       gameId,
-      guestId,
       results,
     });
     return envelope.data;

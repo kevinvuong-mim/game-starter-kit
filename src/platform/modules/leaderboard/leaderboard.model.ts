@@ -29,11 +29,20 @@ export interface LeaderboardEntry {
 export interface LeaderboardData {
   top: LeaderboardEntry[];
   myRank: number | null;
+  pagination: LeaderboardPagination;
 }
 
-/** Persisted cache entry for one board. */
+export interface LeaderboardPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+/** Persisted cache entry for one board + page. */
 export interface LeaderboardCache {
   board: LeaderboardBoard;
+  page: number;
   data: LeaderboardData;
   updatedAt: number;
 }
@@ -45,10 +54,15 @@ export interface LeaderboardView {
   entries: LeaderboardEntry[];
   myRank: number | null;
   myGuestId: string | null;
+  pagination: LeaderboardPagination;
   isEmpty: boolean;
   fromCache: boolean;
   lastUpdated: number | null;
   error: string | null;
+}
+
+export function createInitialPagination(page = 1): LeaderboardPagination {
+  return { page, limit: LEADERBOARD_LIMIT, total: 0, totalPages: 0 };
 }
 
 export function createInitialView(board: LeaderboardBoard): LeaderboardView {
@@ -58,6 +72,7 @@ export function createInitialView(board: LeaderboardBoard): LeaderboardView {
     entries: [],
     myRank: null,
     myGuestId: null,
+    pagination: createInitialPagination(),
     isEmpty: false,
     fromCache: false,
     lastUpdated: null,

@@ -115,7 +115,10 @@
     "error": "Couldn't load the leaderboard. Check your connection and try again.",
     "offline": "You're offline — showing the last saved leaderboard.",
     "cached": "Cached",
-    "updatedAgo": "Updated {{seconds}}s ago"
+    "updatedAgo": "Updated {{seconds}}s ago",
+    "pageInfo": "Page {{page}} / {{totalPages}}",
+    "prevPage": "Prev",
+    "nextPage": "Next"
   },
   "legal": {
     "title": "Terms & Privacy",

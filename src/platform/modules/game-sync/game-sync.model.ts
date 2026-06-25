@@ -47,7 +47,7 @@ export interface GameResultPayload {
   score: number;
   duration: number;
   replayHash: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, string | number | boolean | null>;
 }
 
 /** `POST /game/sync` response payload (inside the envelope). */
@@ -93,4 +93,47 @@ export function buildReplayPayload(params: {
 export function toNonNegativeInt(value: number): number {
   if (!Number.isFinite(value) || value < 0) return 0;
   return Math.floor(value);
+}
+
+const METADATA_MAX_BYTES = 2048;
+const METADATA_MAX_KEYS = 10;
+const METADATA_MAX_KEY_LENGTH = 64;
+const METADATA_MAX_STRING_LENGTH = 256;
+
+/**
+ * Sanitizes metadata to match backend `@IsValidMetadata` rules before upload.
+ * Drops nested values, arrays, and oversized fields.
+ */
+export function sanitizeMetadata(
+  metadata?: Record<string, unknown>
+): Record<string, string | number | boolean | null> | undefined {
+  if (!metadata) return undefined;
+
+  const result: Record<string, string | number | boolean | null> = {};
+  const keys = Object.keys(metadata).slice(0, METADATA_MAX_KEYS);
+
+  for (const key of keys) {
+    if (key.length === 0 || key.length > METADATA_MAX_KEY_LENGTH) continue;
+
+    const value = metadata[key];
+    if (value === null) {
+      result[key] = null;
+      continue;
+    }
+    if (typeof value === 'boolean') {
+      result[key] = value;
+      continue;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      result[key] = value;
+      continue;
+    }
+    if (typeof value === 'string' && value.length <= METADATA_MAX_STRING_LENGTH) {
+      result[key] = value;
+    }
+  }
+
+  if (Object.keys(result).length === 0) return undefined;
+  if (JSON.stringify(result).length > METADATA_MAX_BYTES) return undefined;
+  return result;
 }

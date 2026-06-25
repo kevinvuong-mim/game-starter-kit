@@ -9,6 +9,7 @@ import { guest, type GuestService } from '@platform/modules/guest';
 import {
   buildReplayPayload,
   computeReplayHash,
+  sanitizeMetadata,
   toNonNegativeInt,
   MAX_BATCH_SIZE,
   MAX_SYNC_ATTEMPTS,
@@ -84,7 +85,7 @@ export class GameSyncService {
     const gameId = getConfig().gameId;
     const guestId = await this.guestService.ensureGuestId();
     if (!guestId) {
-      logger.debug('[GameSync] Flush skipped — no guest id (offline)');
+      logger.debug('[GameSync] Flush skipped — no guest credentials (offline)');
       return;
     }
 
@@ -109,12 +110,11 @@ export class GameSyncService {
       try {
         const response = await this.repository.sync(
           gameId,
-          guestId,
           batch.map(({ score, duration, replayHash, metadata }) => ({
             score,
             duration,
             replayHash,
-            metadata,
+            metadata: sanitizeMetadata(metadata),
           }))
         );
 
@@ -131,7 +131,7 @@ export class GameSyncService {
           logger.warn(`[GameSync] ${response.rejected} result(s) rejected for ${gameId}`);
         }
       } catch (error) {
-        if (await this.handleGuestNotFound(error)) {
+        if (await this.handleAuthError(error)) {
           // Guest re-created; remaining items retry on the next flush.
           return;
         }
@@ -144,10 +144,10 @@ export class GameSyncService {
     }
   }
 
-  /** On `404 Guest player not found`, re-init the guest so the next flush works. */
-  private async handleGuestNotFound(error: unknown): Promise<boolean> {
-    if (error instanceof ApiError && error.status === 404) {
-      logger.warn('[GameSync] Guest not found — reinitializing identity');
+  /** On auth failure, re-init guest so the next flush works with a fresh token. */
+  private async handleAuthError(error: unknown): Promise<boolean> {
+    if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+      logger.warn('[GameSync] Guest auth failed — reinitializing identity');
       await this.guestService.reinit();
       return true;
     }

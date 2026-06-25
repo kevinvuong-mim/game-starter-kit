@@ -17,10 +17,11 @@ const BOARD: LeaderboardBoard = 'global';
 
 export interface FetchOptions {
   force?: boolean;
+  page?: number;
 }
 
 /**
- * Orchestrates leaderboard reads (`documents/game.md` §7).
+ * Orchestrates leaderboard reads.
  *
  * Owns an in-memory view, a TTL cache, predictable loading/error
  * transitions, and offline fallback to the persisted cache. The UI consumes
@@ -28,6 +29,7 @@ export interface FetchOptions {
  */
 export class LeaderboardService {
   private view: LeaderboardView = createInitialView(BOARD);
+  private currentPage = 1;
   private inflight: Promise<LeaderboardView> | null = null;
 
   constructor(
@@ -38,7 +40,7 @@ export class LeaderboardService {
   /** Warm the in-memory view from the persisted cache (offline-friendly). */
   async init(): Promise<void> {
     const gameId = getConfig().gameId;
-    const cache = await this.repository.loadCache(BOARD, gameId);
+    const cache = await this.repository.loadCache(BOARD, gameId, this.currentPage);
     if (cache) {
       this.view = this.buildView(cache.data, {
         fromCache: true,
@@ -54,10 +56,15 @@ export class LeaderboardService {
 
   /** Loads the leaderboard, using a fresh cache when available unless `force` is set. */
   async fetchLeaderboard(options: FetchOptions = {}): Promise<LeaderboardView> {
+    if (options.page) {
+      this.currentPage = options.page;
+    }
+
     const current = this.view;
     if (!options.force && current.lastUpdated && !current.fromCache) {
       const fresh = isCacheFresh({
         board: BOARD,
+        page: this.currentPage,
         data: this.toData(current),
         updatedAt: current.lastUpdated,
       });
@@ -76,9 +83,9 @@ export class LeaderboardService {
     return request;
   }
 
-  /** Force a network refresh. */
-  async refreshLeaderboard(): Promise<LeaderboardView> {
-    return this.fetchLeaderboard({ force: true });
+  /** Force a network refresh for the current page. */
+  async refreshLeaderboard(page?: number): Promise<LeaderboardView> {
+    return this.fetchLeaderboard({ force: true, page });
   }
 
   /** Ensures the leaderboard is loaded and returns the current player's rank (or null). */
@@ -93,13 +100,18 @@ export class LeaderboardService {
 
     this.transition({ status: hasData ? 'refreshing' : 'loading', error: null });
 
+    // Optional auth — applies Bearer token when guest credentials exist.
     const guestId = await this.guestService.ensureGuestId();
 
     try {
-      const data = await this.repository.fetch({ board: BOARD, gameId, guestId });
+      const data = await this.repository.fetch({
+        board: BOARD,
+        gameId,
+        page: this.currentPage,
+      });
       return this.applySuccess(data, guestId);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
         const retried = await this.retryAfterGuestReset(gameId);
         if (retried) return retried;
       }
@@ -107,11 +119,15 @@ export class LeaderboardService {
     }
   }
 
-  /** Recover from `404 Guest player not found` by re-creating the guest once. */
+  /** Recover from auth failure by re-creating the guest once. */
   private async retryAfterGuestReset(gameId: string): Promise<LeaderboardView | null> {
     try {
       const guestId = await this.guestService.reinit();
-      const data = await this.repository.fetch({ board: BOARD, gameId, guestId });
+      const data = await this.repository.fetch({
+        board: BOARD,
+        gameId,
+        page: this.currentPage,
+      });
       return this.applySuccess(data, guestId);
     } catch (error) {
       logger.warn('[Leaderboard] Retry after guest reset failed', error);
@@ -124,7 +140,10 @@ export class LeaderboardService {
     guestId: string | null
   ): Promise<LeaderboardView> {
     const updatedAt = Date.now();
-    await this.repository.saveCache({ board: BOARD, data, updatedAt }, getConfig().gameId);
+    await this.repository.saveCache(
+      { board: BOARD, page: data.pagination.page, data, updatedAt },
+      getConfig().gameId
+    );
 
     const view = this.buildView(data, {
       fromCache: false,
@@ -161,6 +180,7 @@ export class LeaderboardService {
       status: 'ready',
       entries: data.top,
       myRank: data.myRank,
+      pagination: data.pagination,
       myGuestId: extra.myGuestId ?? this.guestService.getGuestId(),
       isEmpty: data.top.length === 0,
       fromCache: extra.fromCache,
@@ -175,7 +195,11 @@ export class LeaderboardService {
   }
 
   private toData(view: LeaderboardView): LeaderboardData {
-    return { top: view.entries, myRank: view.myRank };
+    return {
+      top: view.entries,
+      myRank: view.myRank,
+      pagination: view.pagination,
+    };
   }
 
   private emit(view: LeaderboardView): void {

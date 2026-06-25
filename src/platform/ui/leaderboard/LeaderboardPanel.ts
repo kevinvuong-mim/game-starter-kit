@@ -20,13 +20,17 @@ const AUTO_REFRESH_MS = 30_000;
 export class LeaderboardPanel extends Phaser.GameObjects.Container {
   private refreshButton!: UIButton;
   private retryButton!: UIButton;
+  private prevPageButton!: UIButton;
+  private nextPageButton!: UIButton;
   private statusText!: Phaser.GameObjects.Text;
   private rankText!: Phaser.GameObjects.Text;
   private updatedText!: Phaser.GameObjects.Text;
+  private pageText!: Phaser.GameObjects.Text;
   private listContainer!: Phaser.GameObjects.Container;
   private skeletonContainer!: Phaser.GameObjects.Container;
   private unsubscribers: Array<() => void> = [];
   private autoRefreshTimer?: Phaser.Time.TimerEvent;
+  private currentPage = 1;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
@@ -56,6 +60,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.add(panel);
 
     this.buildRefresh();
+    this.buildPagination();
 
     this.listContainer = this.scene.add.container(width / 2, height * 0.3);
     this.add(this.listContainer);
@@ -94,7 +99,42 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
     this.add(this.updatedText);
 
+    this.pageText = this.scene.add
+      .text(width / 2, height * 0.9, '', {
+        fontSize: '14px',
+        color: '#cfd3ff',
+        fontFamily: FREDOKA_FONT,
+      })
+      .setOrigin(0.5);
+    this.add(this.pageText);
+
     this.buildRetry();
+  }
+
+  private buildPagination(): void {
+    const { width, height } = this.layout;
+
+    this.prevPageButton = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.28, y: height * 0.9 },
+      size: { width: 90, height: 40 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: { content: t('leaderboard.prevPage'), style: { fontSize: 14 } },
+      onClick: () => this.goToPage(this.currentPage - 1),
+    });
+    this.prevPageButton.setVisible(false);
+    this.add(this.prevPageButton);
+
+    this.nextPageButton = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.72, y: height * 0.9 },
+      size: { width: 90, height: 40 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: { content: t('leaderboard.nextPage'), style: { fontSize: 14 } },
+      onClick: () => this.goToPage(this.currentPage + 1),
+    });
+    this.nextPageButton.setVisible(false);
+    this.add(this.nextPageButton);
   }
 
   private buildRefresh(): void {
@@ -153,13 +193,20 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
   }
 
   private refresh(): void {
-    eventBus.emit('leaderboard:refresh', undefined);
+    eventBus.emit('leaderboard:refresh', { page: this.currentPage });
+  }
+
+  private goToPage(page: number): void {
+    if (page < 1) return;
+    this.currentPage = page;
+    eventBus.emit('leaderboard:page', { page });
   }
 
   private render(view: LeaderboardView): void {
     const loading = view.status === 'loading';
     const refreshing = view.status === 'refreshing';
     const errored = view.status === 'error';
+    this.currentPage = view.pagination.page;
 
     this.skeletonContainer.setVisible(loading);
     this.retryButton.setVisible(errored);
@@ -170,6 +217,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       this.setStatus(t('common.loading'));
       this.rankText.setText('');
       this.updatedText.setText('');
+      this.pageText.setText('');
       return;
     }
 
@@ -178,6 +226,8 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       this.setStatus(t(view.error ?? 'leaderboard.error'));
       this.rankText.setText('');
       this.updatedText.setText('');
+      this.pageText.setText('');
+      this.renderPagination(view, false);
       return;
     }
 
@@ -191,6 +241,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
 
     this.renderMyRank(view);
     this.renderUpdated(view);
+    this.renderPagination(view, true);
   }
 
   private renderEntries(view: LeaderboardView): void {
@@ -278,6 +329,29 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     const seconds = Math.max(0, Math.round((Date.now() - view.lastUpdated) / 1000));
     const when = t('leaderboard.updatedAgo', { seconds });
     this.updatedText.setText(view.fromCache ? `${t('leaderboard.cached')} · ${when}` : when);
+  }
+
+  private renderPagination(view: LeaderboardView, visible: boolean): void {
+    const { pagination } = view;
+    const hasPages = pagination.totalPages > 1;
+
+    this.pageText.setVisible(visible && hasPages);
+    this.prevPageButton.setVisible(visible && hasPages);
+    this.nextPageButton.setVisible(visible && hasPages);
+
+    if (!visible || !hasPages) {
+      this.pageText.setText('');
+      return;
+    }
+
+    this.pageText.setText(
+      t('leaderboard.pageInfo', {
+        page: pagination.page,
+        totalPages: pagination.totalPages,
+      })
+    );
+    this.prevPageButton.setEnabled(pagination.page > 1);
+    this.nextPageButton.setEnabled(pagination.page < pagination.totalPages);
   }
 
   private setStatus(message: string): void {

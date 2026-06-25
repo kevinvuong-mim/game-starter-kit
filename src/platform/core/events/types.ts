@@ -4,8 +4,8 @@
  */
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
-import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
+import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -37,6 +37,11 @@ export interface PlatformEventMap {
   // Platform
   'save:sync': void;
   'shop:restore': void;
+  'game:synced': SyncResponse;
+  'daily:claim:request': void;
+  'daily:status:request': void;
+  'daily:progress:request': void;
+  'daily:progress': RewardProgress;
   'daily:claim:result': {
     day?: number;
     coins?: number;
@@ -45,11 +50,8 @@ export interface PlatformEventMap {
     message?: string;
     rewardType?: 'coins' | 'chest';
   };
-  'daily:claim:request': void;
-  'daily:progress:request': void;
-  'daily:progress': RewardProgress;
-  'daily:status:request': void;
-  'daily:status': { canClaim: boolean; timeManipulated: boolean };
+  'leaderboard:page': { page: number };
+  'leaderboard:update': LeaderboardView;
   'iap:purchase': { productId: string };
   'mission:complete': { missionId: string };
   'daily:claim': { day: number; streak: number };
@@ -57,13 +59,12 @@ export interface PlatformEventMap {
   'settings:change': { key: string; value: unknown };
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
-  'game:synced': SyncResponse;
-  'leaderboard:request': void;
-  'leaderboard:refresh': void;
-  'leaderboard:update': LeaderboardView;
+  'leaderboard:request': { page?: number } | undefined;
+  'leaderboard:refresh': { page?: number } | undefined;
   'auth:sign-in:request': { provider: 'google' | 'apple' };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
+  'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };
 }
 

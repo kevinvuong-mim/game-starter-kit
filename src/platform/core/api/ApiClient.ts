@@ -67,6 +67,10 @@ export class ApiClient implements IApiClient {
     return this.request<T>(path, { ...config, method: 'PUT', body });
   }
 
+  async patch<T>(path: string, body?: unknown, config?: RequestConfig): Promise<T> {
+    return this.request<T>(path, { ...config, method: 'PATCH', body });
+  }
+
   async delete<T>(path: string, config?: RequestConfig): Promise<T> {
     return this.request<T>(path, { ...config, method: 'DELETE' });
   }

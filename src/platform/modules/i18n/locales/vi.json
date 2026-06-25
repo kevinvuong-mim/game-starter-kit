@@ -115,7 +115,10 @@
     "error": "Không tải được bảng xếp hạng. Kiểm tra kết nối và thử lại.",
     "offline": "Bạn đang ngoại tuyến — hiển thị bảng xếp hạng đã lưu.",
     "cached": "Đã lưu",
-    "updatedAgo": "Cập nhật {{seconds}}s trước"
+    "updatedAgo": "Cập nhật {{seconds}}s trước",
+    "pageInfo": "Trang {{page}} / {{totalPages}}",
+    "prevPage": "Trước",
+    "nextPage": "Sau"
   },
   "legal": {
     "title": "Điều khoản & Quyền riêng tư",
