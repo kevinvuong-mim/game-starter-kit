@@ -14,4 +14,4 @@ export type {
 } from './types';
 export { DEFAULT_STATE } from './types';
 export type { PlatformStore } from './store';
-export { usePlatformStore, getStoreState } from './store';
+export { getStoreState, usePlatformStore } from './store';

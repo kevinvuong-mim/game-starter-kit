@@ -21,7 +21,7 @@ import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard } from '@platform/modules/leaderboard/leaderboard.service';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 
-const { events, analytics, ads, iap, config } = services;
+const { ads, iap, config, events, analytics } = services;
 
 /**
  * App layer orchestrator. Wires platform modules to the event bus.

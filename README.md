@@ -168,10 +168,6 @@ npx cap add android
 npx cap add ios
 ```
 
-## Backend (NestJS)
-
-API contracts are defined in `src/platform/bootstrap/api-contracts.ts`.
-
 ## Performance Targets
 
 | Metric     | Target  |

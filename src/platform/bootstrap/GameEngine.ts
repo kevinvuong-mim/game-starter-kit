@@ -4,9 +4,9 @@ import { gameConfig } from '@game/config';
 import { gameScenes } from '@game/scenes';
 import { app } from '@platform/bootstrap/App';
 import { toast } from '@platform/ui/toast/ToastManager';
+import { refreshServicesFromConfig } from '@platform/core/services';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
-import { refreshServicesFromConfig } from '@platform/core/services';
 import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
 
 export class GameEngine {

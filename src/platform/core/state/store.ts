@@ -44,8 +44,8 @@ export interface PlatformStore extends PlatformState {
   setPlayerRank: (rank: number) => void;
 
   // Bulk
-  hydrate: (state: Partial<PlatformState>) => void;
   reset: () => void;
+  hydrate: (state: Partial<PlatformState>) => void;
 }
 
 export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({

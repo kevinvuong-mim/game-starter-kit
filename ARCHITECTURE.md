@@ -59,8 +59,7 @@ src/
         ├── App.ts               # Module wiring, event handlers
         ├── GameEngine.ts        # Phaser bootstrap, font preload, toast init
         ├── analytics.ts         # Analytics provider registration
-        ├── capacitor.ts         # Capacitor plugin init
-        └── api-contracts.ts     # NestJS-compatible REST DTOs (reference)
+        └── capacitor.ts         # Capacitor plugin init
 ```
 
 ## Path Aliases
@@ -181,13 +180,12 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File               | Role                                                     |
-| ------------------ | -------------------------------------------------------- |
-| `App.ts`           | Initializes modules, binds event bus handlers, lifecycle |
-| `GameEngine.ts`    | Creates Phaser instance, preloads fonts, inits toast     |
-| `analytics.ts`     | Registers Console + Firebase analytics providers         |
-| `capacitor.ts`     | Capacitor plugin initialization                          |
-| `api-contracts.ts` | REST DTO definitions for backend reference               |
+| File            | Role                                                     |
+| --------------- | -------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle |
+| `GameEngine.ts` | Creates Phaser instance, preloads fonts, inits toast     |
+| `analytics.ts`  | Registers Console + Firebase analytics providers         |
+| `capacitor.ts`  | Capacitor plugin initialization                          |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 

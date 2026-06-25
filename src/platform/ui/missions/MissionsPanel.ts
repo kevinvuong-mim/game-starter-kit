@@ -13,12 +13,14 @@ const ROW_HEIGHT = 76;
 const ROW_WIDTH = 620;
 const SECTION_GAP = 16;
 
-const SECTIONS: { type: MissionType; labelKey: 'missions.daily' | 'missions.weekly' | 'missions.permanent' }[] =
-  [
-    { type: 'daily', labelKey: 'missions.daily' },
-    { type: 'weekly', labelKey: 'missions.weekly' },
-    { type: 'permanent', labelKey: 'missions.permanent' },
-  ];
+const SECTIONS: {
+  type: MissionType;
+  labelKey: 'missions.daily' | 'missions.weekly' | 'missions.permanent';
+}[] = [
+  { type: 'daily', labelKey: 'missions.daily' },
+  { type: 'weekly', labelKey: 'missions.weekly' },
+  { type: 'permanent', labelKey: 'missions.permanent' },
+];
 
 /**
  * Missions list UI — lives in platform/ui so game scenes stay event-driven.
@@ -156,11 +158,16 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     progressText.setOrigin(0, 0.5);
     container.add(progressText);
 
-    const rewardText = this.scene.add.text(ROW_WIDTH / 2 - 16, 14, t('missions.reward', { coins }), {
-      fontSize: '14px',
-      color: '#ffd700',
-      fontFamily: FREDOKA_FONT,
-    });
+    const rewardText = this.scene.add.text(
+      ROW_WIDTH / 2 - 16,
+      14,
+      t('missions.reward', { coins }),
+      {
+        fontSize: '14px',
+        color: '#ffd700',
+        fontFamily: FREDOKA_FONT,
+      }
+    );
     rewardText.setOrigin(1, 0);
     container.add(rewardText);
 
