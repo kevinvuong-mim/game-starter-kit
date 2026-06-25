@@ -110,6 +110,7 @@
     "rank": "Hạng của bạn: #{{rank}}",
     "empty": "Chưa có điểm nào. Chơi một ván để lên bảng!",
     "you": "(Bạn)",
+    "anonymous": "Người chơi",
     "rankUnavailable": "Chưa có hạng của bạn",
     "error": "Không tải được bảng xếp hạng. Kiểm tra kết nối và thử lại.",
     "offline": "Bạn đang ngoại tuyến — hiển thị bảng xếp hạng đã lưu.",

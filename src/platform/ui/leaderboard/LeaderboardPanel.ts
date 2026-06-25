@@ -3,13 +3,9 @@ import Phaser from 'phaser';
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
-import { maskGuestId } from '@platform/modules/leaderboard';
+import { getLeaderboardDisplayName } from '@platform/modules/leaderboard';
 import type { UIButton } from '@platform/ui/types';
-import type {
-  LeaderboardBoard,
-  LeaderboardEntry,
-  LeaderboardView,
-} from '@platform/modules/leaderboard';
+import type { LeaderboardEntry, LeaderboardView } from '@platform/modules/leaderboard';
 
 const MAX_ROWS = 7;
 const ROW_HEIGHT = 64;
@@ -22,9 +18,6 @@ const AUTO_REFRESH_MS = 30_000;
  * It never touches the API or the store directly.
  */
 export class LeaderboardPanel extends Phaser.GameObjects.Container {
-  private board: LeaderboardBoard = 'global';
-  private globalTab!: UIButton;
-  private weeklyTab!: UIButton;
   private refreshButton!: UIButton;
   private retryButton!: UIButton;
   private statusText!: Phaser.GameObjects.Text;
@@ -62,9 +55,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    this.buildTabs();
     this.buildRefresh();
-    this.updateTabStyles();
 
     this.listContainer = this.scene.add.container(width / 2, height * 0.3);
     this.add(this.listContainer);
@@ -106,31 +97,6 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.buildRetry();
   }
 
-  private buildTabs(): void {
-    const { width, height } = this.layout;
-    const y = height * 0.2;
-
-    this.globalTab = createUIButton({
-      scene: this.scene,
-      position: { x: width * 0.34, y },
-      size: { width: 180, height: 46 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: { content: t('leaderboard.global'), style: { fontSize: 18 } },
-      onClick: () => this.switchBoard('global'),
-    });
-    this.add(this.globalTab);
-
-    this.weeklyTab = createUIButton({
-      scene: this.scene,
-      position: { x: width * 0.58, y },
-      size: { width: 180, height: 46 },
-      background: { key: UIButtonBackgroundKey.Rounded },
-      text: { content: t('leaderboard.weekly'), style: { fontSize: 18 } },
-      onClick: () => this.switchBoard('weekly'),
-    });
-    this.add(this.weeklyTab);
-  }
-
   private buildRefresh(): void {
     const { width, height } = this.layout;
     this.refreshButton = createUIButton({
@@ -169,7 +135,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
   private bindEvents(): void {
     this.unsubscribers.push(
       eventBus.on('leaderboard:update', (view) => {
-        if (view.board === this.board) this.render(view);
+        this.render(view);
       })
     );
 
@@ -182,24 +148,12 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     });
   }
 
-  private switchBoard(board: LeaderboardBoard): void {
-    if (board === this.board) return;
-    this.board = board;
-    this.updateTabStyles();
-    this.request();
-  }
-
-  private updateTabStyles(): void {
-    this.globalTab.setAlpha(this.board === 'global' ? 1 : 0.6);
-    this.weeklyTab.setAlpha(this.board === 'weekly' ? 1 : 0.6);
-  }
-
   private request(): void {
-    eventBus.emit('leaderboard:request', { board: this.board });
+    eventBus.emit('leaderboard:request', undefined);
   }
 
   private refresh(): void {
-    eventBus.emit('leaderboard:refresh', { board: this.board });
+    eventBus.emit('leaderboard:refresh', undefined);
   }
 
   private render(view: LeaderboardView): void {
@@ -276,9 +230,8 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     rankText.setOrigin(0, 0.5);
     container.add(rankText);
 
-    const label = isCurrentPlayer
-      ? `${maskGuestId(entry.guestId)} ${t('leaderboard.you')}`
-      : maskGuestId(entry.guestId);
+    const displayName = getLeaderboardDisplayName(entry, t('leaderboard.anonymous'));
+    const label = isCurrentPlayer ? `${displayName} ${t('leaderboard.you')}` : displayName;
     const nameText = this.scene.add.text(-200, 0, label, {
       fontSize: '17px',
       color: '#ffffff',

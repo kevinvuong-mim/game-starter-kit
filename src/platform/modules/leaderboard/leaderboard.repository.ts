@@ -20,7 +20,7 @@ export interface FetchLeaderboardParams {
 
 /**
  * API + cache layer for the leaderboard. The only place that talks to
- * `GET /leaderboard/{global|weekly}` or persists the offline cache.
+ * `GET /leaderboard/global` or persists the offline cache.
  */
 export class LeaderboardRepository {
   private readonly timeoutMs = 10_000;
@@ -56,6 +56,7 @@ export class LeaderboardRepository {
     return {
       top: top.map((entry) => ({
         guestId: String(entry?.guestId ?? ''),
+        name: typeof entry?.name === 'string' ? entry.name : null,
         score: Number(entry?.score ?? 0),
         rank: Number(entry?.rank ?? 0),
       })),

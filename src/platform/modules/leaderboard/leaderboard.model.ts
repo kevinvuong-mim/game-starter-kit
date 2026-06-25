@@ -1,11 +1,10 @@
 /**
  * Leaderboard model (`documents/game.md` §7).
  *
- * The backend exposes two read-only boards per `gameId` — `global` (all-time)
- * and `weekly` (current season) — that share an identical response shape.
+ * The backend exposes a global all-time leaderboard per `gameId`.
  */
 
-export type LeaderboardBoard = 'global' | 'weekly';
+export type LeaderboardBoard = 'global';
 
 export type LeaderboardStatus = 'idle' | 'loading' | 'refreshing' | 'ready' | 'error';
 
@@ -21,6 +20,7 @@ export const LEADERBOARD_CACHE_PREFIX = 'leaderboard:cache:';
 /** A single ranked entry as returned by the backend. */
 export interface LeaderboardEntry {
   guestId: string;
+  name: string | null;
   score: number;
   rank: number;
 }
@@ -70,6 +70,15 @@ export function maskGuestId(guestId: string): string {
   if (!guestId) return '----';
   const tail = guestId.replace(/-/g, '').slice(-4);
   return `...${tail}`;
+}
+
+/** Player label for leaderboard rows — prefers display name, falls back to anonymous label. */
+export function getLeaderboardDisplayName(
+  entry: Pick<LeaderboardEntry, 'name'>,
+  anonymousLabel: string
+): string {
+  const trimmed = entry.name?.trim();
+  return trimmed || anonymousLabel;
 }
 
 /** Whether the cache entry is still within the freshness window. */
