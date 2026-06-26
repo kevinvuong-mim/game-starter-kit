@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 export type Environment = 'dev' | 'staging' | 'production';
 
 export interface FirebaseConfig {
@@ -9,6 +11,7 @@ export interface FirebaseConfig {
 }
 
 export interface RuntimeConfig {
+  ads: AdsConfig;
   apiUrl: string;
   debug: boolean;
   gameId: string;
@@ -16,6 +19,18 @@ export interface RuntimeConfig {
   iapEnabled: boolean;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
+}
+
+export interface AdsConfig {
+  appId: string;
+  testing: boolean;
+  adUnits: {
+    banner: string;
+    appOpen: string;
+    rewarded: string;
+    interstitial: string;
+  };
+  provider: 'mock' | 'admob';
 }
 
 const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
@@ -56,11 +71,37 @@ function resolveFirebaseConfig(): FirebaseConfig {
   };
 }
 
+function resolveAdMobAppId(): string {
+  const platform = Capacitor.getPlatform();
+  if (platform === 'ios') {
+    return import.meta.env.VITE_ADMOB_IOS_APP_ID ?? '';
+  }
+  if (platform === 'android') {
+    return import.meta.env.VITE_ADMOB_ANDROID_APP_ID ?? '';
+  }
+  return import.meta.env.VITE_ADMOB_ANDROID_APP_ID ?? import.meta.env.VITE_ADMOB_IOS_APP_ID ?? '';
+}
+
+function resolveAdsConfig(): AdsConfig {
+  return {
+    appId: resolveAdMobAppId(),
+    testing: import.meta.env.VITE_ADMOB_TESTING === 'true',
+    adUnits: {
+      banner: import.meta.env.VITE_ADMOB_BANNER_ID ?? '',
+      appOpen: import.meta.env.VITE_ADMOB_APP_OPEN_ID ?? '',
+      rewarded: import.meta.env.VITE_ADMOB_REWARDED_ID ?? '',
+      interstitial: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID ?? '',
+    },
+    provider: (import.meta.env.VITE_ADS_PROVIDER as AdsConfig['provider']) ?? 'mock',
+  };
+}
+
 export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig {
   const env = resolveEnvironment();
   const base = ENV_CONFIGS[env];
 
   return {
+    ads: resolveAdsConfig(),
     apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: 'game-starter-kit',

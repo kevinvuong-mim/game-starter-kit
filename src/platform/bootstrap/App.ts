@@ -12,12 +12,14 @@ import { guest } from '@platform/modules/guest';
 import { generateId } from '@platform/core/utils';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
+import { bindAdsController } from '@platform/modules/ads';
 import { i18n } from '@platform/modules/i18n/i18n.service';
+import { registerAdsProvider } from '@platform/bootstrap/ads';
+import { gameSyncController } from '@platform/modules/game-sync';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
 import { settings } from '@platform/modules/settings/settings.service';
-import { gameSyncController } from '@platform/modules/game-sync';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
@@ -46,6 +48,7 @@ export class App {
     }
 
     registerAnalyticsProviders();
+    registerAdsProvider();
 
     await Promise.all([
       i18n.init(),
@@ -55,6 +58,9 @@ export class App {
       analytics.init(),
       leaderboard.init(),
     ]);
+
+    const { adsModule } = await import('@platform/modules/ads');
+    await adsModule.init();
 
     analytics.setUserId(usePlatformStore.getState().user.id);
     analytics.setUserProperty('game_id', config().gameId);
@@ -68,7 +74,8 @@ export class App {
     this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
     this.controllerUnsubscribers.push(
       leaderboardController.bind(events),
-      gameSyncController.bind(events)
+      gameSyncController.bind(events),
+      bindAdsController(events)
     );
     this.bindLifecycle();
 
@@ -92,6 +99,8 @@ export class App {
       events.on('app:ready', () => {
         logger.info('[App] Game shell ready');
         void hideNativeSplash();
+        events.emit('ad:show:request', { placement: 'APP_START' });
+        events.emit('ad:show:request', { placement: 'HOME' });
       }),
 
       events.on('coin:add', ({ amount }) => {
@@ -113,6 +122,7 @@ export class App {
 
       events.on('game:over', async ({ score, duration, jumps }) => {
         trackGameOver({ score, duration, jumps });
+        events.emit('ad:show:request', { placement: 'GAME_OVER' });
         await saveService.saveLocal();
       }),
 

@@ -1,10 +1,11 @@
+export { guest } from './guest';
 export { shop } from './shop/shop.service';
 export { t, i18n } from './i18n/i18n.service';
-export { guest } from './guest';
 export { saveService } from './save/save.service';
+export { adsModule, bindAdsController } from './ads';
 export { missions } from './missions/mission.service';
 export { settings } from './settings/settings.service';
-export type { SupportedLanguage } from './i18n/i18n.service';
 export { gameSync, gameSyncController } from './game-sync';
-export { dailyRewards, dailyRewardController } from './daily-rewards';
+export type { SupportedLanguage } from './i18n/i18n.service';
 export { leaderboard, leaderboardController } from './leaderboard';
+export { dailyRewards, dailyRewardController } from './daily-rewards';

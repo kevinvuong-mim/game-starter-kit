@@ -24,6 +24,33 @@ function patchInfoPlist(plistPath) {
   writeFileSync(plistPath, content);
 }
 
+function patchAdMobPlist(plistPath) {
+  const appId = process.env.VITE_ADMOB_IOS_APP_ID;
+  if (!appId) {
+    console.warn('[ios-native] VITE_ADMOB_IOS_APP_ID not set — skip AdMob Info.plist injection');
+    return;
+  }
+
+  let content = readFileSync(plistPath, 'utf8');
+  if (content.includes('GADApplicationIdentifier')) {
+    return;
+  }
+
+  // GADApplicationIdentifier is required by Google Mobile Ads SDK — missing it crashes on launch.
+  // SKAdNetworkItems enables ad attribution; NSUserTrackingUsageDescription drives the ATT prompt.
+  const snippet =
+    `\t<key>GADApplicationIdentifier</key>\n\t<string>${appId}</string>\n` +
+    `\t<key>NSUserTrackingUsageDescription</key>\n` +
+    `\t<string>This identifier will be used to deliver personalized ads to you.</string>\n` +
+    `\t<key>SKAdNetworkItems</key>\n\t<array>\n\t\t<dict>\n` +
+    `\t\t\t<key>SKAdNetworkIdentifier</key>\n\t\t\t<string>cstr6suwn9.skadnetwork</string>\n` +
+    `\t\t</dict>\n\t</array>\n`;
+
+  content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
+  writeFileSync(plistPath, content);
+  console.log('[ios-native] Injected AdMob GADApplicationIdentifier into Info.plist');
+}
+
 function patchPbxproj(projectPath) {
   let content = readFileSync(projectPath, 'utf8');
 
@@ -71,6 +98,7 @@ if (!existsSync(iosAppDir)) {
 copyFileSync(join(nativeDir, SWIFT_FILE), join(iosAppDir, SWIFT_FILE));
 copyFileSync(join(nativeDir, 'Main.storyboard'), join(iosAppDir, 'Base.lproj/Main.storyboard'));
 patchInfoPlist(join(iosAppDir, 'Info.plist'));
+patchAdMobPlist(join(iosAppDir, 'Info.plist'));
 
 if (existsSync(iosProject)) {
   patchPbxproj(iosProject);
