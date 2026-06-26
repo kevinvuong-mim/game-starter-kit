@@ -1,6 +1,9 @@
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
+import { services } from '@platform/core/services';
+import { trackSessionEnd } from '@platform/core/analytics/events';
+import { saveService } from '@platform/modules/save/save.service';
 
 let capacitorInitialized = false;
 
@@ -24,6 +27,18 @@ export async function initCapacitorPlugins(): Promise<void> {
 
     await App.addListener('backButton', () => {
       eventBus.emit('app:back', undefined);
+    });
+
+    await App.addListener('appStateChange', async ({ isActive }) => {
+      if (isActive) {
+        eventBus.emit('app:resume', undefined);
+        return;
+      }
+
+      trackSessionEnd();
+      eventBus.emit('app:pause', undefined);
+      await saveService.saveLocal();
+      await services.analytics.flush();
     });
 
     capacitorInitialized = true;

@@ -45,11 +45,11 @@ export class GameplayScene extends Phaser.Scene {
     this.gameActive = true;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x16213e);
-    this.add.rectangle(width / 2, height - 40, width, 80, 0x0f3460);
+    this.add.rectangle(width / 2, height - 40, width, 160, 0x0f3460);
 
-    this.player = this.add.circle(120, height - 80, 24, 0x4a90d9);
+    this.player = this.add.circle(120, height - 160, 24, 0x4a90d9);
     this.player.setStrokeStyle(3, 0xffffff);
-    this.groundY = height - 80;
+    this.groundY = height - 140;
     this.velocityY = 0;
 
     this.hud = new HUD(this);
@@ -167,7 +167,7 @@ export class GameplayScene extends Phaser.Scene {
     this.activeObjects.add(obj);
     obj.speed = 150 + Math.random() * 100;
     obj.sprite.setFillStyle(isCoin ? 0xffd700 : 0xf44336);
-    obj.sprite.setPosition(width + 20, height - 80 - Math.random() * 100);
+    obj.sprite.setPosition(width + 20, height - 160 - Math.random() * 100);
     obj.sprite.setVisible(true);
     obj.sprite.setActive(true);
   }

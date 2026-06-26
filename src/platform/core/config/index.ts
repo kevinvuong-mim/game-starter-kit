@@ -38,19 +38,19 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     debug: true,
     adsEnabled: true,
     analyticsEnabled: false,
-    apiUrl: 'http://192.168.103.109:3000/api',
+    apiUrl: 'http://localhost:3000/api',
   },
   staging: {
     debug: true,
     adsEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'http://192.168.103.109:3000/api',
+    apiUrl: 'http://staging-api.studio.games/api',
   },
   production: {
     debug: false,
     adsEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'http://192.168.103.109:3000/api',
+    apiUrl: 'http://api.studio.games/api',
   },
 };
 

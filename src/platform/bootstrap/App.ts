@@ -7,6 +7,7 @@ import {
   trackLevelComplete,
   trackMissionComplete,
 } from '@platform/core/analytics/events';
+import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { guest } from '@platform/modules/guest';
 import { generateId } from '@platform/core/utils';
@@ -158,7 +159,7 @@ export class App {
   }
 
   private bindLifecycle(): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || Capacitor.isNativePlatform()) return;
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {

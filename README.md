@@ -4,15 +4,15 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 
 ## Tech Stack
 
-| Layer       | Technology                         |
-| ----------- | ---------------------------------- |
-| Game Engine | Phaser 3                           |
-| Mobile      | Capacitor 6                        |
-| Language    | TypeScript                         |
-| Bundler     | Vite 6                             |
-| State       | Zustand                            |
-| Storage     | LocalStorage + IndexedDB           |
-| Networking  | Fetch API (NestJS-compatible REST) |
+| Layer       | Technology                                                      |
+| ----------- | --------------------------------------------------------------- |
+| Game Engine | Phaser 3                                                        |
+| Mobile      | Capacitor 6                                                     |
+| Language    | TypeScript                                                      |
+| Bundler     | Vite 6                                                          |
+| State       | Zustand                                                         |
+| Storage     | LocalStorage + IndexedDB (web) / Capacitor Preferences (native) |
+| Networking  | Fetch API (NestJS-compatible REST)                              |
 
 ## Quick Start
 
@@ -97,18 +97,18 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 ## Platform Modules
 
-| Module        | API                                 | Description                               |
-| ------------- | ----------------------------------- | ----------------------------------------- |
-| i18n          | `t('shop.buy')`                     | Runtime language switch, lazy load        |
-| Shop          | `shop.purchase(id)`                 | Data-driven catalog (skins, boosts, IAP)  |
-| Missions      | Event-driven                        | Daily/weekly/permanent missions           |
-| Leaderboard   | `submitScore()`, `getLeaderboard()` | Offline queue, optimistic updates         |
-| Daily Rewards | `claim()`                           | Streak calendar with server timestamp     |
-| Save          | `saveLocal()`, `sync()`             | Local + cloud with conflict resolution    |
-| Settings      | Persisted locally                   | Language, sound, vibration, graphics      |
-| Analytics     | Provider interface                  | session_start, game_start, purchase, etc. |
-| Ads           | Provider interface                  | Rewarded, interstitial, banner            |
-| IAP           | Provider interface                  | purchase, restore, verify                 |
+| Module        | API                                 | Description                                                      |
+| ------------- | ----------------------------------- | ---------------------------------------------------------------- |
+| i18n          | `t('shop.buy')`                     | Runtime language switch, lazy load                               |
+| Shop          | `shop.purchase(id)`                 | Data-driven catalog (skins, boosts, IAP)                         |
+| Missions      | Event-driven                        | Daily/weekly/permanent missions                                  |
+| Leaderboard   | `submitScore()`, `getLeaderboard()` | Offline queue, optimistic updates                                |
+| Daily Rewards | `claim()`                           | Streak calendar with server timestamp                            |
+| Save          | `saveLocal()`, `loadLocal()`        | Local-only persistence (IndexedDB on web, Preferences on native) |
+| Settings      | Persisted locally                   | Language, sound, vibration, graphics                             |
+| Analytics     | Provider interface                  | session_start, game_start, purchase, etc.                        |
+| Ads           | Provider interface                  | Rewarded, interstitial, banner                                   |
+| IAP           | Provider interface                  | purchase, restore, verify                                        |
 
 ## UI Framework
 

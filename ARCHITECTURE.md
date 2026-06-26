@@ -74,16 +74,16 @@ src/
 
 ## Design Principles
 
-| Principle          | Implementation                                     |
-| ------------------ | -------------------------------------------------- |
-| Clone per game     | One repo = one game; clone this kit to start       |
-| Modularity         | Each platform module is self-contained             |
-| Reusability        | `src/platform/` ships with every cloned project    |
-| Event Driven       | Typed EventBus decouples game from platform        |
-| Data Driven        | Shop catalog, missions defined in JSON             |
-| Offline First      | IndexedDB save + offline queue for leaderboard     |
-| Mobile Performance | Object pooling, lazy load, 60 FPS target           |
-| Single persistence | SaveService owns durable state; store is in-memory |
+| Principle          | Implementation                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| Clone per game     | One repo = one game; clone this kit to start                                                   |
+| Modularity         | Each platform module is self-contained                                                         |
+| Reusability        | `src/platform/` ships with every cloned project                                                |
+| Event Driven       | Typed EventBus decouples game from platform                                                    |
+| Data Driven        | Shop catalog, missions defined in JSON                                                         |
+| Offline First      | Local save (Preferences on native, IndexedDB on web) + offline queue for leaderboard/game sync |
+| Mobile Performance | Object pooling, lazy load, 60 FPS target                                                       |
+| Single persistence | SaveService owns durable state; store is in-memory                                             |
 
 ## Layer 1: Game Layer
 
@@ -119,27 +119,28 @@ ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` i
 
 **Location:** `src/platform/core/`
 
-| System           | Role                                                                              |
-| ---------------- | --------------------------------------------------------------------------------- |
-| **Event Bus**    | Typed pub/sub between game, UI, and bootstrap                                     |
-| **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware)                |
-| **SaveService**  | Durable persistence via IndexedDB + optional cloud sync (see modules)             |
-| **Config**       | `dev` / `staging` / `production` runtime config                                   |
-| **Storage**      | `StorageService` with localStorage, IndexedDB, memory providers (used by modules) |
-| **API Client**   | REST client with retry, timeout, auth interceptors                                |
-| **Providers**    | Analytics, advertising, IAP — swappable interfaces                                |
+| System           | Role                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| **Event Bus**    | Typed pub/sub between game, UI, and bootstrap                                          |
+| **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware)                     |
+| **SaveService**  | Durable local persistence via StorageService (Preferences on native, IndexedDB on web) |
+| **Config**       | `dev` / `staging` / `production` runtime config                                        |
+| **Storage**      | `StorageService` with localStorage, IndexedDB, Preferences, memory providers           |
+| **API Client**   | REST client with retry, timeout, auth interceptors                                     |
+| **Providers**    | Analytics, advertising, IAP — swappable interfaces                                     |
 
 ### Persistence model
 
 ```
 Runtime state  →  usePlatformStore (Zustand, in-memory)
                         ↕ hydrate / extractSaveableState
-Durable save   →  saveService (IndexedDB key: game-save)
-                        ↕ optional cloud sync via API
+Durable save   →  saveService (key: game-save)
+                        ↕ StorageService durable provider
+                        (Capacitor Preferences on native, IndexedDB on web)
 ```
 
-- On boot: `saveService.loadLocal()` hydrates the store before `settings.init()` and `missions.init()`.
-- On `game:over`, `settings:change`, and app background: `saveService.saveLocal()`.
+- On boot: `saveService.loadLocal()` hydrates the store before `settings.init()` and `missions.init()`. Existing IndexedDB saves on native are migrated to Preferences automatically.
+- On `game:over`, `settings:change`, and app background: `saveService.saveLocal()`. Native background uses Capacitor `appStateChange`; web uses `document.visibilitychange`.
 - Settings are part of store state — **not** persisted separately.
 
 ## Layer 3: Platform Modules
@@ -180,12 +181,12 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                     |
-| --------------- | -------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle |
-| `GameEngine.ts` | Creates Phaser instance, preloads fonts, inits toast     |
-| `analytics.ts`  | Registers Console + Firebase analytics providers         |
-| `capacitor.ts`  | Capacitor plugin initialization                          |
+| File            | Role                                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle             |
+| `GameEngine.ts` | Creates Phaser instance, preloads fonts, inits toast                 |
+| `analytics.ts`  | Registers Console + Firebase analytics providers                     |
+| `capacitor.ts`  | Capacitor plugin initialization, native lifecycle (`appStateChange`) |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
@@ -258,18 +259,18 @@ Boot → Preload → Home ⇄ Settings
 
 ## Technical Decisions
 
-| Decision                       | Rationale                                        |
-| ------------------------------ | ------------------------------------------------ |
-| Clone-per-game                 | Each game is independent; no multi-game monorepo |
-| `platform/` root folder        | Single home for all shared code                  |
-| `game/` not `games/`           | Singular — one game per repo                     |
-| i18n colocated                 | Service + locale JSON in `modules/i18n/`         |
-| `@platform/ui/i18n` facade     | Game/UI import `t` without touching modules      |
-| `advertising/` not `ads/`      | Avoids browser ad-blocker URL filtering in dev   |
-| Zustand vanilla                | No React dependency with Phaser                  |
-| SaveService over store persist | One persistence path; cloud sync ready           |
-| Provider pattern               | Swap AdMob/Firebase/RevenueCat per game          |
-| Event Bus                      | Enforces game/platform boundary                  |
+| Decision                       | Rationale                                                  |
+| ------------------------------ | ---------------------------------------------------------- |
+| Clone-per-game                 | Each game is independent; no multi-game monorepo           |
+| `platform/` root folder        | Single home for all shared code                            |
+| `game/` not `games/`           | Singular — one game per repo                               |
+| i18n colocated                 | Service + locale JSON in `modules/i18n/`                   |
+| `@platform/ui/i18n` facade     | Game/UI import `t` without touching modules                |
+| `advertising/` not `ads/`      | Avoids browser ad-blocker URL filtering in dev             |
+| Zustand vanilla                | No React dependency with Phaser                            |
+| SaveService over store persist | One local persistence path; native-durable via Preferences |
+| Provider pattern               | Swap AdMob/Firebase/RevenueCat per game                    |
+| Event Bus                      | Enforces game/platform boundary                            |
 
 ## Related docs
 

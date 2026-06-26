@@ -1,16 +1,30 @@
+import { Capacitor } from '@capacitor/core';
+
 import { LocalStorageProvider } from './LocalStorage';
 import { MemoryStorageProvider } from './MemoryStorage';
 import { IndexedDBStorageProvider } from './IndexedDBStorage';
+import { PreferencesStorageProvider } from './PreferencesStorage';
 import type { StorageProvider, StorageProviderType } from './types';
 
+/** Durable storage: native SharedPreferences/UserDefaults, IndexedDB on web. */
+export function resolveDurableProviderType(): StorageProviderType {
+  return Capacitor.isNativePlatform() ? 'preferences' : 'indexedDB';
+}
+
 export class StorageService {
-  private primary: StorageProviderType = 'localStorage';
+  private primary: StorageProviderType;
   private providers = new Map<StorageProviderType, StorageProvider>();
 
   constructor() {
     this.providers.set('localStorage', new LocalStorageProvider());
     this.providers.set('indexedDB', new IndexedDBStorageProvider());
+    this.providers.set('preferences', new PreferencesStorageProvider());
     this.providers.set('memory', new MemoryStorageProvider());
+    this.primary = resolveDurableProviderType();
+  }
+
+  getDurableProviderType(): StorageProviderType {
+    return resolveDurableProviderType();
   }
 
   setPrimary(type: StorageProviderType): void {

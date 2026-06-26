@@ -1,4 +1,4 @@
-export type StorageProviderType = 'memory' | 'indexedDB' | 'localStorage';
+export type StorageProviderType = 'memory' | 'indexedDB' | 'preferences' | 'localStorage';
 
 export interface StorageProvider {
   clear(): Promise<void>;
