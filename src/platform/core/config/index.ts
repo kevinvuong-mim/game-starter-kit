@@ -72,14 +72,18 @@ function resolveFirebaseConfig(): FirebaseConfig {
 }
 
 function resolveAdMobAppId(): string {
+  return pickPlatformEnv(
+    import.meta.env.VITE_ADMOB_ANDROID_APP_ID,
+    import.meta.env.VITE_ADMOB_IOS_APP_ID,
+  );
+}
+
+/** Returns the iOS value on iOS, Android value on Android, else first non-empty (web/dev). */
+function pickPlatformEnv(androidValue?: string, iosValue?: string): string {
   const platform = Capacitor.getPlatform();
-  if (platform === 'ios') {
-    return import.meta.env.VITE_ADMOB_IOS_APP_ID ?? '';
-  }
-  if (platform === 'android') {
-    return import.meta.env.VITE_ADMOB_ANDROID_APP_ID ?? '';
-  }
-  return import.meta.env.VITE_ADMOB_ANDROID_APP_ID ?? import.meta.env.VITE_ADMOB_IOS_APP_ID ?? '';
+  if (platform === 'ios') return iosValue ?? '';
+  if (platform === 'android') return androidValue ?? '';
+  return androidValue || iosValue || '';
 }
 
 function resolveAdsConfig(): AdsConfig {
@@ -87,10 +91,22 @@ function resolveAdsConfig(): AdsConfig {
     appId: resolveAdMobAppId(),
     testing: import.meta.env.VITE_ADMOB_TESTING === 'true',
     adUnits: {
-      banner: import.meta.env.VITE_ADMOB_BANNER_ID ?? '',
-      appOpen: import.meta.env.VITE_ADMOB_APP_OPEN_ID ?? '',
-      rewarded: import.meta.env.VITE_ADMOB_REWARDED_ID ?? '',
-      interstitial: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID ?? '',
+      banner: pickPlatformEnv(
+        import.meta.env.VITE_ADMOB_ANDROID_BANNER_ID,
+        import.meta.env.VITE_ADMOB_IOS_BANNER_ID,
+      ),
+      appOpen: pickPlatformEnv(
+        import.meta.env.VITE_ADMOB_ANDROID_APP_OPEN_ID,
+        import.meta.env.VITE_ADMOB_IOS_APP_OPEN_ID,
+      ),
+      rewarded: pickPlatformEnv(
+        import.meta.env.VITE_ADMOB_ANDROID_REWARDED_ID,
+        import.meta.env.VITE_ADMOB_IOS_REWARDED_ID,
+      ),
+      interstitial: pickPlatformEnv(
+        import.meta.env.VITE_ADMOB_ANDROID_INTERSTITIAL_ID,
+        import.meta.env.VITE_ADMOB_IOS_INTERSTITIAL_ID,
+      ),
     },
     provider: (import.meta.env.VITE_ADS_PROVIDER as AdsConfig['provider']) ?? 'mock',
   };
