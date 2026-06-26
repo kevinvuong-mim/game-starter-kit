@@ -36,9 +36,8 @@ export interface AdsConfig {
 const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
   dev: {
     debug: true,
-    adsEnabled: false,
+    adsEnabled: true,
     analyticsEnabled: false,
-    // Game Leaderboard API (NestJS) — base URL includes `/api` global prefix.
     apiUrl: 'http://localhost:3000/api',
   },
   staging: {

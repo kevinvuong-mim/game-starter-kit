@@ -87,8 +87,9 @@ export class AdsService {
 
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-    if (!enabled) {
-      this.hideBanner();
+    // Provider may not be initialized yet (setEnabled runs at bootstrap before init).
+    if (!enabled && this.provider) {
+      void this.hideBanner();
       this.destroyBanner();
     }
   }
@@ -209,15 +210,16 @@ export class AdsService {
   }
 
   async hideBanner(): Promise<void> {
-    if (this.bannerState.getState() === 'DESTROYED') return;
-    this.getProvider().hideBanner();
+    if (!this.provider || this.bannerState.getState() === 'DESTROYED') return;
+    this.provider.hideBanner();
     this.bannerState.markHidden();
     this.activeBannerPlacement = null;
     this.track(AD_ANALYTICS_EVENTS.BANNER_HIDDEN, {});
   }
 
   destroyBanner(): void {
-    this.getProvider().destroyBanner();
+    if (!this.provider) return;
+    this.provider.destroyBanner();
     this.bannerState.markDestroyed();
     this.activeBannerPlacement = null;
   }
@@ -270,7 +272,7 @@ export class AdsService {
   }
 
   isReady(type: AdFormat): boolean {
-    return this.getProvider().isReady(type);
+    return this.provider?.isReady(type) ?? false;
   }
 
   async preload(type: AdFormat): Promise<void> {
