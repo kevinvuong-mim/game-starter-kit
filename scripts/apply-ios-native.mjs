@@ -43,6 +43,23 @@ function patchInfoPlist(plistPath) {
   writeFileSync(plistPath, content);
 }
 
+function patchAtsPlist(plistPath) {
+  let content = readFileSync(plistPath, 'utf8');
+  if (content.includes('NSAppTransportSecurity')) {
+    return;
+  }
+
+  // NSAllowsLocalNetworking permits cleartext HTTP to local-network IP ranges
+  // (e.g. a 192.168.x.x dev backend) while keeping ATS enforced for the public internet.
+  const snippet =
+    `\t<key>NSAppTransportSecurity</key>\n\t<dict>\n` +
+    `\t\t<key>NSAllowsLocalNetworking</key>\n\t\t<true/>\n\t</dict>\n`;
+
+  content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
+  writeFileSync(plistPath, content);
+  console.log('[ios-native] Enabled NSAllowsLocalNetworking for local-HTTP dev backends');
+}
+
 function patchAdMobPlist(plistPath) {
   const appId = process.env.VITE_ADMOB_IOS_APP_ID;
   if (!appId) {
@@ -114,7 +131,7 @@ function patchPodfile(podfilePath) {
   if (content.includes("pod 'GoogleUserMessagingPlatform'")) return;
 
   content = content.replace(
-    /(target 'App' do\n(?:.*\n)*?  # Add your Pods here\n)/,
+    /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
     `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`,
   );
   writeFileSync(podfilePath, content);
@@ -140,6 +157,7 @@ if (!existsSync(iosAppDir)) {
 copyFileSync(join(nativeDir, SWIFT_FILE), join(iosAppDir, SWIFT_FILE));
 copyFileSync(join(nativeDir, 'Main.storyboard'), join(iosAppDir, 'Base.lproj/Main.storyboard'));
 patchInfoPlist(join(iosAppDir, 'Info.plist'));
+patchAtsPlist(join(iosAppDir, 'Info.plist'));
 patchAdMobPlist(join(iosAppDir, 'Info.plist'));
 
 if (existsSync(iosProject)) {

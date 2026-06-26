@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,10 +24,27 @@ loadEnvFile('.env');
 const template = join(root, 'native/android/MainActivity.java');
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
 const admobSnippet = join(root, 'native/android/admob-manifest-snippet.xml');
+const networkConfigPath = join(
+  root,
+  'android/app/src/main/res/xml/network_security_config.xml',
+);
 const target = join(
   root,
   'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java',
 );
+
+// Dev-only cleartext (HTTP) exceptions so the app can reach a local backend.
+// Production traffic still requires HTTPS. 10.0.2.2 is the Android emulator's
+// alias for the host machine's localhost.
+const NETWORK_SECURITY_CONFIG = `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.103.109</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
+`;
 
 if (!existsSync(template)) {
   console.warn('[android-native] Template not found, skipping');
@@ -61,4 +78,22 @@ if (admobAppId && existsSync(manifestPath) && existsSync(admobSnippet)) {
   }
 } else if (!admobAppId) {
   console.warn('[android-native] VITE_ADMOB_ANDROID_APP_ID not set — skip AdMob manifest injection');
+}
+
+if (!existsSync(networkConfigPath)) {
+  mkdirSync(dirname(networkConfigPath), { recursive: true });
+  writeFileSync(networkConfigPath, NETWORK_SECURITY_CONFIG);
+  console.log('[android-native] Created network_security_config.xml (dev cleartext exceptions)');
+}
+
+if (existsSync(manifestPath)) {
+  let manifest = readFileSync(manifestPath, 'utf8');
+  if (!manifest.includes('android:networkSecurityConfig')) {
+    manifest = manifest.replace(
+      '<application',
+      '<application\n        android:networkSecurityConfig="@xml/network_security_config"',
+    );
+    writeFileSync(manifestPath, manifest);
+    console.log('[android-native] Linked networkSecurityConfig in AndroidManifest.xml');
+  }
 }
