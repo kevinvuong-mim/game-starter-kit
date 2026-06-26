@@ -4,16 +4,16 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 
 ## Tech Stack
 
-| Layer       | Technology                                                      |
-| ----------- | --------------------------------------------------------------- |
-| Game Engine | Phaser 3                                                        |
-| Mobile      | Capacitor 6                                                     |
-| Language    | TypeScript (strict)                                             |
-| Bundler     | Vite 6                                                          |
-| State       | Zustand (vanilla, in-memory)                                    |
-| Storage     | IndexedDB (web) / Capacitor Preferences (native)               |
-| Networking  | Fetch API (NestJS-compatible REST envelope)                     |
-| Analytics   | Console (dev) + Firebase Analytics (staging/production)         |
+| Layer       | Technology                                                       |
+| ----------- | ---------------------------------------------------------------- |
+| Game Engine | Phaser 3                                                         |
+| Mobile      | Capacitor 6                                                      |
+| Language    | TypeScript (strict)                                              |
+| Bundler     | Vite 6                                                           |
+| State       | Zustand (vanilla, in-memory)                                     |
+| Storage     | IndexedDB (web) / Capacitor Preferences (native)                 |
+| Networking  | Fetch API (NestJS-compatible REST envelope)                      |
+| Analytics   | Console (dev) + Firebase Analytics (staging/production)          |
 | Ads         | Mock (web/dev) + AdMob via `@capacitor-community/admob` (native) |
 
 **Node.js:** `>= 20`
@@ -74,13 +74,13 @@ game-starter-kit/
 
 ## Path Aliases
 
-| Alias                   | Path                        |
-| ----------------------- | --------------------------- |
-| `@platform/core/*`      | `src/platform/core/*`       |
-| `@platform/modules/*`   | `src/platform/modules/*`    |
-| `@platform/ui/*`        | `src/platform/ui/*`         |
-| `@platform/bootstrap/*` | `src/platform/bootstrap/*`  |
-| `@game/*`               | `src/game/*`                |
+| Alias                   | Path                       |
+| ----------------------- | -------------------------- |
+| `@platform/core/*`      | `src/platform/core/*`      |
+| `@platform/modules/*`   | `src/platform/modules/*`   |
+| `@platform/ui/*`        | `src/platform/ui/*`        |
+| `@platform/bootstrap/*` | `src/platform/bootstrap/*` |
+| `@game/*`               | `src/game/*`               |
 
 ## Architecture Layers
 
@@ -118,21 +118,21 @@ ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](
 
 ## Platform Modules
 
-| Module        | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                    |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                         |
-| leaderboard   | Offline cache, TTL, paginated global board via REST                         |
-| daily-rewards | 7-day streak calendar, local persistence                                    |
-| save          | Single `game-save` key — hydrates Zustand store on boot                     |
-| settings      | Language, sound, vibration, graphics — part of store state                  |
-| guest         | Anonymous guest id + session token for API auth (`POST /guest/init`)        |
-| game-sync     | Offline-first match result queue → `POST /game/sync`                        |
-| ads (module)  | Remote ad config fetch, reward flow, controller wired to event bus          |
-| analytics     | Provider interface — Console + Firebase                                     |
-| advertising   | AdMob / mock providers, placement state machines                            |
-| IAP           | Provider interface — purchase, restore, verify                              |
+| Module        | Description                                                          |
+| ------------- | -------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON       |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases             |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                |
+| leaderboard   | Offline cache, TTL, paginated global board via REST                  |
+| daily-rewards | 7-day streak calendar, local persistence                             |
+| save          | Single `game-save` key — hydrates Zustand store on boot              |
+| settings      | Language, sound, vibration, graphics — part of store state           |
+| guest         | Anonymous guest id + session token for API auth (`POST /guest/init`) |
+| game-sync     | Offline-first match result queue → `POST /game/sync`                 |
+| ads (module)  | Remote ad config fetch, reward flow, controller wired to event bus   |
+| analytics     | Provider interface — Console + Firebase                              |
+| advertising   | AdMob / mock providers, placement state machines                     |
+| IAP           | Provider interface — purchase, restore, verify                       |
 
 ## UI Framework
 
@@ -175,15 +175,15 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-| Variable                       | Description                                          |
-| ------------------------------ | ---------------------------------------------------- |
-| `VITE_APP_ENV`                 | Runtime environment (`dev`, `staging`, `production`) |
-| `VITE_IAP_ENABLED`             | Enables IAP provider                                 |
-| `VITE_ADS_PROVIDER`            | `mock` or `admob`                                    |
-| `VITE_ADMOB_TESTING`           | Use Google sample ad units when `true`               |
-| `VITE_ADMOB_*_APP_ID`          | Per-platform AdMob app IDs for native builds         |
-| `VITE_ADMOB_*_*_ID`            | Production ad unit IDs per format/platform           |
-| `VITE_FIREBASE_*`              | Firebase web config for Analytics                    |
+| Variable              | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `VITE_APP_ENV`        | Runtime environment (`dev`, `staging`, `production`) |
+| `VITE_IAP_ENABLED`    | Enables IAP provider                                 |
+| `VITE_ADS_PROVIDER`   | `mock` or `admob`                                    |
+| `VITE_ADMOB_TESTING`  | Use Google sample ad units when `true`               |
+| `VITE_ADMOB_*_APP_ID` | Per-platform AdMob app IDs for native builds         |
+| `VITE_ADMOB_*_*_ID`   | Production ad unit IDs per format/platform           |
+| `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
 
 API URL, ads/analytics toggles, and `gameId` defaults are in `src/platform/core/config/index.ts`. `gameId` is overridden at boot from `src/game/config.ts`.
 
@@ -218,21 +218,21 @@ npx cap add ios
 
 ## Scripts
 
-| Command                 | Description                                      |
-| ----------------------- | ------------------------------------------------ |
-| `npm run dev`           | Vite dev server (`:5173`)                        |
-| `npm run build`         | Typecheck + production build → `dist/`           |
-| `npm run preview`       | Preview production build                         |
-| `npm run lint`          | `tsc --noEmit` + ESLint on `src/`                |
-| `npm run lint:fix`      | ESLint with auto-fix                             |
-| `npm run format`        | Prettier write                                   |
-| `npm run format:check`  | Prettier check                                   |
-| `npm run cap:sync`      | `cap sync`                                       |
-| `npm run cap:android`   | Open Android Studio                              |
-| `npm run cap:ios`       | Open Xcode                                       |
-| `npm run assets:generate` | Generate app icons/splash from `assets/`      |
-| `npm run build:android` | Build + assets + sync Android + native patches   |
-| `npm run build:ios`     | Build + assets + sync iOS + native patches       |
+| Command                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| `npm run dev`             | Vite dev server (`:5173`)                      |
+| `npm run build`           | Typecheck + production build → `dist/`         |
+| `npm run preview`         | Preview production build                       |
+| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`              |
+| `npm run lint:fix`        | ESLint with auto-fix                           |
+| `npm run format`          | Prettier write                                 |
+| `npm run format:check`    | Prettier check                                 |
+| `npm run cap:sync`        | `cap sync`                                     |
+| `npm run cap:android`     | Open Android Studio                            |
+| `npm run cap:ios`         | Open Xcode                                     |
+| `npm run assets:generate` | Generate app icons/splash from `assets/`       |
+| `npm run build:android`   | Build + assets + sync Android + native patches |
+| `npm run build:ios`       | Build + assets + sync iOS + native patches     |
 
 ## Contributing
 

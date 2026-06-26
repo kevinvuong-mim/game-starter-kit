@@ -104,28 +104,28 @@ public/assets/                   # Static assets (per-game)
 
 ## Path Aliases
 
-| Alias                   | Resolves to                  |
-| ----------------------- | ---------------------------- |
-| `@platform/core/*`      | `src/platform/core/*`        |
-| `@platform/modules/*`   | `src/platform/modules/*`     |
-| `@platform/ui/*`        | `src/platform/ui/*`          |
-| `@platform/bootstrap/*` | `src/platform/bootstrap/*`   |
-| `@game/*`               | `src/game/*`                 |
+| Alias                   | Resolves to                |
+| ----------------------- | -------------------------- |
+| `@platform/core/*`      | `src/platform/core/*`      |
+| `@platform/modules/*`   | `src/platform/modules/*`   |
+| `@platform/ui/*`        | `src/platform/ui/*`        |
+| `@platform/bootstrap/*` | `src/platform/bootstrap/*` |
+| `@game/*`               | `src/game/*`               |
 
 Vite also exposes bare aliases (`@game`, `@platform/ui`, …) for directory imports.
 
 ## Design Principles
 
-| Principle          | Implementation                                                                                 |
-| ------------------ | ---------------------------------------------------------------------------------------------- |
-| Clone per game     | One repo = one game; clone this kit to start                                                   |
+| Principle          | Implementation                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| Clone per game     | One repo = one game; clone this kit to start                                                  |
 | Modularity         | Each platform module is self-contained; network modules use service + repository + controller |
-| Reusability        | `src/platform/` ships with every cloned project                                                |
-| Event driven       | Typed EventBus decouples game from platform                                                    |
-| Data driven        | Shop catalog, missions defined in JSON                                                         |
-| Offline first      | Local save + offline queues (game-sync, leaderboard cache)                                     |
-| Mobile performance | Object pooling, lazy locale chunks, 60 FPS target                                              |
-| Single persistence | SaveService owns durable state; store is in-memory                                             |
+| Reusability        | `src/platform/` ships with every cloned project                                               |
+| Event driven       | Typed EventBus decouples game from platform                                                   |
+| Data driven        | Shop catalog, missions defined in JSON                                                        |
+| Offline first      | Local save + offline queues (game-sync, leaderboard cache)                                    |
+| Mobile performance | Object pooling, lazy locale chunks, 60 FPS target                                             |
+| Single persistence | SaveService owns durable state; store is in-memory                                            |
 
 ## Layer 1: Game Layer
 
@@ -146,16 +146,16 @@ eventBus.emit('analytics', { event: AnalyticsEvents.GAME_START });
 
 ### Game layer guidelines
 
-| Preferred                                            | Avoid                                           |
-| ---------------------------------------------------- | ----------------------------------------------- |
-| `@platform/core/events` (emit)                       | `@platform/core/api`                            |
-| `@game/*`                                            | `@platform/core/storage`                        |
-| Phaser APIs                                          | Direct store mutations (`@platform/core/state`) |
-| `@platform/ui/*` (HUD, toast, panels, `t`)           | `@platform/modules/*`                           |
-| `@game/utils/*` (e.g. `ObjectPool`)                  | `@platform/core/utils`                          |
-|                                                      | `@platform/core/advertising`, `@platform/core/iap` |
-|                                                      | `@platform/core/analytics` (use `analytics` event) |
-|                                                      | `@platform/core/config`, `@platform/core/error` |
+| Preferred                                  | Avoid                                              |
+| ------------------------------------------ | -------------------------------------------------- |
+| `@platform/core/events` (emit)             | `@platform/core/api`                               |
+| `@game/*`                                  | `@platform/core/storage`                           |
+| Phaser APIs                                | Direct store mutations (`@platform/core/state`)    |
+| `@platform/ui/*` (HUD, toast, panels, `t`) | `@platform/modules/*`                              |
+| `@game/utils/*` (e.g. `ObjectPool`)        | `@platform/core/utils`                             |
+|                                            | `@platform/core/advertising`, `@platform/core/iap` |
+|                                            | `@platform/core/analytics` (use `analytics` event) |
+|                                            | `@platform/core/config`, `@platform/core/error`    |
 
 ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` in `eslint.config.js`.
 
@@ -170,12 +170,12 @@ ESLint enforces these rules for `src/game/**/*.ts` via `no-restricted-imports` i
 | **Event Bus**    | Typed pub/sub between game, UI, modules, and bootstrap                                 |
 | **Global Store** | Zustand vanilla store — **in-memory only** (no persist middleware)                     |
 | **SaveService**  | Durable local persistence via StorageService (Preferences on native, IndexedDB on web) |
-| **Config**       | `dev` / `staging` / `production` runtime config + env resolution                        |
-| **Storage**      | `StorageService` with localStorage, IndexedDB, Preferences, memory providers             |
+| **Config**       | `dev` / `staging` / `production` runtime config + env resolution                       |
+| **Storage**      | `StorageService` with localStorage, IndexedDB, Preferences, memory providers           |
 | **API Client**   | REST client with retry, timeout, auth token, interceptors                              |
-| **Services**     | `services` locator — single access point for ads, iap, api, events, analytics, storage   |
-| **Error**        | Logger, `errorBoundary`, global unhandled-rejection handlers                             |
-| **Providers**    | Analytics, advertising (Mock/AdMob), IAP — swappable interfaces                          |
+| **Services**     | `services` locator — single access point for ads, iap, api, events, analytics, storage |
+| **Error**        | Logger, `errorBoundary`, global unhandled-rejection handlers                           |
+| **Providers**    | Analytics, advertising (Mock/AdMob), IAP — swappable interfaces                        |
 
 ### Persistence model
 
@@ -195,18 +195,18 @@ Durable save   →  saveService (key: game-save)
 
 **Location:** `src/platform/modules/`
 
-| Module        | Key files                                                                 |
-| ------------- | ------------------------------------------------------------------------- |
-| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                            |
-| shop          | `shop/shop.service.ts` + `shop/catalog.json`                              |
-| missions      | `missions/mission.service.ts` + `missions/missions.json`                |
-| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts` |
-| settings      | `settings/settings.service.ts`                                          |
+| Module        | Key files                                                                  |
+| ------------- | -------------------------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                             |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`                               |
+| missions      | `missions/mission.service.ts` + `missions/missions.json`                   |
+| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`  |
+| settings      | `settings/settings.service.ts`                                             |
 | daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts` |
-| save          | `save/save.service.ts`                                                  |
+| save          | `save/save.service.ts`                                                     |
 | guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init` |
-| game-sync     | Offline match queue → `POST /game/sync`; controller on `game:over`      |
-| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`            |
+| game-sync     | Offline match queue → `POST /game/sync`; controller on `game:over`         |
+| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`             |
 
 **Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
 
@@ -218,20 +218,20 @@ Modules are initialized in `bootstrap/App.ts`. Mission progress is **merged** wi
 
 Phaser-native UI building blocks. Most features are **full scenes** in `src/game/scenes/` that embed **panels**:
 
-| Component                      | Purpose                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| `ScreenManager` / `BaseScreen` | Overlay stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
-| `createUIButton`               | Shared button factory (`primary` / `rounded` variants)                  |
-| `HUD`                          | Score, coins — subscribes to store                                      |
-| `ToastManager`                 | Queued toasts; bound to `Phaser.Game` in `GameEngine`                   |
-| `ShopPanel`                    | Shop UI embedded in `ShopScene`                                         |
-| `MissionsPanel`                | Mission list UI                                                         |
-| `LeaderboardPanel`             | Paginated leaderboard UI                                                |
-| `DailyRewardPopup`             | Daily reward claim UI                                                   |
-| `LanguageSettingsPanel`        | Language picker                                                         |
-| `SignInSettingsPanel`          | Google/Apple sign-in placeholder                                        |
-| `HowToPlayPanel` / `LegalPanel`| Help and legal copy                                                     |
-| `ModalScreen`                  | Reusable overlay (registered on `HomeScene`)                            |
+| Component                       | Purpose                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| `ScreenManager` / `BaseScreen`  | Overlay stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
+| `createUIButton`                | Shared button factory (`primary` / `rounded` variants)                   |
+| `HUD`                           | Score, coins — subscribes to store                                       |
+| `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                    |
+| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                          |
+| `MissionsPanel`                 | Mission list UI                                                          |
+| `LeaderboardPanel`              | Paginated leaderboard UI                                                 |
+| `DailyRewardPopup`              | Daily reward claim UI                                                    |
+| `LanguageSettingsPanel`         | Language picker                                                          |
+| `SignInSettingsPanel`           | Google/Apple sign-in placeholder                                         |
+| `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                      |
+| `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                             |
 
 Import from `@platform/ui` or `@platform/ui/<component>`.
 
@@ -239,12 +239,12 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                 |
-| --------------- | -------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle             |
+| File            | Role                                                                  |
+| --------------- | --------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle              |
 | `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game |
-| `analytics.ts`  | Registers Console + Firebase analytics providers                     |
-| `ads.ts`        | Registers Mock or AdMob provider based on platform + env             |
+| `analytics.ts`  | Registers Console + Firebase analytics providers                      |
+| `ads.ts`        | Registers Mock or AdMob provider based on platform + env              |
 | `capacitor.ts`  | Status bar, back button, `appStateChange`, splash hide on `app:ready` |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
@@ -363,20 +363,20 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 
 ## Technical Decisions
 
-| Decision                       | Rationale                                                  |
-| ------------------------------ | ---------------------------------------------------------- |
-| Clone-per-game                 | Each game is independent; no multi-game monorepo           |
-| `platform/` root folder        | Single home for all shared code                            |
-| `game/` not `games/`           | Singular — one game per repo                               |
-| Controller + repository        | Keeps API/offline logic out of UI and game scenes          |
-| `@platform/ui` i18n re-export  | Game/UI import `t` without touching modules                |
-| `advertising/` not `ads/`      | Avoids browser ad-blocker URL filtering in dev             |
+| Decision                          | Rationale                                                  |
+| --------------------------------- | ---------------------------------------------------------- |
+| Clone-per-game                    | Each game is independent; no multi-game monorepo           |
+| `platform/` root folder           | Single home for all shared code                            |
+| `game/` not `games/`              | Singular — one game per repo                               |
+| Controller + repository           | Keeps API/offline logic out of UI and game scenes          |
+| `@platform/ui` i18n re-export     | Game/UI import `t` without touching modules                |
+| `advertising/` not `ads/`         | Avoids browser ad-blocker URL filtering in dev             |
 | `ads/` module vs core advertising | Core = provider SDK; module = remote config + event wiring |
-| Zustand vanilla                | No React dependency with Phaser                            |
-| SaveService over store persist | One local persistence path; native-durable via Preferences |
-| Provider pattern               | Swap AdMob/Firebase/RevenueCat per game                    |
-| Event Bus                      | Enforces game/platform boundary                            |
-| `native/` + apply scripts      | Repeatable Capacitor native customizations per build       |
+| Zustand vanilla                   | No React dependency with Phaser                            |
+| SaveService over store persist    | One local persistence path; native-durable via Preferences |
+| Provider pattern                  | Swap AdMob/Firebase/RevenueCat per game                    |
+| Event Bus                         | Enforces game/platform boundary                            |
+| `native/` + apply scripts         | Repeatable Capacitor native customizations per build       |
 
 ## Related docs
 

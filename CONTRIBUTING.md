@@ -68,16 +68,16 @@ Then:
 
 Enforced by ESLint `no-restricted-imports` on `src/game/**/*.ts`:
 
-| Preferred                                              | Avoid                                                        |
-| ------------------------------------------------------ | ------------------------------------------------------------ |
-| `@platform/core/events` (emit)                         | `@platform/core/api`                                         |
-| `@game/*`                                              | `@platform/core/storage`                                     |
-| Phaser APIs                                            | `@platform/core/state` (direct store mutations)              |
-| `@platform/ui/*` (panels, HUD, toast, `t`)             | `@platform/modules/*`                                        |
-| `@game/utils/*`                                        | `@platform/core/utils`                                       |
-| `eventBus.emit('analytics', …)` + `AnalyticsEvents`    | `@platform/core/analytics`                                   |
-|                                                        | `@platform/core/advertising`, `@platform/core/iap`           |
-|                                                        | `@platform/core/config`, `@platform/core/error`              |
+| Preferred                                           | Avoid                                              |
+| --------------------------------------------------- | -------------------------------------------------- |
+| `@platform/core/events` (emit)                      | `@platform/core/api`                               |
+| `@game/*`                                           | `@platform/core/storage`                           |
+| Phaser APIs                                         | `@platform/core/state` (direct store mutations)    |
+| `@platform/ui/*` (panels, HUD, toast, `t`)          | `@platform/modules/*`                              |
+| `@game/utils/*`                                     | `@platform/core/utils`                             |
+| `eventBus.emit('analytics', …)` + `AnalyticsEvents` | `@platform/core/analytics`                         |
+|                                                     | `@platform/core/advertising`, `@platform/core/iap` |
+|                                                     | `@platform/core/config`, `@platform/core/error`    |
 
 Use `eventBus.emit('error:report', { error, context })` instead of importing `@platform/core/error` from game code.
 
@@ -161,7 +161,9 @@ Console is always registered. Firebase is added when `analyticsEnabled` is true 
 import { services } from '@platform/core/services';
 import type { IAnalyticsProvider } from '@platform/core/analytics';
 
-class MyAnalyticsProvider implements IAnalyticsProvider { /* … */ }
+class MyAnalyticsProvider implements IAnalyticsProvider {
+  /* … */
+}
 
 services.analytics.registerProvider(new MyAnalyticsProvider());
 ```
@@ -182,7 +184,9 @@ eventBus.emit('analytics', { event: AnalyticsEvents.PURCHASE, params: { itemId }
 import { services } from '@platform/core/services';
 import type { IAdsProvider } from '@platform/core/advertising';
 
-class CustomAdsProvider implements IAdsProvider { /* … */ }
+class CustomAdsProvider implements IAdsProvider {
+  /* … */
+}
 
 services.ads.setProvider(new CustomAdsProvider());
 ```
@@ -195,7 +199,9 @@ Request ads from game/UI via events: `ad:show:request`, `ad:reward:request`.
 import { services } from '@platform/core/services';
 import type { IIapProvider } from '@platform/core/iap';
 
-class RevenueCatProvider implements IIapProvider { /* … */ }
+class RevenueCatProvider implements IIapProvider {
+  /* … */
+}
 
 services.iap.setProvider(new RevenueCatProvider());
 ```

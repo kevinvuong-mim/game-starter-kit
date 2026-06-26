@@ -3,7 +3,6 @@ import { ads } from '@platform/core/advertising';
 import type { IEventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 
-
 export function bindAdsController(events: IEventBus): () => void {
   const unsubs = [
     events.on('ad:reward:request', async ({ placement }) => {
