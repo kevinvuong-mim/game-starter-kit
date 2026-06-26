@@ -73,7 +73,7 @@ function resolveFirebaseConfig(): FirebaseConfig {
 function resolveAdMobAppId(): string {
   return pickPlatformEnv(
     import.meta.env.VITE_ADMOB_ANDROID_APP_ID,
-    import.meta.env.VITE_ADMOB_IOS_APP_ID,
+    import.meta.env.VITE_ADMOB_IOS_APP_ID
   );
 }
 
@@ -112,30 +112,39 @@ function resolveAdsConfig(): AdsConfig {
   // even before the real AdMob account/ad units are active.
   const adUnits = testing
     ? {
-        banner: pickPlatformEnv(GOOGLE_TEST_AD_UNITS.android.banner, GOOGLE_TEST_AD_UNITS.ios.banner),
-        appOpen: pickPlatformEnv(GOOGLE_TEST_AD_UNITS.android.appOpen, GOOGLE_TEST_AD_UNITS.ios.appOpen),
-        rewarded: pickPlatformEnv(GOOGLE_TEST_AD_UNITS.android.rewarded, GOOGLE_TEST_AD_UNITS.ios.rewarded),
+        banner: pickPlatformEnv(
+          GOOGLE_TEST_AD_UNITS.android.banner,
+          GOOGLE_TEST_AD_UNITS.ios.banner
+        ),
+        appOpen: pickPlatformEnv(
+          GOOGLE_TEST_AD_UNITS.android.appOpen,
+          GOOGLE_TEST_AD_UNITS.ios.appOpen
+        ),
+        rewarded: pickPlatformEnv(
+          GOOGLE_TEST_AD_UNITS.android.rewarded,
+          GOOGLE_TEST_AD_UNITS.ios.rewarded
+        ),
         interstitial: pickPlatformEnv(
           GOOGLE_TEST_AD_UNITS.android.interstitial,
-          GOOGLE_TEST_AD_UNITS.ios.interstitial,
+          GOOGLE_TEST_AD_UNITS.ios.interstitial
         ),
       }
     : {
         banner: pickPlatformEnv(
           import.meta.env.VITE_ADMOB_ANDROID_BANNER_ID,
-          import.meta.env.VITE_ADMOB_IOS_BANNER_ID,
+          import.meta.env.VITE_ADMOB_IOS_BANNER_ID
         ),
         appOpen: pickPlatformEnv(
           import.meta.env.VITE_ADMOB_ANDROID_APP_OPEN_ID,
-          import.meta.env.VITE_ADMOB_IOS_APP_OPEN_ID,
+          import.meta.env.VITE_ADMOB_IOS_APP_OPEN_ID
         ),
         rewarded: pickPlatformEnv(
           import.meta.env.VITE_ADMOB_ANDROID_REWARDED_ID,
-          import.meta.env.VITE_ADMOB_IOS_REWARDED_ID,
+          import.meta.env.VITE_ADMOB_IOS_REWARDED_ID
         ),
         interstitial: pickPlatformEnv(
           import.meta.env.VITE_ADMOB_ANDROID_INTERSTITIAL_ID,
-          import.meta.env.VITE_ADMOB_IOS_INTERSTITIAL_ID,
+          import.meta.env.VITE_ADMOB_IOS_INTERSTITIAL_ID
         ),
       };
 
