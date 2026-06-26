@@ -3,6 +3,24 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+function loadEnvFile(name) {
+  const envPath = join(root, name);
+  if (!existsSync(envPath)) return;
+  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+// process.env is not auto-populated from .env files for plain node scripts.
+loadEnvFile('.env');
+
 const template = join(root, 'native/android/MainActivity.java');
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
 const admobSnippet = join(root, 'native/android/admob-manifest-snippet.xml');
