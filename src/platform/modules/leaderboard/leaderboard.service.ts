@@ -1,23 +1,22 @@
-import { ApiError } from '@platform/core/api';
-import { logger } from '@platform/core/error';
-import { getConfig } from '@platform/core/config';
-import { eventBus } from '@platform/core/events';
-import { guest, type GuestService } from '@platform/modules/guest';
-
 import {
   isCacheFresh,
   createInitialView,
-  type LeaderboardBoard,
   type LeaderboardData,
   type LeaderboardView,
+  type LeaderboardBoard,
 } from './leaderboard.model';
+import { ApiError } from '@platform/core/api';
+import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
+import { getConfig } from '@platform/core/config';
+import { guest, type GuestService } from '@platform/modules/guest';
 import { leaderboardRepository, type LeaderboardRepository } from './leaderboard.repository';
 
 const BOARD: LeaderboardBoard = 'global';
 
 export interface FetchOptions {
-  force?: boolean;
   page?: number;
+  force?: boolean;
 }
 
 /**

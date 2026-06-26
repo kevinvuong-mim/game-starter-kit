@@ -24,22 +24,22 @@ export interface ReplayMove {
 /** Deterministic replay payload — the same match must always hash identically. */
 export interface ReplayPayload {
   seed: number;
-  moves: ReplayMove[];
   duration: number;
+  moves: ReplayMove[];
 }
 
 /** A finished match awaiting (or completed) sync. */
 export interface PendingGameResult {
-  localId: string;
+  score: number;
   gameId: string;
   guestId: string;
-  score: number;
-  duration: number;
-  replayHash: string;
-  metadata?: Record<string, unknown>;
+  localId: string;
   synced: boolean;
-  syncAttempts: number;
+  duration: number;
   createdAt: string;
+  replayHash: string;
+  syncAttempts: number;
+  metadata?: Record<string, unknown>;
 }
 
 /** Payload sent for each result in a sync batch (whitelisted fields only). */
@@ -95,8 +95,8 @@ export function toNonNegativeInt(value: number): number {
   return Math.floor(value);
 }
 
-const METADATA_MAX_BYTES = 2048;
 const METADATA_MAX_KEYS = 10;
+const METADATA_MAX_BYTES = 2048;
 const METADATA_MAX_KEY_LENGTH = 64;
 const METADATA_MAX_STRING_LENGTH = 256;
 

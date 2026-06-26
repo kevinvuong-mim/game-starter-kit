@@ -34,9 +34,9 @@ const { ads, iap, config, events, analytics } = services;
  */
 export class App {
   private initialized = false;
+  private dailyRewardUnsubscribe?: () => void;
   private unsubscribers: Array<() => void> = [];
   private controllerUnsubscribers: Array<() => void> = [];
-  private dailyRewardUnsubscribe?: () => void;
 
   async init(): Promise<void> {
     if (this.initialized) return;

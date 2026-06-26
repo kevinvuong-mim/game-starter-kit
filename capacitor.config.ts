@@ -7,11 +7,6 @@ const config: CapacitorConfig = {
   },
   appName: 'Game Starter Kit',
   plugins: {
-    // Route fetch/XHR through the native HTTP layer so requests to a plain-HTTP
-    // dev backend are not blocked by the WebView's mixed-content / CORS policy.
-    CapacitorHttp: {
-      enabled: true,
-    },
     StatusBar: {
       overlaysWebView: true,
     },

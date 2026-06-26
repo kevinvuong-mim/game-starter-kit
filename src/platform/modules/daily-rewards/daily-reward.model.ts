@@ -1,6 +1,6 @@
+export const DAILY_REWARD_MODEL_VERSION = 2;
 export const DAILY_REWARD_STORAGE_KEY = 'daily-reward-v2';
 export const LEGACY_DAILY_REWARD_STORAGE_KEY = 'daily-rewards';
-export const DAILY_REWARD_MODEL_VERSION = 2;
 
 export interface DailyRewardModel {
   version: number;
@@ -23,39 +23,39 @@ export interface LegacyDailyRewardState {
   claimedDays: number[];
 }
 
-export type RewardDayStatus = 'claimed' | 'current' | 'locked';
+export type RewardDayStatus = 'locked' | 'claimed' | 'current';
 
 export interface RewardDayProgress {
   day: number;
-  status: RewardDayStatus;
-  rewardLabel: string;
-  rewardType: 'coins' | 'random' | 'chest';
   coins?: number;
+  rewardLabel: string;
+  status: RewardDayStatus;
+  rewardType: 'coins' | 'chest' | 'random';
 }
 
 export interface RewardProgress {
-  currentDay: number;
   canClaim: boolean;
+  currentDay: number;
   timeManipulated: boolean;
   days: RewardDayProgress[];
 }
 
 export interface ClaimResult {
   day: number;
-  rewardType: 'coins' | 'chest';
   coins?: number;
   itemId?: string;
   itemQuantity?: number;
+  rewardType: 'chest' | 'coins';
 }
 
 export function createDefaultModel(): DailyRewardModel {
   return {
-    version: DAILY_REWARD_MODEL_VERSION,
     currentDay: 1,
     lastClaimDate: null,
     lastClaimWallClock: 0,
-    lastSessionTimestamp: 0,
     timeManipulated: false,
+    lastSessionTimestamp: 0,
+    version: DAILY_REWARD_MODEL_VERSION,
   };
 }
 

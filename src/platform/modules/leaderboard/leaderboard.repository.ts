@@ -1,22 +1,21 @@
+import {
+  LEADERBOARD_LIMIT,
+  type LeaderboardData,
+  type LeaderboardBoard,
+  type LeaderboardCache,
+  createInitialPagination,
+  LEADERBOARD_CACHE_PREFIX,
+  type LeaderboardPagination,
+} from './leaderboard.model';
 import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import type { ApiEnvelope } from '@platform/core/api';
 
-import {
-  LEADERBOARD_LIMIT,
-  LEADERBOARD_CACHE_PREFIX,
-  createInitialPagination,
-  type LeaderboardBoard,
-  type LeaderboardCache,
-  type LeaderboardData,
-  type LeaderboardPagination,
-} from './leaderboard.model';
-
 export interface FetchLeaderboardParams {
-  board: LeaderboardBoard;
+  page?: number;
   gameId: string;
   limit?: number;
-  page?: number;
+  board: LeaderboardBoard;
 }
 
 /**
@@ -32,9 +31,9 @@ export class LeaderboardRepository {
     const limit = params.limit ?? LEADERBOARD_LIMIT;
 
     const query = new URLSearchParams({
-      gameId: params.gameId,
       page: String(page),
       limit: String(limit),
+      gameId: params.gameId,
     });
 
     const envelope = await apiClient.get<ApiEnvelope<LeaderboardData>>(
@@ -66,14 +65,14 @@ export class LeaderboardRepository {
     const pagination = this.normalizePagination(data?.pagination, page, limit);
 
     return {
+      pagination,
       top: top.map((entry) => ({
+        rank: Number(entry?.rank ?? 0),
+        score: Number(entry?.score ?? 0),
         guestId: String(entry?.guestId ?? ''),
         name: typeof entry?.name === 'string' ? entry.name : null,
-        score: Number(entry?.score ?? 0),
-        rank: Number(entry?.rank ?? 0),
       })),
       myRank: typeof data?.myRank === 'number' ? data.myRank : null,
-      pagination,
     };
   }
 

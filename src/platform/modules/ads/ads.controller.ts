@@ -1,8 +1,8 @@
+import { adsModule } from './ads.service';
+import { ads } from '@platform/core/advertising';
 import type { IEventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 
-import { adsModule } from './ads.service';
-import { ads } from '@platform/core/advertising';
 
 export function bindAdsController(events: IEventBus): () => void {
   const unsubs = [

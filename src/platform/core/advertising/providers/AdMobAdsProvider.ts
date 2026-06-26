@@ -34,12 +34,12 @@ type AdMobModule = {
 
 export class AdMobAdsProvider implements IAdsProvider {
   readonly name = 'admob';
-  private config: AdsProviderConfig | null = null;
-  private admob: AdMobModule | null = null;
+  private bannerVisible = false;
   private ready = new Set<AdFormat>();
   private cached = new Set<AdFormat>();
   private loading = new Set<AdFormat>();
-  private bannerVisible = false;
+  private admob: AdMobModule | null = null;
+  private config: AdsProviderConfig | null = null;
 
   async init(config: AdsProviderConfig): Promise<void> {
     if (!Capacitor.isNativePlatform()) {

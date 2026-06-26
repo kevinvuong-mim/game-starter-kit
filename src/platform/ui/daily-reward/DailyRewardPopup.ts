@@ -1,13 +1,13 @@
 import Phaser from 'phaser';
 
+import { toast } from '../toast/ToastManager';
 import { eventBus } from '@platform/core/events';
-import type {
-  RewardDayProgress,
-  RewardProgress,
-} from '@platform/modules/daily-rewards/daily-reward.model';
 import { FREDOKA_FONT } from '@platform/ui/index';
 import { t } from '@platform/modules/i18n/i18n.service';
-import { toast } from '../toast/ToastManager';
+import type {
+  RewardProgress,
+  RewardDayProgress,
+} from '@platform/modules/daily-rewards/daily-reward.model';
 import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
 const CELL_GAP = 12;
@@ -17,10 +17,10 @@ const CELL_HEIGHT = 88;
 export class DailyRewardPopup extends Phaser.GameObjects.Container {
   private panel?: Phaser.GameObjects.Rectangle;
   private statusText?: Phaser.GameObjects.Text;
-  private calendarContainer?: Phaser.GameObjects.Container;
-  private claimButton?: Phaser.GameObjects.Container;
   private rewardBurst?: Phaser.GameObjects.Text;
   private unsubscribers: Array<() => void> = [];
+  private claimButton?: Phaser.GameObjects.Container;
+  private calendarContainer?: Phaser.GameObjects.Container;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);

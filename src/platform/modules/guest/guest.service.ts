@@ -1,6 +1,5 @@
-import { apiClient } from '@platform/core/api';
 import { logger } from '@platform/core/error';
-
+import { apiClient } from '@platform/core/api';
 import { guestRepository, type GuestRepository } from './guest.repository';
 
 /**
@@ -11,9 +10,9 @@ import { guestRepository, type GuestRepository } from './guest.repository';
  * - `sessionToken` is applied to `apiClient` for protected endpoints.
  */
 export class GuestService {
+  private initialized = false;
   private guestId: string | null = null;
   private sessionToken: string | null = null;
-  private initialized = false;
   private inflight: Promise<string | null> | null = null;
 
   constructor(private readonly repository: GuestRepository = guestRepository) {}

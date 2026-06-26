@@ -1,16 +1,14 @@
-import { Preferences } from '@capacitor/preferences';
-
-import { apiClient } from '@platform/core/api';
-import type { ApiEnvelope } from '@platform/core/api';
-
 import {
-  GUEST_STORAGE_KEY,
-  SESSION_TOKEN_STORAGE_KEY,
   isValidGuestId,
+  GUEST_STORAGE_KEY,
   isValidSessionToken,
-  type GuestProfilePayload,
   type InitGuestPayload,
+  type GuestProfilePayload,
+  SESSION_TOKEN_STORAGE_KEY,
 } from './guest.model';
+import { apiClient } from '@platform/core/api';
+import { Preferences } from '@capacitor/preferences';
+import type { ApiEnvelope } from '@platform/core/api';
 
 /**
  * Owns guest credentials persistence (Capacitor Preferences) and remote

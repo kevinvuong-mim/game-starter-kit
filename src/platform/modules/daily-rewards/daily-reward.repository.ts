@@ -1,17 +1,15 @@
-import { Preferences } from '@capacitor/preferences';
-
-import { storage } from '@platform/core/storage';
-import type { DailyRewardState } from '@platform/core/state';
-
 import {
   createDefaultModel,
-  DAILY_REWARD_MODEL_VERSION,
-  DAILY_REWARD_STORAGE_KEY,
   getLocalDateString,
-  LEGACY_DAILY_REWARD_STORAGE_KEY,
   type DailyRewardModel,
+  DAILY_REWARD_STORAGE_KEY,
+  DAILY_REWARD_MODEL_VERSION,
   type LegacyDailyRewardState,
+  LEGACY_DAILY_REWARD_STORAGE_KEY,
 } from './daily-reward.model';
+import { storage } from '@platform/core/storage';
+import { Preferences } from '@capacitor/preferences';
+import type { DailyRewardState } from '@platform/core/state';
 
 export class DailyRewardRepository {
   async load(): Promise<DailyRewardModel> {

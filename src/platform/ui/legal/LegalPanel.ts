@@ -15,21 +15,21 @@ export class LegalPanel extends Phaser.GameObjects.Container {
   private scrollY = 0;
   private maxScroll = 0;
   private contentBaseY = 0;
+  private readonly contentWidth: number;
+  private readonly contentHeight: number;
+  private readonly contentCenterY: number;
   private contentText?: Phaser.GameObjects.Text;
-  private contentHitArea?: Phaser.GameObjects.Rectangle;
-  private termsTabBg?: Phaser.GameObjects.Rectangle;
-  private privacyTabBg?: Phaser.GameObjects.Rectangle;
-  private termsTabLabel?: Phaser.GameObjects.Text;
-  private privacyTabLabel?: Phaser.GameObjects.Text;
   private readonly wheelHandler: (
     pointer: Phaser.Input.Pointer,
     gameObjects: Phaser.GameObjects.GameObject[],
     deltaX: number,
     deltaY: number
   ) => void;
-  private readonly contentWidth: number;
-  private readonly contentHeight: number;
-  private readonly contentCenterY: number;
+  private termsTabLabel?: Phaser.GameObjects.Text;
+  private privacyTabLabel?: Phaser.GameObjects.Text;
+  private termsTabBg?: Phaser.GameObjects.Rectangle;
+  private privacyTabBg?: Phaser.GameObjects.Rectangle;
+  private contentHitArea?: Phaser.GameObjects.Rectangle;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);

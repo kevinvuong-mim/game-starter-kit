@@ -1,14 +1,12 @@
-import { Preferences } from '@capacitor/preferences';
-
-import { apiClient } from '@platform/core/api';
-import type { ApiEnvelope } from '@platform/core/api';
-
 import {
+  type SyncResponse,
   PENDING_RESULTS_KEY,
   type GameResultPayload,
   type PendingGameResult,
-  type SyncResponse,
 } from './game-sync.model';
+import { apiClient } from '@platform/core/api';
+import { Preferences } from '@capacitor/preferences';
+import type { ApiEnvelope } from '@platform/core/api';
 
 /**
  * Owns the persisted pending-results queue (Capacitor Preferences) and the

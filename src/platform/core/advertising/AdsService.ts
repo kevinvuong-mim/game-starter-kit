@@ -15,16 +15,16 @@ type AnalyticsHandler = (event: string, metadata?: Record<string, unknown>) => v
 
 export class AdsService {
   private enabled = true;
-  private online = typeof navigator === 'undefined' ? true : navigator.onLine;
-  private provider: IAdsProvider | null = null;
-  private fallbackProvider: IAdsProvider | null = null;
-  private remoteConfig: AdsRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
-  private configCacheKey = 'ads_remote_config_v1';
-  private lastInterstitialAt = 0;
   private lastRewardedAt = 0;
+  private lastInterstitialAt = 0;
   private appOpenShownThisSession = false;
+  private provider: IAdsProvider | null = null;
+  private configCacheKey = 'ads_remote_config_v1';
   private activeBannerPlacement: string | null = null;
+  private fallbackProvider: IAdsProvider | null = null;
   private analyticsHandler: AnalyticsHandler | null = null;
+  private remoteConfig: AdsRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
+  private online = typeof navigator === 'undefined' ? true : navigator.onLine;
 
   private readonly formats = {
     rewarded: new AdFormatManager('rewarded'),

@@ -17,7 +17,7 @@ export const UIButtonBackgroundKey = {
 } as const;
 
 const PRESS_SCALE = 0.95;
-const DEFAULT_SIZE: UIButtonSize = { width: 200, height: 50 };
+const DEFAULT_SIZE: UIButtonSize = { height: 50, width: 200 };
 
 function applyTextStyle(textObject: Phaser.GameObjects.Text, style?: UIButtonTextStyle): void {
   const fontSize = style?.fontSize !== undefined ? `${style.fontSize}px` : '20px';

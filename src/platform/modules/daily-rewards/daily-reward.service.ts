@@ -1,17 +1,16 @@
+import {
+  hasClaimedToday,
+  type ClaimResult,
+  createDefaultModel,
+  getLocalDateString,
+  type RewardProgress,
+  type DailyRewardModel,
+} from './daily-reward.model';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
-
-import {
-  createDefaultModel,
-  getLocalDateString,
-  hasClaimedToday,
-  type ClaimResult,
-  type DailyRewardModel,
-  type RewardProgress,
-} from './daily-reward.model';
-import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
+import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 
 const BACKWARD_CLOCK_TOLERANCE_MS = 60_000;
 

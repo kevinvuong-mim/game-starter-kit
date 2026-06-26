@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { services } from '@platform/core/services';
 import { createAdsProvider } from '@platform/core/advertising';
 
-const { config, ads } = services;
+const { ads, config } = services;
 
 /**
  * Registers the ads provider based on runtime config and platform.

@@ -1,27 +1,26 @@
-import { ApiError } from '@platform/core/api';
-import { logger } from '@platform/core/error';
-import { getConfig } from '@platform/core/config';
-import { eventBus } from '@platform/core/events';
-import { generateId } from '@platform/core/utils';
-import { usePlatformStore } from '@platform/core/state';
-import { guest, type GuestService } from '@platform/modules/guest';
-
 import {
-  buildReplayPayload,
-  computeReplayHash,
+  MAX_BATCH_SIZE,
+  type ReplayMove,
   sanitizeMetadata,
   toNonNegativeInt,
-  MAX_BATCH_SIZE,
+  computeReplayHash,
   MAX_SYNC_ATTEMPTS,
+  buildReplayPayload,
   type PendingGameResult,
-  type ReplayMove,
 } from './game-sync.model';
+import { ApiError } from '@platform/core/api';
+import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
+import { generateId } from '@platform/core/utils';
+import { getConfig } from '@platform/core/config';
+import { usePlatformStore } from '@platform/core/state';
+import { guest, type GuestService } from '@platform/modules/guest';
 import { gameSyncRepository, type GameSyncRepository } from './game-sync.repository';
 
 export interface RecordResultParams {
   score: number;
-  duration: number;
   seed?: number;
+  duration: number;
   moves?: ReplayMove[];
   metadata?: Record<string, unknown>;
 }

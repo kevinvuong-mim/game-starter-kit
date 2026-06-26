@@ -1,6 +1,5 @@
 import { logger } from '@platform/core/error';
 import type { IEventBus } from '@platform/core/events';
-
 import { gameSync, type GameSyncService } from './game-sync.service';
 
 /**
