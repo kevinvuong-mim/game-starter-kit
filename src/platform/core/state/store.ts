@@ -29,11 +29,7 @@ export interface PlatformStore extends PlatformState {
   completeMission: (id: string) => void;
   updateMissionProgress: (id: string, progress: number) => void;
   setMissions: (missions: PlatformState['missions']['missions']) => void;
-  updateMissionsState: (
-    update: Partial<
-      Pick<PlatformState['missions'], 'missions' | 'lastDailyReset' | 'lastWeeklyReset'>
-    >
-  ) => void;
+  updateMissionsState: (update: Partial<Pick<PlatformState['missions'], 'missions'>>) => void;
 
   // Daily rewards
   setDailyRewardState: (state: Partial<PlatformState['dailyRewards']>) => void;
@@ -176,7 +172,7 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
           ...s.missions,
           missions: {
             ...s.missions.missions,
-            [id]: { ...mission, status: 'claimed' },
+            [id]: { ...mission, status: 'claimed', claimedAt: Date.now() },
           },
         },
       };

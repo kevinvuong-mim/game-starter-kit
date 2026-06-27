@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
-import { SignInSettingsPanel } from '@platform/ui/settings/SignInSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
@@ -28,13 +27,12 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     new LanguageSettingsPanel(this, 0, height * 0.15);
-    new SignInSettingsPanel(this, 0, height * 0.25);
 
     createUIButton({
       scene: this,
       position: { x: width / 2, y: height * 0.72 },
-      size: { width: 280, height: 48 },
-      background: { key: UIButtonBackgroundKey.Rounded },
+      size: { width: 260, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
       text: {
         content: t('settings.howToPlay'),
         style: { fontSize: 20 },
@@ -44,9 +42,9 @@ export class SettingsScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.8 },
-      size: { width: 280, height: 48 },
-      background: { key: UIButtonBackgroundKey.Rounded },
+      position: { x: width / 2, y: height * 0.77 },
+      size: { width: 260, height: 48 },
+      background: { key: UIButtonBackgroundKey.Primary },
       text: {
         content: t('settings.termsPrivacy'),
         style: { fontSize: 20 },

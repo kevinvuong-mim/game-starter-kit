@@ -3,7 +3,7 @@ export { shop } from './shop/shop.service';
 export { t, i18n } from './i18n/i18n.service';
 export { saveService } from './save/save.service';
 export { adsModule, bindAdsController } from './ads';
-export { missions } from './missions/mission.service';
+export { missions, missionController } from './missions';
 export { settings } from './settings/settings.service';
 export { gameSync, gameSyncController } from './game-sync';
 export type { SupportedLanguage } from './i18n/i18n.service';

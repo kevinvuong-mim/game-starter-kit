@@ -86,7 +86,6 @@ src/
     │   ├── leaderboard/LeaderboardPanel.ts
     │   ├── daily-reward/DailyRewardPopup.ts
     │   ├── settings/LanguageSettingsPanel.ts
-    │   ├── settings/SignInSettingsPanel.ts
     │   ├── how-to-play/HowToPlayPanel.ts
     │   ├── legal/LegalPanel.ts
     │   └── typography.ts        # FREDOKA_FONT, NUNITO_FONT (in index.ts)
@@ -229,7 +228,6 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | `LeaderboardPanel`              | Paginated leaderboard UI                                                 |
 | `DailyRewardPopup`              | Daily reward claim UI                                                    |
 | `LanguageSettingsPanel`         | Language picker                                                          |
-| `SignInSettingsPanel`           | Google/Apple sign-in placeholder                                         |
 | `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                      |
 | `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                             |
 

@@ -1,64 +1,78 @@
 import missionsData from './missions.json';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
+import { getLocalDateKey } from '@platform/core/utils/time';
 import { usePlatformStore } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
-import type { MissionType, MissionProgress } from '@platform/core/state';
-
-export interface MissionDefinition {
-  id: string;
-  type: string;
-  target: number;
-  titleKey: string;
-  missionType: MissionType;
-  reward: { coins?: number };
-}
-
-const EVENT_TYPE_MAP: Record<string, string> = {
-  jump: 'jump',
-  play: 'game:start',
-  collect: 'collect',
-  score: 'score:update',
-};
-
-function startOfUtcDay(timestamp: number): number {
-  const date = new Date(timestamp);
-  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-}
-
-function startOfUtcWeek(timestamp: number): number {
-  const date = new Date(timestamp);
-  const day = date.getUTCDay();
-  const daysFromMonday = day === 0 ? 6 : day - 1;
-  const monday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  monday.setUTCDate(monday.getUTCDate() - daysFromMonday);
-  return monday.getTime();
-}
+import {
+  createMissionProgress,
+  type MissionDefinition,
+  type MissionProgress,
+  type MissionResetPolicy,
+} from './mission.model';
 
 export class MissionService {
   private definitions: MissionDefinition[] = missionsData as MissionDefinition[];
-  private unsubscribers: Array<() => void> = [];
 
   init(): void {
     this.initializeMissions();
-    void this.applyResets();
-    this.bindEvents();
+    if (this.applyResets()) {
+      void saveService.saveLocal();
+    }
   }
 
-  destroy(): void {
-    for (const unsub of this.unsubscribers) unsub();
-    this.unsubscribers = [];
-  }
-
-  getMissions(type?: MissionType): MissionProgress[] {
-    const missions = usePlatformStore.getState().missions.missions;
-    const entries = Object.values(missions);
-    if (!type) return entries;
-    return entries.filter((m) => m.type === type);
+  getMissions(): MissionProgress[] {
+    const { missions } = usePlatformStore.getState().missions;
+    return Object.values(missions);
   }
 
   getDefinition(id: string): MissionDefinition | undefined {
     return this.definitions.find((d) => d.id === id);
+  }
+
+  getDefinitionsByType(type: string): MissionDefinition[] {
+    return this.definitions.filter((d) => d.type === type);
+  }
+
+  /** Returns true when any mission was reset or stamped. */
+  applyResets(at?: number): boolean {
+    const currentDayKey = getLocalDateKey(at);
+    const missions = { ...usePlatformStore.getState().missions.missions };
+    let changed = false;
+
+    for (const def of this.definitions) {
+      const policy = def.resetPolicy ?? 'never';
+      if (policy === 'never') continue;
+
+      const mission = missions[def.id];
+      if (!mission) continue;
+
+      const result = this.applyResetPolicy(policy, mission, currentDayKey);
+      if (result.changed) {
+        missions[def.id] = result.mission;
+        changed = true;
+        eventBus.emit('mission:update', { missionId: def.id, progress: result.mission.progress });
+      }
+    }
+
+    if (changed) {
+      usePlatformStore.getState().setMissions(missions);
+      logger.info('mission_reset', { dayKey: currentDayKey });
+    }
+
+    return changed;
+  }
+
+  incrementProgressByType(type: string, amount: number): boolean {
+    let updated = false;
+
+    for (const def of this.getDefinitionsByType(type)) {
+      if (this.incrementProgress(def.id, amount)) {
+        updated = true;
+      }
+    }
+
+    return updated;
   }
 
   claimMission(id: string): boolean {
@@ -67,133 +81,83 @@ export class MissionService {
     if (!mission || mission.status !== 'completed') return false;
 
     const def = this.getDefinition(id);
-    if (def?.reward.coins) store.addCoins(def.reward.coins);
+    if (def?.reward.type === 'coins') {
+      store.addCoins(def.reward.amount);
+    }
 
     store.claimMission(id);
+    logger.info('mission_claimed', { missionId: id });
     return true;
   }
 
   private initializeMissions(): void {
     const existing = usePlatformStore.getState().missions.missions;
-    const missions: Record<string, MissionProgress> = { ...existing };
+    const missions: Record<string, MissionProgress> = {};
 
     for (const def of this.definitions) {
-      const saved = missions[def.id];
+      const saved = existing[def.id];
       if (saved) {
         missions[def.id] = {
           ...saved,
-          type: def.missionType,
+          type: def.type,
           target: def.target,
         };
       } else {
-        missions[def.id] = {
-          id: def.id,
-          type: def.missionType,
-          progress: 0,
-          target: def.target,
-          status: 'active',
-        };
+        missions[def.id] = createMissionProgress(def);
       }
     }
 
     usePlatformStore.getState().setMissions(missions);
   }
 
-  private async applyResets(): Promise<void> {
-    const { missions, lastDailyReset, lastWeeklyReset } = usePlatformStore.getState().missions;
-    const now = Date.now();
-    let updatedMissions = { ...missions };
-    let nextDailyReset = lastDailyReset;
-    let nextWeeklyReset = lastWeeklyReset;
-    let didReset = false;
-
-    if (lastDailyReset === 0) {
-      nextDailyReset = now;
-    } else if (startOfUtcDay(lastDailyReset) < startOfUtcDay(now)) {
-      updatedMissions = this.resetMissionsOfType(updatedMissions, 'daily');
-      nextDailyReset = now;
-      didReset = true;
-      logger.info('[Missions] Daily missions reset');
-    }
-
-    if (lastWeeklyReset === 0) {
-      nextWeeklyReset = now;
-    } else if (startOfUtcWeek(lastWeeklyReset) < startOfUtcWeek(now)) {
-      updatedMissions = this.resetMissionsOfType(updatedMissions, 'weekly');
-      nextWeeklyReset = now;
-      didReset = true;
-      logger.info('[Missions] Weekly missions reset');
-    }
-
-    if (
-      nextDailyReset !== lastDailyReset ||
-      nextWeeklyReset !== lastWeeklyReset ||
-      updatedMissions !== missions
-    ) {
-      usePlatformStore.getState().updateMissionsState({
-        missions: updatedMissions,
-        lastDailyReset: nextDailyReset,
-        lastWeeklyReset: nextWeeklyReset,
-      });
-    }
-
-    if (didReset) {
-      await saveService.saveLocal();
+  private applyResetPolicy(
+    policy: MissionResetPolicy,
+    mission: MissionProgress,
+    currentDayKey: string
+  ): { changed: boolean; mission: MissionProgress } {
+    switch (policy) {
+      case 'daily':
+        return this.applyDailyReset(mission, currentDayKey);
+      default:
+        return { changed: false, mission };
     }
   }
 
-  private resetMissionsOfType(
-    missions: Record<string, MissionProgress>,
-    type: MissionType
-  ): Record<string, MissionProgress> {
-    const result = { ...missions };
-
-    for (const def of this.definitions.filter((d) => d.missionType === type)) {
-      result[def.id] = {
-        id: def.id,
-        type,
-        progress: 0,
-        target: def.target,
-        status: 'active',
+  private applyDailyReset(
+    mission: MissionProgress,
+    currentDayKey: string
+  ): { changed: boolean; mission: MissionProgress } {
+    if (!mission.lastResetDayKey) {
+      return {
+        changed: true,
+        mission: { ...mission, lastResetDayKey: currentDayKey },
       };
     }
 
-    return result;
-  }
-
-  private bindEvents(): void {
-    for (const def of this.definitions) {
-      if (def.type === 'score') continue;
-
-      const eventName = EVENT_TYPE_MAP[def.type];
-      if (!eventName) continue;
-
-      const unsub = eventBus.on(eventName as 'jump', (payload) => {
-        const count = 'count' in payload ? (payload.count ?? 1) : 1;
-        this.incrementProgress(def.id, count);
-      });
-
-      this.unsubscribers.push(unsub);
+    if (mission.lastResetDayKey === currentDayKey) {
+      return { changed: false, mission };
     }
 
-    const scoreUnsub = eventBus.on('score:update', (payload) => {
-      for (const def of this.definitions.filter((d) => d.type === 'score')) {
-        const mission = usePlatformStore.getState().missions.missions[def.id];
-        if (mission && mission.status === 'active') {
-          usePlatformStore.getState().updateMissionProgress(def.id, payload.score);
-          this.checkCompletion(def.id);
-        }
-      }
-    });
-    this.unsubscribers.push(scoreUnsub);
+    return {
+      changed: true,
+      mission: {
+        ...mission,
+        progress: 0,
+        status: 'active',
+        completedAt: undefined,
+        claimedAt: undefined,
+        lastResetDayKey: currentDayKey,
+      },
+    };
   }
 
-  private incrementProgress(missionId: string, amount: number): void {
+  private incrementProgress(missionId: string, amount: number): boolean {
     const mission = usePlatformStore.getState().missions.missions[missionId];
-    if (!mission || mission.status !== 'active') return;
+    if (!mission || mission.status !== 'active') return false;
 
     usePlatformStore.getState().updateMissionProgress(missionId, mission.progress + amount);
     this.checkCompletion(missionId);
+    return true;
   }
 
   private checkCompletion(missionId: string): void {
@@ -203,12 +167,13 @@ export class MissionService {
     if (mission.progress >= mission.target && mission.status === 'active') {
       usePlatformStore.getState().completeMission(missionId);
       eventBus.emit('mission:complete', { missionId });
-      logger.info(`[Missions] Completed: ${missionId}`);
+      logger.info('mission_completed', { missionId });
     }
 
     const updated = usePlatformStore.getState().missions.missions[missionId];
     if (updated) {
       eventBus.emit('mission:update', { missionId, progress: updated.progress });
+      logger.info('mission_progress_updated', { missionId, progress: updated.progress });
     }
   }
 }

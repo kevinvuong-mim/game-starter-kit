@@ -35,21 +35,21 @@ export interface SettingsState {
   graphicsQuality: 'low' | 'high' | 'medium';
 }
 
-export type MissionType = 'daily' | 'weekly' | 'permanent';
 export type MissionStatus = 'active' | 'claimed' | 'completed';
 
 export interface MissionProgress {
   id: string;
   target: number;
   progress: number;
-  type: MissionType;
+  type: string;
+  createdAt?: number;
   completedAt?: number;
+  claimedAt?: number;
+  lastResetDayKey?: string | null;
   status: MissionStatus;
 }
 
 export interface MissionsState {
-  lastDailyReset: number;
-  lastWeeklyReset: number;
   missions: Record<string, MissionProgress>;
 }
 
@@ -89,8 +89,6 @@ export const DEFAULT_STATE: PlatformState = {
   },
   missions: {
     missions: {},
-    lastDailyReset: 0,
-    lastWeeklyReset: 0,
   },
   progress: {
     highScore: 0,

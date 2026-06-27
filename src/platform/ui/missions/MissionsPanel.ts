@@ -6,21 +6,11 @@ import { FREDOKA_FONT } from '@platform/ui/index';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
-import type { MissionProgress, MissionType } from '@platform/core/state';
+import type { MissionProgress } from '@platform/core/state';
 
 const ROW_GAP = 8;
 const ROW_HEIGHT = 76;
 const ROW_WIDTH = 620;
-const SECTION_GAP = 16;
-
-const SECTIONS: {
-  type: MissionType;
-  labelKey: 'missions.daily' | 'missions.weekly' | 'missions.permanent';
-}[] = [
-  { type: 'daily', labelKey: 'missions.daily' },
-  { type: 'weekly', labelKey: 'missions.weekly' },
-  { type: 'permanent', labelKey: 'missions.permanent' },
-];
 
 /**
  * Missions list UI — lives in platform/ui so game scenes stay event-driven.
@@ -33,6 +23,9 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     super(scene, 0, 0);
     scene.add.existing(this);
     this.build();
+    if (missions.applyResets()) {
+      void saveService.saveLocal();
+    }
     this.renderMissions();
     this.bindEvents();
   }
@@ -74,27 +67,10 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
 
     let offsetY = 0;
 
-    for (const section of SECTIONS) {
-      const sectionMissions = missions.getMissions(section.type);
-      if (sectionMissions.length === 0) continue;
-
-      const header = this.scene.add.text(0, offsetY, t(section.labelKey), {
-        fontSize: '20px',
-        color: '#ffd700',
-        fontStyle: 'bold',
-        fontFamily: FREDOKA_FONT,
-      });
-      header.setOrigin(0.5, 0);
-      this.listContainer.add(header);
-      offsetY += 32;
-
-      sectionMissions.forEach((mission) => {
-        const row = this.createMissionRow(mission, offsetY);
-        this.listContainer!.add(row);
-        offsetY += ROW_HEIGHT + ROW_GAP;
-      });
-
-      offsetY += SECTION_GAP;
+    for (const mission of missions.getMissions()) {
+      const row = this.createMissionRow(mission, offsetY);
+      this.listContainer.add(row);
+      offsetY += ROW_HEIGHT + ROW_GAP;
     }
   }
 
@@ -102,7 +78,7 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     const container = this.scene.add.container(0, y);
     const def = missions.getDefinition(mission.id);
     const title = def ? t(def.titleKey) : mission.id;
-    const coins = def?.reward.coins ?? 0;
+    const coins = def?.reward.type === 'coins' ? def.reward.amount : 0;
     const progress = Math.min(mission.progress, mission.target);
     const ratio = mission.target > 0 ? progress / mission.target : 0;
 
@@ -118,6 +94,15 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
       wordWrap: { width: 360 },
     });
     container.add(titleText);
+
+    if (def?.resetPolicy === 'daily') {
+      const dailyLabel = this.scene.add.text(-ROW_WIDTH / 2 + 16, 30, t('missions.dailyMission'), {
+        fontSize: '12px',
+        color: '#888888',
+        fontFamily: FREDOKA_FONT,
+      });
+      container.add(dailyLabel);
+    }
 
     const barX = -ROW_WIDTH / 2 + 16;
     const barY = 38;

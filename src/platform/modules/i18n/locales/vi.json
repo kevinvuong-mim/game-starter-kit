@@ -74,19 +74,14 @@
   },
   "missions": {
     "title": "Nhiệm vụ",
-    "daily": "Hàng ngày",
-    "weekly": "Hàng tuần",
-    "permanent": "Vĩnh viễn",
     "claim": "Nhận",
     "claimed": "Đã nhận",
     "progress": "{{current}}/{{target}}",
     "reward": "{{coins}} xu",
     "claimSuccess": "Đã nhận {{coins}} xu!",
     "claimFailed": "Chưa thể nhận thưởng",
-    "jump100": "Nhảy 100 lần",
-    "score1000": "Đạt 1000 điểm",
-    "play10": "Chơi 10 ván",
-    "collect50": "Thu thập 50 xu"
+    "dailyMission": "Nhiệm vụ hàng ngày",
+    "watchAd3": "Xem 3 quảng cáo thưởng"
   },
   "dailyReward": {
     "title": "Phần thưởng hàng ngày",
@@ -129,6 +124,6 @@
   },
   "howToPlay": {
     "title": "Hướng dẫn chơi",
-    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: hoàn thành thử thách hàng ngày, hàng tuần và vĩnh viễn để nhận xu\n• Phần thưởng hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Bảng xếp hạng: so sánh điểm cao nhất với người chơi khác"
+    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: xem quảng cáo thưởng để nhận xu\n• Phần thưởng hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Bảng xếp hạng: so sánh điểm cao nhất với người chơi khác"
   }
 }

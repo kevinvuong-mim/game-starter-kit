@@ -19,7 +19,7 @@ import { registerAdsProvider } from '@platform/bootstrap/ads';
 import { gameSyncController } from '@platform/modules/game-sync';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
-import { missions } from '@platform/modules/missions/mission.service';
+import { missions, missionController } from '@platform/modules/missions';
 import { settings } from '@platform/modules/settings/settings.service';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
@@ -76,7 +76,8 @@ export class App {
     this.controllerUnsubscribers.push(
       leaderboardController.bind(events),
       gameSyncController.bind(events),
-      bindAdsController(events)
+      bindAdsController(events),
+      missionController.bind(events)
     );
     this.bindLifecycle();
 
@@ -179,7 +180,6 @@ export class App {
     await analytics.flush();
     await analytics.shutdown();
     analytics.clearProviders();
-    missions.destroy();
     this.dailyRewardUnsubscribe?.();
     this.dailyRewardUnsubscribe = undefined;
     for (const unsub of this.controllerUnsubscribers) unsub();

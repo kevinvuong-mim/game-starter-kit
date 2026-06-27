@@ -1,34 +1,10 @@
 [
   {
-    "target": 100,
-    "type": "jump",
-    "id": "jump_100",
-    "missionType": "daily",
-    "reward": { "coins": 50 },
-    "titleKey": "missions.jump100"
-  },
-  {
-    "target": 1000,
-    "type": "score",
-    "id": "score_1000",
-    "missionType": "daily",
-    "reward": { "coins": 100 },
-    "titleKey": "missions.score1000"
-  },
-  {
-    "target": 10,
-    "type": "play",
-    "id": "play_10",
-    "missionType": "weekly",
-    "reward": { "coins": 100 },
-    "titleKey": "missions.play10"
-  },
-  {
-    "target": 50,
-    "type": "collect",
-    "id": "collect_50",
-    "missionType": "permanent",
-    "reward": { "coins": 200 },
-    "titleKey": "missions.collect50"
+    "id": "watch_ad_3",
+    "type": "WATCH_AD",
+    "target": 3,
+    "titleKey": "missions.watchAd3",
+    "resetPolicy": "daily",
+    "reward": { "type": "coins", "amount": 100 }
   }
 ]
