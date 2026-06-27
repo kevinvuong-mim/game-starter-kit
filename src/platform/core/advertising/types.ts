@@ -67,6 +67,7 @@ export interface AdsRemoteConfig {
   };
   interstitialEnabled: boolean;
   placements: Record<string, AdFormat>;
+  rewards: Record<string, AdReward>;
 }
 
 export const DEFAULT_REMOTE_CONFIG: AdsRemoteConfig = {
@@ -87,6 +88,10 @@ export const DEFAULT_REMOTE_CONFIG: AdsRemoteConfig = {
     EXTRA_LIFE: 'rewarded',
     DOUBLE_COIN: 'rewarded',
     GAME_OVER: 'interstitial',
+  },
+  rewards: {
+    DOUBLE_COIN: { type: 'coins', amount: 100 },
+    EXTRA_LIFE: { type: 'extra_life', amount: 1 },
   },
 };
 

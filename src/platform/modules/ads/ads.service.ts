@@ -1,13 +1,8 @@
 import {
-  AD_ANALYTICS_EVENTS,
-  type AdsRemoteConfig,
+  ads,
   DEFAULT_REMOTE_CONFIG,
+  type AdsRemoteConfig,
 } from '@platform/core/advertising';
-import { logger } from '@platform/core/error';
-import { guest } from '@platform/modules/guest';
-import { ads } from '@platform/core/advertising';
-import { adsRepository } from './ads.repository';
-import { getConfig } from '@platform/core/config';
 
 export interface RewardRequestResult {
   message?: string;
@@ -17,39 +12,11 @@ export interface RewardRequestResult {
 
 export class AdsModuleService {
   private configLoaded = false;
+  private runtimeConfig: AdsRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
 
   async init(): Promise<void> {
-    await this.loadRemoteConfig();
-
-    ads.setAnalyticsHandler((event, metadata) => {
-      void adsRepository.logEvent(event, metadata);
-    });
-  }
-
-  async loadRemoteConfig(): Promise<AdsRemoteConfig> {
-    const cached = await adsRepository.loadCachedConfig();
-    if (cached) {
-      ads.setRemoteConfig(cached);
-    } else {
-      ads.setRemoteConfig({ ...DEFAULT_REMOTE_CONFIG });
-    }
-
-    if (!getConfig().apiUrl) {
-      this.configLoaded = true;
-      return ads.getRemoteConfig();
-    }
-
-    try {
-      const remote = await adsRepository.fetchConfig();
-      ads.setRemoteConfig(remote);
-      await adsRepository.saveCachedConfig(remote);
-      this.configLoaded = true;
-      return remote;
-    } catch (error) {
-      logger.warn('[AdsModule] Failed to fetch remote config, using cache/fallback', error);
-      this.configLoaded = true;
-      return ads.getRemoteConfig();
-    }
+    ads.setRemoteConfig(this.runtimeConfig);
+    this.configLoaded = true;
   }
 
   async showPlacement(placement: string): Promise<{ shown: boolean; error?: string }> {
@@ -83,10 +50,6 @@ export class AdsModuleService {
 
   async requestReward(placement: string): Promise<RewardRequestResult> {
     if (!ads.isOnline()) {
-      ads.setAnalyticsHandler((event, metadata) => {
-        void adsRepository.logEvent(event, metadata);
-      });
-      void adsRepository.logEvent(AD_ANALYTICS_EVENTS.OFFLINE_REWARD_BLOCKED, { placement });
       return {
         success: false,
         message: 'Kết nối mạng để nhận thưởng',
@@ -97,17 +60,9 @@ export class AdsModuleService {
       return { success: false, message: 'Reward unavailable' };
     }
 
-    const guestId = await guest.ensureGuestId();
-    if (!guestId) {
-      return { success: false, message: 'Kết nối mạng để nhận thưởng' };
-    }
-
-    let session;
-    try {
-      session = await adsRepository.startRewardSession(placement);
-    } catch (error) {
-      logger.warn('[AdsModule] Failed to start reward session', error);
-      return { success: false, message: 'Không thể bắt đầu phiên thưởng' };
+    const reward = this.runtimeConfig.rewards[placement];
+    if (!reward) {
+      return { success: false, message: `No reward configured for placement ${placement}` };
     }
 
     const adResult = await ads.showRewarded(placement);
@@ -115,25 +70,10 @@ export class AdsModuleService {
       return { success: false, message: adResult.error ?? 'Quảng cáo chưa hoàn thành' };
     }
 
-    try {
-      const claim = await adsRepository.claimReward({
-        rewardSessionId: session.rewardSessionId,
-        provider: ads.getProviderName(),
-        providerPayload: adResult.providerPayload ?? {
-          shown: adResult.shown,
-          rewarded: adResult.rewarded,
-          transactionId: adResult.transactionId,
-        },
-      });
-
-      return {
-        success: claim.success,
-        reward: claim.reward,
-      };
-    } catch (error) {
-      logger.warn('[AdsModule] Reward claim failed', error);
-      return { success: false, message: 'Xác minh thưởng thất bại' };
-    }
+    return {
+      success: true,
+      reward,
+    };
   }
 
   isConfigLoaded(): boolean {

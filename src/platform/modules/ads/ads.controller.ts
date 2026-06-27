@@ -34,10 +34,6 @@ export function bindAdsController(events: IEventBus): () => void {
     events.on('ad:context:change', ({ context }) => {
       void adsModule.hideBannerForContext(context);
     }),
-
-    events.on('app:resume', () => {
-      void adsModule.loadRemoteConfig();
-    }),
   ];
 
   return () => {
