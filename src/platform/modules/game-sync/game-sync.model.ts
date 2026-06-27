@@ -24,7 +24,6 @@ export interface ReplayMove {
 /** Deterministic replay payload — the same match must always hash identically. */
 export interface ReplayPayload {
   seed: number;
-  duration: number;
   moves: ReplayMove[];
 }
 
@@ -35,7 +34,6 @@ export interface PendingGameResult {
   guestId: string;
   localId: string;
   synced: boolean;
-  duration: number;
   createdAt: string;
   replayHash: string;
   syncAttempts: number;
@@ -45,7 +43,6 @@ export interface PendingGameResult {
 /** Payload sent for each result in a sync batch (whitelisted fields only). */
 export interface GameResultPayload {
   score: number;
-  duration: number;
   replayHash: string;
   metadata?: Record<string, string | number | boolean | null>;
 }
@@ -79,13 +76,11 @@ export async function computeReplayHash(replay: ReplayPayload): Promise<string> 
 export function buildReplayPayload(params: {
   seed: number;
   score: number;
-  duration: number;
   moves?: ReplayMove[];
 }): ReplayPayload {
   return {
     seed: params.seed,
-    duration: params.duration,
-    moves: params.moves ?? [{ t: params.duration, action: 'final', score: params.score }],
+    moves: params.moves ?? [{ t: 0, action: 'final', score: params.score }],
   };
 }
 

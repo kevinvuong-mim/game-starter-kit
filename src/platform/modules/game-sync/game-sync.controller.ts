@@ -17,11 +17,12 @@ export class GameSyncController {
   bind(events: IEventBus): () => void {
     const unsubs = [
       events.on('game:over', async ({ score, duration, jumps }) => {
-        await this.service.recordResult({
-          score,
+        const metadata: Record<string, number> = {
           duration: Math.round(duration / 1000),
-          metadata: typeof jumps === 'number' ? { jumps } : undefined,
-        });
+        };
+        if (typeof jumps === 'number') metadata.jumps = jumps;
+
+        await this.service.recordResult({ score, metadata });
         void this.service.flush().catch(() => undefined);
       }),
 

@@ -20,7 +20,6 @@ import { gameSyncRepository, type GameSyncRepository } from './game-sync.reposit
 export interface RecordResultParams {
   score: number;
   seed?: number;
-  duration: number;
   moves?: ReplayMove[];
   metadata?: Record<string, unknown>;
 }
@@ -44,11 +43,9 @@ export class GameSyncService {
   async recordResult(params: RecordResultParams): Promise<void> {
     const gameId = getConfig().gameId;
     const score = toNonNegativeInt(params.score);
-    const duration = toNonNegativeInt(params.duration);
 
     const replay = buildReplayPayload({
       score,
-      duration,
       seed: params.seed ?? Date.now(),
       moves: params.moves,
     });
@@ -59,7 +56,6 @@ export class GameSyncService {
       gameId,
       guestId: this.guestService.getGuestId() ?? '',
       score,
-      duration,
       replayHash,
       metadata: params.metadata,
       synced: false,
@@ -109,9 +105,8 @@ export class GameSyncService {
       try {
         const response = await this.repository.sync(
           gameId,
-          batch.map(({ score, duration, replayHash, metadata }) => ({
+          batch.map(({ score, replayHash, metadata }) => ({
             score,
-            duration,
             replayHash,
             metadata: sanitizeMetadata(metadata),
           }))
