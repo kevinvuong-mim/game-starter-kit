@@ -16,7 +16,13 @@ export class GameEngine {
     if (this.game) return this.game;
 
     setupGlobalErrorHandlers();
-    setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }));
+    setConfig(
+      createConfig({
+        gameId: gameConfig.id,
+        maxScore: gameConfig.maxScore,
+        replaySecret: gameConfig.replaySecret,
+      })
+    );
     refreshServicesFromConfig();
 
     try {

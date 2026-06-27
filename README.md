@@ -129,7 +129,7 @@ ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](
 | settings      | Language, sound, vibration, graphics — part of store state                  |
 | guest         | Anonymous guest + `installId`/`installSecret` recovery (`POST /guest/init`) |
 | game-sync     | Offline queue → HMAC `replayHash` + per-item sync status from API           |
-| ads (module)  | Remote ad config fetch, reward flow, controller wired to event bus          |
+| ads (module)  | Static placement config, reward flow, controller wired to event bus         |
 | analytics     | Provider interface — Console + Firebase                                     |
 | advertising   | AdMob / mock providers, placement state machines                            |
 | IAP           | Provider interface — purchase, restore, verify                              |
@@ -183,11 +183,12 @@ VITE_ADMOB_IOS_APP_ID=
 | `VITE_ADMOB_TESTING`  | Use Google sample ad units when `true`               |
 | `VITE_ADMOB_*_APP_ID` | Per-platform AdMob app IDs for native builds         |
 | `VITE_ADMOB_*_*_ID`   | Production ad unit IDs per format/platform           |
+| `VITE_API_URL`        | Optional API base URL override                       |
 | `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — both must match a row in api-starter-kit `games` (e.g. `puzzle-quest` + `puzzle-quest-dev-secret`).
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. `VITE_API_URL` overrides the environment preset. At boot, `gameId`, `maxScore`, and `replaySecret` are set from `src/game/config.ts` — all must match a row in api-starter-kit `games` (e.g. `puzzle-quest`, `50000`, and `puzzle-quest-dev-secret`).
 
-Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
+Game identity (`id`, `name`, `maxScore`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
 
 ## Mobile Deployment
 
@@ -220,21 +221,21 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 
 ## Scripts
 
-| Command                   | Description                                    |
-| ------------------------- | ---------------------------------------------- |
-| `npm run dev`             | Vite dev server (`:5173`)                      |
-| `npm run build`           | Typecheck + production build → `dist/`         |
-| `npm run preview`         | Preview production build                       |
-| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`              |
-| `npm run lint:fix`        | ESLint with auto-fix                           |
-| `npm run format`          | Prettier write                                 |
-| `npm run format:check`    | Prettier check                                 |
-| `npm run cap:sync`        | `cap sync`                                     |
-| `npm run cap:add:android` | Add Android platform if missing (idempotent)   |
-| `npm run cap:add:ios`     | Add iOS platform if missing (idempotent)       |
-| `npm run cap:android`     | Open Android Studio                            |
-| `npm run cap:ios`         | Open Xcode                                     |
-| `npm run assets:generate` | Generate app icons/splash from `assets/`       |
+| Command                   | Description                                                   |
+| ------------------------- | ------------------------------------------------------------- |
+| `npm run dev`             | Vite dev server (`:5173`)                                     |
+| `npm run build`           | Typecheck + production build → `dist/`                        |
+| `npm run preview`         | Preview production build                                      |
+| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`                             |
+| `npm run lint:fix`        | ESLint with auto-fix                                          |
+| `npm run format`          | Prettier write                                                |
+| `npm run format:check`    | Prettier check                                                |
+| `npm run cap:sync`        | `cap sync`                                                    |
+| `npm run cap:add:android` | Add Android platform if missing (idempotent)                  |
+| `npm run cap:add:ios`     | Add iOS platform if missing (idempotent)                      |
+| `npm run cap:android`     | Open Android Studio                                           |
+| `npm run cap:ios`         | Open Xcode                                                    |
+| `npm run assets:generate` | Generate app icons/splash from `assets/`                      |
 | `npm run build:android`   | Add platform + build + assets + sync Android + native patches |
 | `npm run build:ios`       | Add platform + build + assets + sync iOS + native patches     |
 

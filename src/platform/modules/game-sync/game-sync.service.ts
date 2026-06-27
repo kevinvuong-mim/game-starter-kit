@@ -43,7 +43,7 @@ export class GameSyncService {
 
   /** Persists a finished match to the local queue (always succeeds offline). */
   async recordResult(params: RecordResultParams): Promise<void> {
-    const { gameId, replaySecret } = getConfig();
+    const { gameId, maxScore, replaySecret } = getConfig();
     const score = toNonNegativeInt(params.score);
     const runSeed = params.runSeed ?? generateRunSeed();
     const playedAt = params.playedAt ?? new Date().toISOString();
@@ -54,6 +54,19 @@ export class GameSyncService {
       runSeed,
       replaySecret,
     });
+
+    if (score > maxScore) {
+      logger.warn('[GameSync] Result rejected locally: score exceeds maxScore', {
+        score,
+        maxScore,
+        gameId,
+      });
+      eventBus.emit('game:sync:rejected', {
+        gameId,
+        items: [{ score, replayHash, reason: 'SCORE_EXCEEDS_MAX' }],
+      });
+      return;
+    }
 
     const result: PendingGameResult = {
       localId: generateId('result'),

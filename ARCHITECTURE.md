@@ -73,7 +73,7 @@ src/
     │   ├── settings/            # settings.service.ts
     │   ├── guest/               # guest.service.ts + repository (API auth)
     │   ├── game-sync/           # offline queue + controller
-    │   ├── ads/                 # remote config module + controller
+    │   ├── ads/                 # static placement config module + controller
     │   └── iap/                 # purchase flow, entitlements, ads integration
     ├── ui/
     │   ├── button/UIButton.ts   # createUIButton()
@@ -255,7 +255,7 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 2. registerAnalyticsProviders()
 3. registerAdsProvider()
 4. Parallel: i18n, ads, iap, guest, analytics, leaderboard init
-5. adsModule.init() (remote ad config)
+5. adsModule.init() (static ad placement config)
 6. analytics.setUserId() + setUserProperty('game_id')
 7. saveService.loadLocal()        ← hydrate store
 8. dailyRewards.init()
@@ -337,7 +337,7 @@ Firebase DebugView: run a staging build with analytics enabled and use the Fireb
 - **Native + `VITE_ADS_PROVIDER=admob`:** `AdMobAdsProvider` via `@capacitor-community/admob`.
 - **`VITE_ADMOB_TESTING=true`:** Google's official test ad unit IDs (no real account needed).
 - **Placements:** `ad:show:request`, `ad:reward:request` — handled by `AdsService` + `ads` module controller.
-- **Remote config:** `adsModule` fetches/caches placement rules from API when `apiUrl` is set.
+- **Ad placement config:** `adsModule` applies the bundled placement and reward rules. Add a backend config endpoint before treating ad rules as remotely managed.
 
 Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android-native.mjs` / `apply-ios-native.mjs` from `native/`.
 
@@ -362,20 +362,20 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 
 ## Technical Decisions
 
-| Decision                          | Rationale                                                  |
-| --------------------------------- | ---------------------------------------------------------- |
-| Clone-per-game                    | Each game is independent; no multi-game monorepo           |
-| `platform/` root folder           | Single home for all shared code                            |
-| `game/` not `games/`              | Singular — one game per repo                               |
-| Controller + repository           | Keeps API/offline logic out of UI and game scenes          |
-| `@platform/ui` i18n re-export     | Game/UI import `t` without touching modules                |
-| `advertising/` not `ads/`         | Avoids browser ad-blocker URL filtering in dev             |
-| `ads/` module vs core advertising | Core = provider SDK; module = remote config + event wiring |
-| Zustand vanilla                   | No React dependency with Phaser                            |
-| SaveService over store persist    | One local persistence path; native-durable via Preferences |
-| Provider pattern                  | Swap AdMob/Firebase/RevenueCat per game                    |
-| Event Bus                         | Enforces game/platform boundary                            |
-| `native/` + apply scripts         | Repeatable Capacitor native customizations per build       |
+| Decision                          | Rationale                                                     |
+| --------------------------------- | ------------------------------------------------------------- |
+| Clone-per-game                    | Each game is independent; no multi-game monorepo              |
+| `platform/` root folder           | Single home for all shared code                               |
+| `game/` not `games/`              | Singular — one game per repo                                  |
+| Controller + repository           | Keeps API/offline logic out of UI and game scenes             |
+| `@platform/ui` i18n re-export     | Game/UI import `t` without touching modules                   |
+| `advertising/` not `ads/`         | Avoids browser ad-blocker URL filtering in dev                |
+| `ads/` module vs core advertising | Core = provider SDK; module = placement config + event wiring |
+| Zustand vanilla                   | No React dependency with Phaser                               |
+| SaveService over store persist    | One local persistence path; native-durable via Preferences    |
+| Provider pattern                  | Swap AdMob/Firebase/RevenueCat per game                       |
+| Event Bus                         | Enforces game/platform boundary                               |
+| `native/` + apply scripts         | Repeatable Capacitor native customizations per build          |
 
 ## Related docs
 

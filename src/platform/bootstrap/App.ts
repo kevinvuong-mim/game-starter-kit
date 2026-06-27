@@ -52,23 +52,28 @@ export class App {
 
     registerAnalyticsProviders();
     registerAdsProvider();
-    registerIapProvider();
 
     await Promise.all([
       i18n.init(),
       ads.init(),
-      iap.initialize().catch((error) => {
-        logger.warn('[App] IAP init failed — continuing without IAP', error);
-      }),
       guest.init(),
       analytics.init(),
       leaderboard.init(),
     ]);
 
+    const fallbackUserId = usePlatformStore.getState().user.id || undefined;
+    const analyticsUserId = (await guest.ensureGuestId()) ?? fallbackUserId;
+    registerIapProvider(analyticsUserId);
+    await iap.initialize().catch((error) => {
+      logger.warn('[App] IAP init failed — continuing without IAP', error);
+    });
+
     const { adsModule } = await import('@platform/modules/ads');
     await adsModule.init();
 
-    analytics.setUserId(usePlatformStore.getState().user.id);
+    if (analyticsUserId) {
+      analytics.setUserId(analyticsUserId);
+    }
     analytics.setUserProperty('game_id', config().gameId);
 
     await saveService.loadLocal();
@@ -183,6 +188,7 @@ export class App {
   async destroy(): Promise<void> {
     trackSessionEnd();
     await saveService.saveLocal();
+    ads.destroy();
     await analytics.flush();
     await analytics.shutdown();
     analytics.clearProviders();

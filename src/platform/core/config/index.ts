@@ -16,6 +16,7 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
+  maxScore: number;
   replaySecret: string;
   adsEnabled: boolean;
   iapEnabled: boolean;
@@ -53,13 +54,13 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     debug: true,
     adsEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'http://staging-api.studio.games/api',
+    apiUrl: 'https://staging-api.studio.games/api',
   },
   production: {
     debug: false,
     adsEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'http://api.studio.games/api',
+    apiUrl: 'https://api.studio.games/api',
   },
 };
 
@@ -185,9 +186,10 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   return {
     ads: resolveAdsConfig(),
     iap: resolveIapConfig(),
-    apiUrl: base.apiUrl ?? '',
+    apiUrl: import.meta.env.VITE_API_URL ?? base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: 'puzzle-quest',
+    maxScore: 50000,
     replaySecret: 'puzzle-quest-dev-secret',
     firebase: resolveFirebaseConfig(),
     adsEnabled: base.adsEnabled ?? false,

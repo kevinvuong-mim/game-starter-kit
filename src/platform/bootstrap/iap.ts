@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 import { getConfig } from '@platform/core/config';
-import { usePlatformStore } from '@platform/core/state';
 import { iap, createIapProvider } from '@platform/modules/iap';
 import { logger } from '@platform/core/error';
 
@@ -8,7 +7,7 @@ import { logger } from '@platform/core/error';
  * Registers the IAP provider based on runtime config and platform.
  * Native + revenuecat → RevenueCat SDK; web/dev → mock.
  */
-export function registerIapProvider(): void {
+export function registerIapProvider(appUserId?: string): void {
   const runtime = getConfig();
   if (!runtime.iapEnabled) return;
 
@@ -18,7 +17,6 @@ export function registerIapProvider(): void {
     runtime.iap.revenueCat.apiKey.length > 0;
 
   if (useRevenueCat) {
-    const appUserId = usePlatformStore.getState().user.id || undefined;
     iap.setProvider(
       createIapProvider('revenuecat', {
         revenueCat: {

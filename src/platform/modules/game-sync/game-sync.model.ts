@@ -4,7 +4,7 @@
  * Match results are saved to a local queue at game-over and batch-uploaded to
  * `POST /games/:gameId/results` when the network is available. Each result carries
  * an HMAC `replayHash` (see api-starter-kit replay-hash-hmac.md) for idempotency
- * and casual anti-cheat.
+ * and lightweight tamper detection.
  */
 
 /** Capacitor Preferences key for the unsynced results queue. */
@@ -72,6 +72,7 @@ export interface SyncResponse {
 
 /** Rejection reasons that should not be retried from the offline queue. */
 export const PERMANENT_SYNC_REJECTIONS = new Set<SyncRejectionReason>([
+  'MISSING_REPLAY_HASH',
   'DUPLICATE_REPLAY',
   'INVALID_REPLAY_HASH_FORMAT',
   'INVALID_REPLAY_SIGNATURE',

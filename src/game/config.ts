@@ -7,6 +7,7 @@
 export interface GameConfig {
   id: string;
   name: string;
+  maxScore: number;
   width: number;
   height: number;
   version: string;
@@ -20,5 +21,6 @@ export const gameConfig: GameConfig = {
   version: '1.0.0',
   id: 'puzzle-quest',
   name: 'Game Starter Kit',
+  maxScore: 50000,
   replaySecret: 'puzzle-quest-dev-secret',
 };

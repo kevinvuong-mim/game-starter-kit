@@ -1,3 +1,10 @@
+export { app, App } from './bootstrap/App';
+export { gameEngine, GameEngine } from './bootstrap/GameEngine';
+export { createConfig, getConfig, setConfig, getEnvironment } from './core/config';
+export type { RuntimeConfig, Environment } from './core/config';
+export { eventBus, EventBus } from './core/events';
+export type { IEventBus, PlatformEvent, PlatformEventMap } from './core/events';
+export { services, refreshServicesFromConfig } from './core/services';
 export * from './ui';
 export * from './core';
 export * from './modules';
