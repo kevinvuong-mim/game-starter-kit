@@ -1,6 +1,7 @@
 import { logger } from '@platform/core/error';
 import type { IEventBus } from '@platform/core/events';
 import { gameSync, type GameSyncService } from './game-sync.service';
+import type { PluginListenerHandle } from '@capacitor/core';
 
 /**
  * Bridges platform/lifecycle events to the sync service.
@@ -11,6 +12,7 @@ import { gameSync, type GameSyncService } from './game-sync.service';
  */
 export class GameSyncController {
   private onlineHandler?: () => void;
+  private networkListener?: PluginListenerHandle;
 
   constructor(private readonly service: GameSyncService = gameSync) {}
 
@@ -39,6 +41,8 @@ export class GameSyncController {
       window.addEventListener('online', this.onlineHandler);
     }
 
+    void this.bindNativeNetworkListener();
+
     // Attempt an initial flush in case results were queued in a previous session.
     void this.service.flush().catch(() => undefined);
 
@@ -48,7 +52,22 @@ export class GameSyncController {
         window.removeEventListener('online', this.onlineHandler);
         this.onlineHandler = undefined;
       }
+      void this.networkListener?.remove();
+      this.networkListener = undefined;
     };
+  }
+
+  private async bindNativeNetworkListener(): Promise<void> {
+    try {
+      const { Network } = await import('@capacitor/network');
+      this.networkListener = await Network.addListener('networkStatusChange', ({ connected }) => {
+        if (!connected) return;
+        logger.info('[GameSync] Native network connected — flushing queue');
+        void this.service.flush().catch(() => undefined);
+      });
+    } catch {
+      // Web builds and older native shells keep using the window 'online' fallback.
+    }
   }
 }
 

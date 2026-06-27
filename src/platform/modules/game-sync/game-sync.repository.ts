@@ -1,6 +1,8 @@
 import {
   type SyncResponse,
   PENDING_RESULTS_KEY,
+  MAX_PENDING_AGE_DAYS,
+  MAX_PENDING_RESULTS,
   type GameResultPayload,
   type PendingGameResult,
 } from './game-sync.model';
@@ -36,9 +38,9 @@ export class GameSyncRepository {
       const parsed = JSON.parse(value) as unknown[];
       if (!Array.isArray(parsed)) return [];
 
-      const queue = parsed.filter(isPendingGameResult);
+      const queue = this.pruneQueue(parsed.filter(isPendingGameResult));
       if (queue.length < parsed.length) {
-        logger.warn('[GameSync] Dropped legacy queue items missing runSeed/playedAt');
+        logger.warn('[GameSync] Dropped invalid or stale queue items');
         await this.saveQueue(queue);
       }
 
@@ -49,7 +51,10 @@ export class GameSyncRepository {
   }
 
   async saveQueue(queue: PendingGameResult[]): Promise<void> {
-    await Preferences.set({ key: PENDING_RESULTS_KEY, value: JSON.stringify(queue) });
+    await Preferences.set({
+      key: PENDING_RESULTS_KEY,
+      value: JSON.stringify(this.pruneQueue(queue)),
+    });
   }
 
   async clear(): Promise<void> {
@@ -63,6 +68,12 @@ export class GameSyncRepository {
       { results }
     );
     return envelope.data;
+  }
+
+  private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {
+    const cutoff = Date.now() - MAX_PENDING_AGE_DAYS * 24 * 60 * 60 * 1000;
+    const fresh = queue.filter((item) => Date.parse(item.playedAt) >= cutoff);
+    return fresh.slice(-MAX_PENDING_RESULTS);
   }
 }
 

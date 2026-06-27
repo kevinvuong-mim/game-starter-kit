@@ -19,6 +19,9 @@ import { usePlatformStore } from '@platform/core/state';
 import { guest, type GuestService } from '@platform/modules/guest';
 import { gameSyncRepository, type GameSyncRepository } from './game-sync.repository';
 
+const BASE_SYNC_BACKOFF_MS = 30_000;
+const MAX_SYNC_BACKOFF_MS = 30 * 60 * 1000;
+
 export interface RecordResultParams {
   score: number;
   runSeed?: string;
@@ -117,8 +120,13 @@ export class GameSyncService {
     allowAuthRetry: boolean
   ): Promise<void> {
     let queue = await this.repository.loadQueue();
+    const now = Date.now();
     const pending = queue.filter(
-      (r) => !r.synced && r.gameId === gameId && r.syncAttempts < MAX_SYNC_ATTEMPTS
+      (r) =>
+        !r.synced &&
+        r.gameId === gameId &&
+        r.syncAttempts < MAX_SYNC_ATTEMPTS &&
+        (!r.nextAttemptAt || Date.parse(r.nextAttemptAt) <= now)
     );
     if (pending.length === 0) return;
 
@@ -175,7 +183,7 @@ export class GameSyncService {
           return;
         }
 
-        queue = this.incrementAttempts(queue, batch, gameId);
+        queue = this.incrementAttempts(queue, batch, gameId, error);
         await this.repository.saveQueue(queue);
         logger.warn('[GameSync] Batch sync failed, will retry later', error);
         throw error;
@@ -263,14 +271,33 @@ export class GameSyncService {
   private incrementAttempts(
     queue: PendingGameResult[],
     batch: PendingGameResult[],
-    gameId: string
+    gameId: string,
+    error: unknown
   ): PendingGameResult[] {
     const ids = new Set(batch.map((r) => r.localId));
+    const errorCode = error instanceof ApiError ? String(error.status) : 'network';
     return queue.map((item) =>
       ids.has(item.localId) && item.gameId === gameId
-        ? { ...item, syncAttempts: item.syncAttempts + 1 }
+        ? this.markAttemptFailed(item, errorCode)
         : item
     );
+  }
+
+  private markAttemptFailed(item: PendingGameResult, errorCode: string): PendingGameResult {
+    const syncAttempts = item.syncAttempts + 1;
+    const backoffMs = Math.min(
+      MAX_SYNC_BACKOFF_MS,
+      BASE_SYNC_BACKOFF_MS * 2 ** Math.max(0, syncAttempts - 1)
+    );
+    const now = Date.now();
+
+    return {
+      ...item,
+      syncAttempts,
+      lastErrorCode: errorCode,
+      lastAttemptAt: new Date(now).toISOString(),
+      nextAttemptAt: new Date(now + backoffMs).toISOString(),
+    };
   }
 }
 

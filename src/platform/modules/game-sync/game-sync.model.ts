@@ -16,6 +16,12 @@ export const MAX_BATCH_SIZE = 50;
 /** Stop retrying a permanently failing item after this many attempts. */
 export const MAX_SYNC_ATTEMPTS = 10;
 
+/** Bound the Preferences-backed queue so long offline sessions do not create a giant JSON blob. */
+export const MAX_PENDING_RESULTS = 500;
+
+/** Backend default playedAt window is 30 days; stale local items cannot be accepted. */
+export const MAX_PENDING_AGE_DAYS = 30;
+
 /** Metadata key required by the backend when `replaySecret` is configured. */
 export const RUN_SEED_METADATA_KEY = 'runSeed';
 
@@ -31,7 +37,9 @@ export type SyncRejectionReason =
   | 'SCORE_MISMATCH'
   | 'INVALID_PLAYED_AT'
   | 'PLAYED_AT_IN_FUTURE'
-  | 'PLAYED_AT_TOO_OLD';
+  | 'PLAYED_AT_TOO_OLD'
+  | 'MIN_DURATION'
+  | 'SCORE_RATE';
 
 /** A finished match awaiting (or completed) sync. */
 export interface PendingGameResult {
@@ -45,6 +53,9 @@ export interface PendingGameResult {
   createdAt: string;
   replayHash: string;
   syncAttempts: number;
+  lastAttemptAt?: string;
+  nextAttemptAt?: string;
+  lastErrorCode?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -82,6 +93,8 @@ export const PERMANENT_SYNC_REJECTIONS = new Set<SyncRejectionReason>([
   'INVALID_PLAYED_AT',
   'PLAYED_AT_IN_FUTURE',
   'PLAYED_AT_TOO_OLD',
+  'MIN_DURATION',
+  'SCORE_RATE',
 ]);
 
 export function generateRunSeed(): string {

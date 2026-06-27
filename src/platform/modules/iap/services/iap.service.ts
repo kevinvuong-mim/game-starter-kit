@@ -27,6 +27,7 @@ export class IapService {
   private initPromise: Promise<void> | null = null;
   private purchasing = false;
   private restoring = false;
+  private authorityWarningLogged = false;
   private entitlements = new Set<string>();
   private initState: IapInitState = { loading: false, ready: false, error: null };
 
@@ -75,6 +76,7 @@ export class IapService {
 
       const stored = await this.storage.load();
       this.applyEntitlements(stored, { emitChanges: false });
+      this.logClientAuthorityWarning();
 
       if (!this.provider) {
         this.provider = new MockIapAdapter();
@@ -289,6 +291,17 @@ export class IapService {
           reject(error);
         });
     });
+  }
+
+  private logClientAuthorityWarning(): void {
+    if (this.authorityWarningLogged || !this.isEnabled()) {
+      return;
+    }
+
+    this.authorityWarningLogged = true;
+    logger.warn(
+      '[IAP] Entitlements are client-authoritative in this starter kit; add backend validation before treating remove_ads as tamper-resistant.'
+    );
   }
 }
 

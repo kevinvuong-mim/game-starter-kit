@@ -16,6 +16,8 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 | Analytics   | Console (dev) + Firebase Analytics (staging/production)          |
 | Ads         | Mock (web/dev) + AdMob via `@capacitor-community/admob` (native) |
 
+IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `api-starter-kit` does not yet store or validate entitlements server-side. Add a backend entitlement module before treating premium state as tamper-resistant.
+
 **Node.js:** `>= 20`
 
 ## Quick Start
@@ -132,7 +134,7 @@ ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](
 | ads (module)  | Static placement config, reward flow, controller wired to event bus         |
 | analytics     | Provider interface — Console + Firebase                                     |
 | advertising   | AdMob / mock providers, placement state machines                            |
-| IAP           | Provider interface — purchase, restore, verify                              |
+| IAP           | Provider interface — purchase, restore, client-side entitlement state       |
 
 ## UI Framework
 
@@ -242,6 +244,10 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Platform Updates
+
+For cloned games, keep game-specific code in `src/game` and treat `src/platform` as the shared platform layer. See [documents/platform-versioning.md](./documents/platform-versioning.md) for the dry-run update workflow.
 
 ## License
 

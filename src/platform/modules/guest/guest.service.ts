@@ -126,6 +126,14 @@ export class GuestService {
         await this.repository.initGuest(installId, installSecret ?? undefined)
       );
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409 && installSecret) {
+        logger.warn('[Guest] installId conflict — retrying relink once');
+        await this.delay(250);
+        return await this.persistCredentials(
+          await this.repository.initGuest(installId, installSecret)
+        );
+      }
+
       if (error instanceof ApiError && error.status === 401 && installSecret === null) {
         logger.warn(
           '[Guest] installSecret missing for existing installId — resetting install recovery'
@@ -166,6 +174,10 @@ export class GuestService {
 
   private applySessionToken(): void {
     apiClient.setAuthToken(this.sessionToken);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

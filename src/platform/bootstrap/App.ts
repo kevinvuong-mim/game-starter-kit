@@ -62,7 +62,7 @@ export class App {
     ]);
 
     const fallbackUserId = usePlatformStore.getState().user.id || undefined;
-    const analyticsUserId = (await guest.ensureGuestId()) ?? fallbackUserId;
+    const analyticsUserId = guest.getGuestId() ?? fallbackUserId;
     registerIapProvider(analyticsUserId);
     await iap.initialize().catch((error) => {
       logger.warn('[App] IAP init failed — continuing without IAP', error);
@@ -75,6 +75,14 @@ export class App {
       analytics.setUserId(analyticsUserId);
     }
     analytics.setUserProperty('game_id', config().gameId);
+    void guest
+      .ensureGuestId()
+      .then((guestId) => {
+        if (guestId) {
+          analytics.setUserId(guestId);
+        }
+      })
+      .catch((error) => logger.warn('[App] Background guest init failed', error));
 
     await saveService.loadLocal();
     await dailyRewards.init();

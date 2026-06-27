@@ -11,6 +11,7 @@ import { ApiError as ApiErrorClass } from './types';
 const DEFAULT_RETRIES = 2;
 const DEFAULT_TIMEOUT = 15_000;
 const DEFAULT_RETRY_DELAY = 1_000;
+const DEFAULT_RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
 
 export class ApiClient implements IApiClient {
   private baseUrl: string;
@@ -94,9 +95,9 @@ export class ApiClient implements IApiClient {
         return result.data;
       } catch (error) {
         lastError = error as Error;
-        if (error instanceof ApiErrorClass && error.status < 500) break;
+        if (error instanceof ApiErrorClass && !this.shouldRetry(error, finalConfig)) break;
         if (attempt < retries) {
-          await this.delay(finalConfig.retryDelay ?? DEFAULT_RETRY_DELAY * (attempt + 1));
+          await this.delay(this.getRetryDelay(error, finalConfig, attempt));
         }
       }
     }
@@ -144,7 +145,8 @@ export class ApiClient implements IApiClient {
         throw new ApiErrorClass(
           `Request failed: ${response.status} ${response.statusText}`,
           response.status,
-          data
+          data,
+          response.headers
         );
       }
 
@@ -162,6 +164,38 @@ export class ApiClient implements IApiClient {
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private shouldRetry(error: ApiErrorClass, config: RequestConfig): boolean {
+    const retryableStatuses = config.retryOnStatuses ?? DEFAULT_RETRYABLE_STATUSES;
+    return retryableStatuses.includes(error.status);
+  }
+
+  private getRetryDelay(error: unknown, config: RequestConfig, attempt: number): number {
+    if (error instanceof ApiErrorClass && error.status === 429) {
+      const retryAfter = this.parseRetryAfter(error.headers?.get('Retry-After'));
+      if (retryAfter !== null) {
+        return retryAfter;
+      }
+    }
+
+    return config.retryDelay ?? DEFAULT_RETRY_DELAY * (attempt + 1);
+  }
+
+  private parseRetryAfter(value: string | null | undefined): number | null {
+    if (!value) return null;
+
+    const seconds = Number(value);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return seconds * 1000;
+    }
+
+    const date = Date.parse(value);
+    if (Number.isNaN(date)) {
+      return null;
+    }
+
+    return Math.max(0, date - Date.now());
   }
 }
 

@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -5,18 +7,40 @@ import {
   PERMANENT_SYNC_REJECTIONS,
   sanitizeMetadata,
   toNonNegativeInt,
+  type SyncRejectionReason,
 } from './game-sync.model';
+
+interface ReplayHashVector {
+  name: string;
+  gameId: string;
+  score: number;
+  runSeed: string;
+  replayHash: string;
+  replaySecret: string;
+}
+
+function readContractJson<T>(fileName: string): T {
+  const repoLocalPath = resolve(process.cwd(), 'contracts', fileName);
+  const workspacePath = resolve(process.cwd(), '..', 'contracts', fileName);
+  const contractPath = existsSync(repoLocalPath) ? repoLocalPath : workspacePath;
+
+  return JSON.parse(readFileSync(contractPath, 'utf8')) as T;
+}
 
 describe('game-sync.model', () => {
   it('computes replay hashes compatible with the backend HMAC contract', async () => {
-    await expect(
-      computeReplayHash({
-        gameId: 'puzzle-quest',
-        score: 1500,
-        runSeed: 'e2e-run-1',
-        replaySecret: 'puzzle-quest-dev-secret',
-      })
-    ).resolves.toBe('7f39f09c8ad5af3f6dec0d0633e895fa30d25aa001d4883235cc64343273f104');
+    const vectors = readContractJson<ReplayHashVector[]>('replay-hash-vectors.json');
+
+    for (const vector of vectors) {
+      await expect(
+        computeReplayHash({
+          gameId: vector.gameId,
+          score: vector.score,
+          runSeed: vector.runSeed,
+          replaySecret: vector.replaySecret,
+        })
+      ).resolves.toBe(vector.replayHash);
+    }
   });
 
   it('sanitizes metadata to the backend flat JSON contract and injects runSeed', () => {
@@ -41,6 +65,14 @@ describe('game-sync.model', () => {
 
   it('treats missing replay hashes as permanent queue rejections', () => {
     expect(PERMANENT_SYNC_REJECTIONS.has('MISSING_REPLAY_HASH')).toBe(true);
+  });
+
+  it('keeps permanent rejection reasons aligned with the shared contract', () => {
+    const reasons = readContractJson<SyncRejectionReason[]>('sync-rejection-reasons.json');
+
+    for (const reason of reasons) {
+      expect(PERMANENT_SYNC_REJECTIONS.has(reason)).toBe(true);
+    }
   });
 
   it('normalizes invalid scores to non-negative integers', () => {

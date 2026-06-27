@@ -19,6 +19,8 @@
     "lint": "tsc --noEmit && eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
+    "game:verify-config": "node scripts/verify-game-config.mjs",
+    "platform:update": "node scripts/update-platform.mjs",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\" \"*.{ts,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,json}\" \"*.{ts,json,md}\""
@@ -28,6 +30,7 @@
     "@capacitor/app": "^6.0.2",
     "@capacitor/core": "^6.2.0",
     "@capacitor/haptics": "^6.0.2",
+    "@capacitor/network": "^6.0.4",
     "@capacitor/preferences": "^6.0.3",
     "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "^6.0.2",

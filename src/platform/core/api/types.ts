@@ -8,6 +8,7 @@ export interface RequestConfig {
   method?: HttpMethod;
   retryDelay?: number;
   headers?: Record<string, string>;
+  retryOnStatuses?: number[];
 }
 
 export interface ApiResponse<T> {
@@ -31,7 +32,8 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly body?: unknown
+    public readonly body?: unknown,
+    public readonly headers?: Headers
   ) {
     super(message);
     this.name = 'ApiError';
