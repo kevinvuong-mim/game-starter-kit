@@ -16,6 +16,7 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
+  replaySecret: string;
   adsEnabled: boolean;
   iapEnabled: boolean;
   firebase: FirebaseConfig;
@@ -186,7 +187,8 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
     iap: resolveIapConfig(),
     apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
-    gameId: 'game-starter-kit',
+    gameId: 'puzzle-quest',
+    replaySecret: 'puzzle-quest-dev-secret',
     firebase: resolveFirebaseConfig(),
     adsEnabled: base.adsEnabled ?? false,
     analyticsEnabled: base.analyticsEnabled ?? false,

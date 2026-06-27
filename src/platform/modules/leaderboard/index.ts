@@ -7,7 +7,6 @@ export {
 export type {
   LeaderboardView,
   LeaderboardData,
-  LeaderboardBoard,
   LeaderboardEntry,
   LeaderboardStatus,
   LeaderboardPagination,

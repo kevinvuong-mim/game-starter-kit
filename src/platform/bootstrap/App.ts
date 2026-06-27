@@ -57,7 +57,9 @@ export class App {
     await Promise.all([
       i18n.init(),
       ads.init(),
-      iap.initialize(),
+      iap.initialize().catch((error) => {
+        logger.warn('[App] IAP init failed — continuing without IAP', error);
+      }),
       guest.init(),
       analytics.init(),
       leaderboard.init(),

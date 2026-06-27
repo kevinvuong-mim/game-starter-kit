@@ -12,6 +12,11 @@ import { Preferences } from '@capacitor/preferences';
 import type { DailyRewardState } from '@platform/core/state';
 
 export class DailyRewardRepository {
+  async hasPersistedModel(): Promise<boolean> {
+    const { value } = await Preferences.get({ key: DAILY_REWARD_STORAGE_KEY });
+    return value !== null && value !== undefined;
+  }
+
   async load(): Promise<DailyRewardModel> {
     const stored = await this.readModel(DAILY_REWARD_STORAGE_KEY);
     if (stored) return stored;

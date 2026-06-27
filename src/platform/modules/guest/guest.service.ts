@@ -1,4 +1,5 @@
 import { logger } from '@platform/core/error';
+import { ApiError } from '@platform/core/api';
 import { apiClient } from '@platform/core/api';
 import { guestRepository, type GuestRepository } from './guest.repository';
 
@@ -7,12 +8,17 @@ import { guestRepository, type GuestRepository } from './guest.repository';
  *
  * - Credentials are loaded from storage on boot (offline-safe, no network).
  * - Created lazily via `POST /guest/init` the first time they are needed.
+ * - `installId` + `installSecret` survive reinit so the backend can re-link securely.
  * - `sessionToken` is applied to `apiClient` for protected endpoints.
  */
+/** Refresh the session when it expires within this window (ms). */
+const SESSION_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+
 export class GuestService {
   private initialized = false;
   private guestId: string | null = null;
   private sessionToken: string | null = null;
+  private sessionTokenExpiresAt: number | null = null;
   private inflight: Promise<string | null> | null = null;
 
   constructor(private readonly repository: GuestRepository = guestRepository) {}
@@ -23,12 +29,21 @@ export class GuestService {
 
     this.guestId = await this.repository.loadGuestId();
     this.sessionToken = await this.repository.loadSessionToken();
+    this.sessionTokenExpiresAt = await this.repository.loadSessionTokenExpiresAt();
 
-    // Legacy installs may have guestId without sessionToken — force re-create on next use.
     if (this.guestId && !this.sessionToken) {
       logger.warn('[Guest] Legacy guestId without sessionToken — clearing credentials');
       this.guestId = null;
-      await this.repository.clear();
+      this.sessionTokenExpiresAt = null;
+      await this.repository.clearCredentials();
+    }
+
+    if (this.sessionToken && this.isSessionExpired()) {
+      logger.warn('[Guest] Persisted session token expired — clearing credentials');
+      this.guestId = null;
+      this.sessionToken = null;
+      this.sessionTokenExpiresAt = null;
+      await this.repository.clearCredentials();
     }
 
     this.applySessionToken();
@@ -37,6 +52,9 @@ export class GuestService {
     logger.info('[Guest] Initialized', {
       hasGuestId: this.guestId !== null,
       hasSessionToken: this.sessionToken !== null,
+      sessionExpiresAt: this.sessionTokenExpiresAt,
+      hasInstallId: (await this.repository.loadInstallId()) !== null,
+      hasInstallSecret: (await this.repository.loadInstallSecret()) !== null,
     });
   }
 
@@ -54,6 +72,11 @@ export class GuestService {
    */
   async ensureGuestId(): Promise<string | null> {
     if (this.guestId && this.sessionToken) {
+      if (this.isSessionExpired()) {
+        logger.info('[Guest] Session expired or near expiry — refreshing');
+        return this.reinit();
+      }
+
       this.applySessionToken();
       return this.guestId;
     }
@@ -68,14 +91,15 @@ export class GuestService {
   }
 
   /**
-   * Discards current credentials and creates a new guest. Used to recover from
-   * `401 Invalid session token` or `404 Guest player not found`.
+   * Discards session credentials and re-initializes via installId + installSecret.
+   * Used to recover from expired/invalid session tokens.
    */
   async reinit(): Promise<string | null> {
     this.guestId = null;
     this.sessionToken = null;
+    this.sessionTokenExpiresAt = null;
     apiClient.setAuthToken(null);
-    await this.repository.clear();
+    await this.repository.clearCredentials();
     return this.ensureGuestId();
   }
 
@@ -86,20 +110,58 @@ export class GuestService {
 
   private async createGuest(): Promise<string | null> {
     try {
-      const credentials = await this.repository.initGuest();
-      await this.repository.saveGuestId(credentials.guestId);
-      await this.repository.saveSessionToken(credentials.sessionToken);
-
-      this.guestId = credentials.guestId;
-      this.sessionToken = credentials.sessionToken;
-      this.applySessionToken();
-
-      logger.info('[Guest] Created new guest identity');
-      return this.guestId;
+      return await this.createGuestWithRecovery();
     } catch (error) {
       logger.warn('[Guest] Failed to create guest identity (offline?)', error);
       return null;
     }
+  }
+
+  private async createGuestWithRecovery(): Promise<string | null> {
+    const installId = await this.repository.ensureInstallId();
+    const installSecret = await this.repository.loadInstallSecret();
+
+    try {
+      return await this.persistCredentials(
+        await this.repository.initGuest(installId, installSecret ?? undefined)
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401 && installSecret === null) {
+        logger.warn(
+          '[Guest] installSecret missing for existing installId — resetting install recovery'
+        );
+        await this.repository.clearInstallRecovery();
+        const freshInstallId = await this.repository.ensureInstallId();
+        return await this.persistCredentials(await this.repository.initGuest(freshInstallId));
+      }
+
+      throw error;
+    }
+  }
+
+  private async persistCredentials(
+    credentials: Awaited<ReturnType<GuestRepository['initGuest']>>
+  ): Promise<string> {
+    if (credentials.installSecret) {
+      await this.repository.saveInstallSecret(credentials.installSecret);
+    }
+
+    await this.repository.saveGuestId(credentials.guestId);
+    await this.repository.saveSessionToken(credentials.sessionToken);
+    await this.repository.saveSessionTokenExpiresAt(credentials.sessionTokenExpiresAt);
+
+    this.guestId = credentials.guestId;
+    this.sessionToken = credentials.sessionToken;
+    this.sessionTokenExpiresAt = new Date(credentials.sessionTokenExpiresAt).getTime();
+    this.applySessionToken();
+
+    logger.info('[Guest] Guest identity ready', { relinked: credentials.relinked });
+    return credentials.guestId;
+  }
+
+  private isSessionExpired(now = Date.now()): boolean {
+    if (!this.sessionTokenExpiresAt) return false;
+    return now >= this.sessionTokenExpiresAt - SESSION_REFRESH_BUFFER_MS;
   }
 
   private applySessionToken(): void {

@@ -118,21 +118,21 @@ ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](
 
 ## Platform Modules
 
-| Module        | Description                                                          |
-| ------------- | -------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON       |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases             |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                |
-| leaderboard   | Offline cache, TTL, paginated global board via REST                  |
-| daily-rewards | 7-day streak calendar, local persistence                             |
-| save          | Single `game-save` key — hydrates Zustand store on boot              |
-| settings      | Language, sound, vibration, graphics — part of store state           |
-| guest         | Anonymous guest id + session token for API auth (`POST /guest/init`) |
-| game-sync     | Offline-first match result queue → `POST /game/sync`                 |
-| ads (module)  | Remote ad config fetch, reward flow, controller wired to event bus   |
-| analytics     | Provider interface — Console + Firebase                              |
-| advertising   | AdMob / mock providers, placement state machines                     |
-| IAP           | Provider interface — purchase, restore, verify                       |
+| Module        | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON              |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                    |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                       |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                          |
+| daily-rewards | 7-day streak calendar, local persistence                                    |
+| save          | Single `game-save` key — hydrates Zustand store on boot                     |
+| settings      | Language, sound, vibration, graphics — part of store state                  |
+| guest         | Anonymous guest + `installId`/`installSecret` recovery (`POST /guest/init`) |
+| game-sync     | Offline queue → HMAC `replayHash` + per-item sync status from API           |
+| ads (module)  | Remote ad config fetch, reward flow, controller wired to event bus          |
+| analytics     | Provider interface — Console + Firebase                                     |
+| advertising   | AdMob / mock providers, placement state machines                            |
+| IAP           | Provider interface — purchase, restore, verify                              |
 
 ## UI Framework
 
@@ -185,9 +185,9 @@ VITE_ADMOB_IOS_APP_ID=
 | `VITE_ADMOB_*_*_ID`   | Production ad unit IDs per format/platform           |
 | `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and `gameId` defaults are in `src/platform/core/config/index.ts`. `gameId` is overridden at boot from `src/game/config.ts`.
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — both must match a row in api-starter-kit `games` (e.g. `puzzle-quest` + `puzzle-quest-dev-secret`).
 
-Game identity (`id`, `name`) is set in `src/game/config.ts`, not via env vars.
+Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
 
 ## Mobile Deployment
 
@@ -199,14 +199,16 @@ npm run build:ios      # build + assets + cap sync + native patches
 npm run cap:ios        # open Xcode
 ```
 
-### Capacitor Setup (first time)
+### Capacitor Setup
+
+`android/` and `ios/` are gitignored, so a fresh clone has no native projects. `build:android` / `build:ios` now **auto-add the platform when missing** (via `cap:add:android` / `cap:add:ios`), so no manual step is required. To add a platform explicitly:
 
 ```bash
-npx cap add android
-npx cap add ios
+npm run cap:add:android   # idempotent — no-op if android/ exists
+npm run cap:add:ios       # idempotent — no-op if ios/ exists
 ```
 
-`build:android` / `build:ios` run `capacitor-assets generate` and apply templates from `native/` (AdMob manifest snippets, MainActivity, iOS storyboard).
+`build:android` / `build:ios` then run `capacitor-assets generate` and apply templates from `native/` (AdMob manifest snippets, MainActivity, iOS storyboard).
 
 ## Performance Targets
 
@@ -228,11 +230,13 @@ npx cap add ios
 | `npm run format`          | Prettier write                                 |
 | `npm run format:check`    | Prettier check                                 |
 | `npm run cap:sync`        | `cap sync`                                     |
+| `npm run cap:add:android` | Add Android platform if missing (idempotent)   |
+| `npm run cap:add:ios`     | Add iOS platform if missing (idempotent)       |
 | `npm run cap:android`     | Open Android Studio                            |
 | `npm run cap:ios`         | Open Xcode                                     |
 | `npm run assets:generate` | Generate app icons/splash from `assets/`       |
-| `npm run build:android`   | Build + assets + sync Android + native patches |
-| `npm run build:ios`       | Build + assets + sync iOS + native patches     |
+| `npm run build:android`   | Add platform + build + assets + sync Android + native patches |
+| `npm run build:ios`       | Add platform + build + assets + sync iOS + native patches     |
 
 ## Contributing
 

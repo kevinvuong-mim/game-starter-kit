@@ -1,12 +1,13 @@
 /**
- * Offline game-result sync model (`documents/game.md` §4, §5, §6).
+ * Offline game-result sync model.
  *
  * Match results are saved to a local queue at game-over and batch-uploaded to
- * `POST /game/sync` when the network is available. Each result carries a
- * `replayHash` (SHA-256 of the replay payload) that makes sync idempotent.
+ * `POST /games/:gameId/results` when the network is available. Each result carries
+ * an HMAC `replayHash` (see api-starter-kit replay-hash-hmac.md) for idempotency
+ * and casual anti-cheat.
  */
 
-/** Capacitor Preferences key for the unsynced results queue (per game.md). */
+/** Capacitor Preferences key for the unsynced results queue. */
 export const PENDING_RESULTS_KEY = 'game_pending_results';
 
 /** Server accepts 1–50 results per request. */
@@ -15,17 +16,22 @@ export const MAX_BATCH_SIZE = 50;
 /** Stop retrying a permanently failing item after this many attempts. */
 export const MAX_SYNC_ATTEMPTS = 10;
 
-export interface ReplayMove {
-  t: number;
-  action: string;
-  [key: string]: unknown;
-}
+/** Metadata key required by the backend when `replaySecret` is configured. */
+export const RUN_SEED_METADATA_KEY = 'runSeed';
 
-/** Deterministic replay payload — the same match must always hash identically. */
-export interface ReplayPayload {
-  seed: number;
-  moves: ReplayMove[];
-}
+export type SyncResultStatus = 'accepted' | 'rejected';
+
+export type SyncRejectionReason =
+  | 'DUPLICATE_REPLAY'
+  | 'MISSING_REPLAY_HASH'
+  | 'INVALID_REPLAY_HASH_FORMAT'
+  | 'INVALID_REPLAY_SIGNATURE'
+  | 'MISSING_RUN_SEED'
+  | 'SCORE_EXCEEDS_MAX'
+  | 'SCORE_MISMATCH'
+  | 'INVALID_PLAYED_AT'
+  | 'PLAYED_AT_IN_FUTURE'
+  | 'PLAYED_AT_TOO_OLD';
 
 /** A finished match awaiting (or completed) sync. */
 export interface PendingGameResult {
@@ -33,7 +39,9 @@ export interface PendingGameResult {
   gameId: string;
   guestId: string;
   localId: string;
+  runSeed: string;
   synced: boolean;
+  playedAt: string;
   createdAt: string;
   replayHash: string;
   syncAttempts: number;
@@ -44,44 +52,64 @@ export interface PendingGameResult {
 export interface GameResultPayload {
   score: number;
   replayHash: string;
+  playedAt?: string;
   metadata?: Record<string, string | number | boolean | null>;
 }
 
-/** `POST /game/sync` response payload (inside the envelope). */
+export interface SyncResultItem {
+  replayHash: string;
+  status: SyncResultStatus;
+  reason?: SyncRejectionReason;
+}
+
+/** `POST /games/:gameId/results` response payload (inside the envelope). */
 export interface SyncResponse {
+  results: SyncResultItem[];
   accepted: number;
   rejected: number;
   bestScore: number;
 }
 
-/**
- * Computes a 64-char lowercase hex SHA-256 of the replay payload using the
- * WebCrypto API (works in the Capacitor WebView). Keep JSON key order stable.
- */
-export async function computeReplayHash(replay: ReplayPayload): Promise<string> {
-  const encoded = new TextEncoder().encode(JSON.stringify(replay));
-  const digest = await crypto.subtle.digest('SHA-256', encoded);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+/** Rejection reasons that should not be retried from the offline queue. */
+export const PERMANENT_SYNC_REJECTIONS = new Set<SyncRejectionReason>([
+  'DUPLICATE_REPLAY',
+  'INVALID_REPLAY_HASH_FORMAT',
+  'INVALID_REPLAY_SIGNATURE',
+  'MISSING_RUN_SEED',
+  'SCORE_EXCEEDS_MAX',
+  'SCORE_MISMATCH',
+  'INVALID_PLAYED_AT',
+  'PLAYED_AT_IN_FUTURE',
+  'PLAYED_AT_TOO_OLD',
+]);
+
+export function generateRunSeed(): string {
+  return crypto.randomUUID();
 }
 
 /**
- * Builds a minimal deterministic replay payload from a match summary.
- *
- * The starter gameplay does not record per-input replay data; this captures
- * enough to produce a unique, valid `replayHash`. Replace `seed`/`moves` with
- * real recorded replay data when implementing a game with deterministic RNG.
+ * HMAC-SHA256(replaySecret, "{gameId}|{score}|{runSeed}") as lowercase hex.
+ * Must match api-starter-kit `computeReplayHash`.
  */
-export function buildReplayPayload(params: {
-  seed: number;
+export async function computeReplayHash(params: {
+  gameId: string;
   score: number;
-  moves?: ReplayMove[];
-}): ReplayPayload {
-  return {
-    seed: params.seed,
-    moves: params.moves ?? [{ t: 0, action: 'final', score: params.score }],
-  };
+  runSeed: string;
+  replaySecret: string;
+}): Promise<string> {
+  const payload = `${params.gameId}|${params.score}|${params.runSeed}`;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(params.replaySecret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /** Normalizes a raw value into a non-negative integer (per backend constraints). */
@@ -100,17 +128,21 @@ const METADATA_MAX_STRING_LENGTH = 256;
  * Drops nested values, arrays, and oversized fields.
  */
 export function sanitizeMetadata(
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  runSeed?: string
 ): Record<string, string | number | boolean | null> | undefined {
-  if (!metadata) return undefined;
+  const merged: Record<string, unknown> = { ...(metadata ?? {}) };
+  if (runSeed) {
+    merged[RUN_SEED_METADATA_KEY] = runSeed;
+  }
 
   const result: Record<string, string | number | boolean | null> = {};
-  const keys = Object.keys(metadata).slice(0, METADATA_MAX_KEYS);
+  const keys = Object.keys(merged).slice(0, METADATA_MAX_KEYS);
 
   for (const key of keys) {
     if (key.length === 0 || key.length > METADATA_MAX_KEY_LENGTH) continue;
 
-    const value = metadata[key];
+    const value = merged[key];
     if (value === null) {
       result[key] = null;
       continue;

@@ -3,7 +3,6 @@ import {
   createInitialView,
   type LeaderboardData,
   type LeaderboardView,
-  type LeaderboardBoard,
 } from './leaderboard.model';
 import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';
@@ -11,8 +10,6 @@ import { eventBus } from '@platform/core/events';
 import { getConfig } from '@platform/core/config';
 import { guest, type GuestService } from '@platform/modules/guest';
 import { leaderboardRepository, type LeaderboardRepository } from './leaderboard.repository';
-
-const BOARD: LeaderboardBoard = 'global';
 
 export interface FetchOptions {
   page?: number;
@@ -27,7 +24,7 @@ export interface FetchOptions {
  * the emitted {@link LeaderboardView}; it never calls the API directly.
  */
 export class LeaderboardService {
-  private view: LeaderboardView = createInitialView(BOARD);
+  private view: LeaderboardView = createInitialView();
   private currentPage = 1;
   private inflight: Promise<LeaderboardView> | null = null;
 
@@ -39,7 +36,7 @@ export class LeaderboardService {
   /** Warm the in-memory view from the persisted cache (offline-friendly). */
   async init(): Promise<void> {
     const gameId = getConfig().gameId;
-    const cache = await this.repository.loadCache(BOARD, gameId, this.currentPage);
+    const cache = await this.repository.loadCache(gameId, this.currentPage);
     if (cache) {
       this.view = this.buildView(cache.data, {
         fromCache: true,
@@ -62,7 +59,6 @@ export class LeaderboardService {
     const current = this.view;
     if (!options.force && current.lastUpdated && !current.fromCache) {
       const fresh = isCacheFresh({
-        board: BOARD,
         page: this.currentPage,
         data: this.toData(current),
         updatedAt: current.lastUpdated,
@@ -99,21 +95,24 @@ export class LeaderboardService {
 
     this.transition({ status: hasData ? 'refreshing' : 'loading', error: null });
 
-    // Optional auth — applies Bearer token when guest credentials exist.
     const guestId = await this.guestService.ensureGuestId();
 
     try {
       const data = await this.repository.fetch({
-        board: BOARD,
         gameId,
         page: this.currentPage,
       });
       return this.applySuccess(data, guestId);
     } catch (error) {
-      if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+      if (error instanceof ApiError && error.status === 401) {
         const retried = await this.retryAfterGuestReset(gameId);
         if (retried) return retried;
       }
+
+      if (error instanceof ApiError && error.status === 404) {
+        logger.error('[Leaderboard] Game not found on backend — check gameId config', error);
+      }
+
       return this.applyFailure(error);
     }
   }
@@ -123,7 +122,6 @@ export class LeaderboardService {
     try {
       const guestId = await this.guestService.reinit();
       const data = await this.repository.fetch({
-        board: BOARD,
         gameId,
         page: this.currentPage,
       });
@@ -140,7 +138,7 @@ export class LeaderboardService {
   ): Promise<LeaderboardView> {
     const updatedAt = Date.now();
     await this.repository.saveCache(
-      { board: BOARD, page: data.pagination.page, data, updatedAt },
+      { page: data.pagination.page, data, updatedAt },
       getConfig().gameId
     );
 
@@ -175,7 +173,6 @@ export class LeaderboardService {
     extra: { fromCache: boolean; lastUpdated: number; myGuestId?: string | null }
   ): LeaderboardView {
     return {
-      board: BOARD,
       status: 'ready',
       entries: data.top,
       myRank: data.myRank,

@@ -1,7 +1,6 @@
 import {
   LEADERBOARD_LIMIT,
   type LeaderboardData,
-  type LeaderboardBoard,
   type LeaderboardCache,
   createInitialPagination,
   LEADERBOARD_CACHE_PREFIX,
@@ -15,17 +14,16 @@ export interface FetchLeaderboardParams {
   page?: number;
   gameId: string;
   limit?: number;
-  board: LeaderboardBoard;
 }
 
 /**
  * API + cache layer for the leaderboard. The only place that talks to
- * `GET /leaderboard/global` or persists the offline cache.
+ * `GET /leaderboards` or persists the offline cache.
  */
 export class LeaderboardRepository {
   private readonly timeoutMs = 10_000;
 
-  /** Fetches one board page. Guest identity is sent via Bearer token when available. */
+  /** Fetches one page. Guest identity is sent via Bearer token when available. */
   async fetch(params: FetchLeaderboardParams): Promise<LeaderboardData> {
     const page = params.page ?? 1;
     const limit = params.limit ?? LEADERBOARD_LIMIT;
@@ -37,23 +35,19 @@ export class LeaderboardRepository {
     });
 
     const envelope = await apiClient.get<ApiEnvelope<LeaderboardData>>(
-      `/leaderboard/${params.board}?${query.toString()}`,
+      `/leaderboards?${query.toString()}`,
       { timeout: this.timeoutMs }
     );
 
     return this.normalize(envelope.data, page, limit);
   }
 
-  async loadCache(
-    board: LeaderboardBoard,
-    gameId: string,
-    page: number
-  ): Promise<LeaderboardCache | null> {
-    return storage.load<LeaderboardCache>(this.cacheKey(board, gameId, page));
+  async loadCache(gameId: string, page: number): Promise<LeaderboardCache | null> {
+    return storage.load<LeaderboardCache>(this.cacheKey(gameId, page));
   }
 
   async saveCache(cache: LeaderboardCache, gameId: string): Promise<void> {
-    await storage.save(this.cacheKey(cache.board, gameId, cache.page), cache);
+    await storage.save(this.cacheKey(gameId, cache.page), cache);
   }
 
   private normalize(
@@ -93,8 +87,8 @@ export class LeaderboardRepository {
     };
   }
 
-  private cacheKey(board: LeaderboardBoard, gameId: string, page: number): string {
-    return `${LEADERBOARD_CACHE_PREFIX}${gameId}:${board}:p${page}`;
+  private cacheKey(gameId: string, page: number): string {
+    return `${LEADERBOARD_CACHE_PREFIX}${gameId}:p${page}`;
   }
 }
 

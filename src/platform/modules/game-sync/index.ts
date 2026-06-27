@@ -2,13 +2,15 @@ export {
   MAX_BATCH_SIZE,
   computeReplayHash,
   MAX_SYNC_ATTEMPTS,
-  buildReplayPayload,
+  generateRunSeed,
   PENDING_RESULTS_KEY,
+  RUN_SEED_METADATA_KEY,
+  PERMANENT_SYNC_REJECTIONS,
 } from './game-sync.model';
 export type {
-  ReplayMove,
   SyncResponse,
-  ReplayPayload,
+  SyncResultItem,
+  SyncRejectionReason,
   GameResultPayload,
   PendingGameResult,
 } from './game-sync.model';

@@ -3,7 +3,10 @@
  * App modules subscribe and react.
  */
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
-import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
+import type {
+  SyncResponse,
+  SyncRejectionReason,
+} from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
 import type {
@@ -45,6 +48,10 @@ export interface PlatformEventMap {
   'ad:banner:hide': void;
   'daily:claim:request': void;
   'game:synced': SyncResponse;
+  'game:sync:rejected': {
+    gameId: string;
+    items: Array<{ score: number; replayHash: string; reason: SyncRejectionReason }>;
+  };
   'daily:status:request': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
