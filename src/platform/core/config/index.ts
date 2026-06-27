@@ -12,6 +12,7 @@ export interface FirebaseConfig {
 
 export interface RuntimeConfig {
   ads: AdsConfig;
+  iap: IapConfig;
   apiUrl: string;
   debug: boolean;
   gameId: string;
@@ -19,6 +20,13 @@ export interface RuntimeConfig {
   iapEnabled: boolean;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
+}
+
+export interface IapConfig {
+  provider: 'mock' | 'revenuecat';
+  revenueCat: {
+    apiKey: string;
+  };
 }
 
 export interface AdsConfig {
@@ -156,12 +164,26 @@ function resolveAdsConfig(): AdsConfig {
   };
 }
 
+function resolveIapConfig(): IapConfig {
+  const provider = (import.meta.env.VITE_IAP_PROVIDER as IapConfig['provider']) ?? 'mock';
+  const apiKey = pickPlatformEnv(
+    import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY,
+    import.meta.env.VITE_REVENUECAT_IOS_API_KEY
+  );
+
+  return {
+    provider,
+    revenueCat: { apiKey },
+  };
+}
+
 export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig {
   const env = resolveEnvironment();
   const base = ENV_CONFIGS[env];
 
   return {
     ads: resolveAdsConfig(),
+    iap: resolveIapConfig(),
     apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: 'game-starter-kit',

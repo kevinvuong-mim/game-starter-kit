@@ -1,0 +1,38 @@
+import { services } from '@platform/core/services';
+import { ENTITLEMENT_REMOVE_ADS } from './config/iap.config';
+import { iap } from './services/iap.service';
+import { IAP_EVENTS } from './events/iap.events';
+import type { IEventBus } from '@platform/core/events';
+
+const { ads } = services;
+
+function syncAdsWithEntitlements(): void {
+  const removeAds = iap.has(ENTITLEMENT_REMOVE_ADS);
+  ads.setAdsRemoved(removeAds);
+
+  if (removeAds) {
+    void ads.hideBanner();
+    ads.destroyBanner();
+  }
+}
+
+/**
+ * Wires IAP entitlements to ads and analytics. Call once during App.init().
+ */
+export function bindIapController(events: IEventBus): () => void {
+  syncAdsWithEntitlements();
+
+  const unsubscribers = [
+    events.on(IAP_EVENTS.ENTITLEMENT_CHANGED, () => {
+      syncAdsWithEntitlements();
+    }),
+
+    events.on(IAP_EVENTS.PURCHASE_RESTORED, () => {
+      events.emit('shop:restore', undefined);
+    }),
+  ];
+
+  return () => {
+    for (const unsub of unsubscribers) unsub();
+  };
+}

@@ -7,6 +7,9 @@ interface ImportMetaEnv {
   readonly VITE_ADMOB_IOS_APP_ID: string;
   readonly VITE_ADMOB_ANDROID_APP_ID: string;
   readonly VITE_ADS_PROVIDER: 'mock' | 'admob';
+  readonly VITE_REVENUECAT_IOS_API_KEY?: string;
+  readonly VITE_REVENUECAT_ANDROID_API_KEY?: string;
+  readonly VITE_IAP_PROVIDER: 'mock' | 'revenuecat';
   readonly VITE_APP_ENV: 'dev' | 'staging' | 'production';
 
   // AdMob ad unit IDs — only set for production release builds

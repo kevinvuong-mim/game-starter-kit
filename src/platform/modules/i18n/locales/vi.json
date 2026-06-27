@@ -50,9 +50,9 @@
         "name": "Xu Gấp Đôi",
         "description": "Nhân đôi xu trong 1 giờ"
       },
-      "coins_pack": {
-        "name": "Gói Xu",
-        "description": "500 xu"
+      "remove_ads": {
+        "name": "Gỡ Quảng Cáo",
+        "description": "Gỡ quảng cáo banner và interstitial vĩnh viễn"
       }
     }
   },

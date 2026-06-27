@@ -29,14 +29,14 @@
       "description": "2x coins for 1 hour"
     },
     {
-      "price": 0.99,
+      "price": 4.99,
+      "type": "entitlement",
       "currency": "iap",
-      "id": "coins_pack",
-      "type": "currency",
-      "name": "Coin Pack",
-      "reward": { "coins": 500 },
-      "description": "500 coins",
-      "iapProductId": "coins_500"
+      "id": "remove_ads",
+      "productKey": "REMOVE_ADS",
+      "name": "Remove Ads",
+      "icon": "remove_ads",
+      "description": "Remove banner and interstitial ads permanently"
     }
   ]
 }

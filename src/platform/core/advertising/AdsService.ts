@@ -15,6 +15,7 @@ type AnalyticsHandler = (event: string, metadata?: Record<string, unknown>) => v
 
 export class AdsService {
   private enabled = true;
+  private adsRemoved = false;
   private lastRewardedAt = 0;
   private lastInterstitialAt = 0;
   private appOpenShownThisSession = false;
@@ -91,6 +92,38 @@ export class AdsService {
     if (!enabled && this.provider) {
       void this.hideBanner();
       this.destroyBanner();
+    }
+  }
+
+  /** Set by IAP module when remove_ads entitlement is active. */
+  setAdsRemoved(removed: boolean): void {
+    this.adsRemoved = removed;
+    if (removed && this.provider) {
+      void this.hideBanner();
+      this.destroyBanner();
+    }
+  }
+
+  isAdsRemoved(): boolean {
+    return this.adsRemoved;
+  }
+
+  canShow(format: AdFormat, placement?: string): boolean {
+    if (this.adsRemoved && format !== 'rewarded') return false;
+
+    switch (format) {
+      case 'rewarded':
+        return placement ? this.canShowRewarded(placement) : false;
+      case 'interstitial':
+        return placement ? this.canShowInterstitial(placement) : false;
+      case 'banner':
+        return placement ? this.canShowBanner(placement) : false;
+      case 'app_open':
+        return (
+          !this.adsRemoved && this.remoteConfig.appOpenEnabled && !this.appOpenShownThisSession
+        );
+      default:
+        return false;
     }
   }
 
@@ -229,7 +262,7 @@ export class AdsService {
   }
 
   async showAppOpen(placement: string): Promise<AdShowResult> {
-    if (!this.remoteConfig.appOpenEnabled || this.appOpenShownThisSession) {
+    if (this.adsRemoved || !this.remoteConfig.appOpenEnabled || this.appOpenShownThisSession) {
       return { shown: false, error: 'App open skipped' };
     }
 
@@ -257,6 +290,7 @@ export class AdsService {
   }
 
   canShowInterstitial(placement: string): boolean {
+    if (this.adsRemoved) return false;
     if (!this.enabled) return false;
     if (!this.remoteConfig.interstitialEnabled) return false;
     if (this.resolveFormat(placement) !== 'interstitial') return false;
@@ -266,6 +300,7 @@ export class AdsService {
   }
 
   canShowBanner(placement: string): boolean {
+    if (this.adsRemoved) return false;
     if (!this.enabled || !this.remoteConfig.bannerEnabled) return false;
     if (!BANNER_ALLOWED_PLACEMENTS.has(placement)) return false;
     return this.resolveFormat(placement) === 'banner';

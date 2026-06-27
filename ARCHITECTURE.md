@@ -15,11 +15,11 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n / shop / missions / leaderboard / save │
 │  settings / daily-rewards / guest / game-sync│
-│  ads (module)                                │
+│  ads (module) / iap (module)                                │
 ├─────────────────────────────────────────────┤
 │        PLATFORM CORE (src/platform/core/)    │
 │  events / state / config / storage / api     │
-│  analytics / advertising / iap / error       │
+│  analytics / advertising / error             │
 │  services (locator)                          │
 ├─────────────────────────────────────────────┤
 │     BOOTSTRAP (src/platform/bootstrap/)      │
@@ -59,7 +59,6 @@ src/
     │   ├── config/              # ENV_CONFIGS, Firebase/AdMob resolution
     │   ├── error/               # Logger, error boundary, global handlers
     │   ├── events/              # Typed EventBus + PlatformEventMap
-    │   ├── iap/                 # IapService + provider interface
     │   ├── services/            # Service locator (`services.events`, etc.)
     │   ├── state/               # Zustand vanilla store (in-memory)
     │   ├── storage/             # StorageService + providers
@@ -74,7 +73,8 @@ src/
     │   ├── settings/            # settings.service.ts
     │   ├── guest/               # guest.service.ts + repository (API auth)
     │   ├── game-sync/           # offline queue + controller
-    │   └── ads/                 # remote config module + controller
+    │   ├── ads/                 # remote config module + controller
+    │   └── iap/                 # purchase flow, entitlements, ads integration
     ├── ui/
     │   ├── button/UIButton.ts   # createUIButton()
     │   ├── hud/HUD.ts
@@ -94,6 +94,7 @@ src/
         ├── GameEngine.ts        # Phaser bootstrap, fonts, toast init
         ├── analytics.ts         # registerAnalyticsProviders()
         ├── ads.ts               # registerAdsProvider()
+        ├── iap.ts               # registerIapProvider()
         └── capacitor.ts         # Native plugins, splash, appStateChange
 
 native/                          # Templates merged on build:android / build:ios
@@ -152,7 +153,7 @@ eventBus.emit('analytics', { event: AnalyticsEvents.GAME_START });
 | Phaser APIs                                | Direct store mutations (`@platform/core/state`)    |
 | `@platform/ui/*` (HUD, toast, panels, `t`) | `@platform/modules/*`                              |
 | `@game/utils/*` (e.g. `ObjectPool`)        | `@platform/core/utils`                             |
-|                                            | `@platform/core/advertising`, `@platform/core/iap` |
+|                                            | `@platform/core/advertising`                       |
 |                                            | `@platform/core/analytics` (use `analytics` event) |
 |                                            | `@platform/core/config`, `@platform/core/error`    |
 

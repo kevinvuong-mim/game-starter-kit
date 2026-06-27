@@ -1,8 +1,4 @@
-import {
-  ads,
-  DEFAULT_REMOTE_CONFIG,
-  type AdsRemoteConfig,
-} from '@platform/core/advertising';
+import { ads, DEFAULT_REMOTE_CONFIG, type AdsRemoteConfig } from '@platform/core/advertising';
 
 export interface RewardRequestResult {
   message?: string;

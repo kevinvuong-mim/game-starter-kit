@@ -1,4 +1,4 @@
-import { iap } from '../iap';
+import { iap } from '@platform/modules/iap';
 import { apiClient } from '../api';
 import { ads } from '../advertising';
 import { eventBus } from '../events';

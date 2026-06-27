@@ -68,16 +68,16 @@ Then:
 
 Enforced by ESLint `no-restricted-imports` on `src/game/**/*.ts`:
 
-| Preferred                                           | Avoid                                              |
-| --------------------------------------------------- | -------------------------------------------------- |
-| `@platform/core/events` (emit)                      | `@platform/core/api`                               |
-| `@game/*`                                           | `@platform/core/storage`                           |
-| Phaser APIs                                         | `@platform/core/state` (direct store mutations)    |
-| `@platform/ui/*` (panels, HUD, toast, `t`)          | `@platform/modules/*`                              |
-| `@game/utils/*`                                     | `@platform/core/utils`                             |
-| `eventBus.emit('analytics', …)` + `AnalyticsEvents` | `@platform/core/analytics`                         |
-|                                                     | `@platform/core/advertising`, `@platform/core/iap` |
-|                                                     | `@platform/core/config`, `@platform/core/error`    |
+| Preferred                                           | Avoid                                           |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `@platform/core/events` (emit)                      | `@platform/core/api`                            |
+| `@game/*`                                           | `@platform/core/storage`                        |
+| Phaser APIs                                         | `@platform/core/state` (direct store mutations) |
+| `@platform/ui/*` (panels, HUD, toast, `t`)          | `@platform/modules/*`                           |
+| `@game/utils/*`                                     | `@platform/core/utils`                          |
+| `eventBus.emit('analytics', …)` + `AnalyticsEvents` | `@platform/core/analytics`                      |
+|                                                     | `@platform/core/advertising`                    |
+|                                                     | `@platform/core/config`, `@platform/core/error` |
 
 Use `eventBus.emit('error:report', { error, context })` instead of importing `@platform/core/error` from game code.
 
@@ -196,15 +196,18 @@ Request ads from game/UI via events: `ad:show:request`, `ad:reward:request`.
 ### IAP
 
 ```typescript
-import { services } from '@platform/core/services';
-import type { IIapProvider } from '@platform/core/iap';
+import type { IAPProvider } from '@platform/modules/iap';
+import { iap } from '@platform/modules/iap';
 
-class RevenueCatProvider implements IIapProvider {
-  /* … */
+class RevenueCatAdapter implements IAPProvider {
+  readonly name = 'revenuecat';
+  /* initialize(), purchase(), restore(), getProducts() */
 }
 
-services.iap.setProvider(new RevenueCatProvider());
+iap.setProvider(new RevenueCatAdapter());
 ```
+
+Register in `src/platform/bootstrap/iap.ts` (mirrors `bootstrap/ads.ts`). See [docs/IAP.md](./docs/IAP.md).
 
 Enable with `VITE_IAP_ENABLED=true`.
 

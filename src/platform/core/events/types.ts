@@ -6,6 +6,12 @@ import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
+import type {
+  IapEntitlementChangedPayload,
+  IapPurchaseFailedPayload,
+  IapPurchaseSuccessPayload,
+  IapRestoreSuccessPayload,
+} from '@platform/modules/iap/events/iap.events';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -52,7 +58,10 @@ export interface PlatformEventMap {
   };
   'leaderboard:page': { page: number };
   'leaderboard:update': LeaderboardView;
-  'iap:purchase': { productId: string };
+  'iap:purchase:success': IapPurchaseSuccessPayload;
+  'iap:purchase:failed': IapPurchaseFailedPayload;
+  'iap:restore:success': IapRestoreSuccessPayload;
+  'iap:entitlement:changed': IapEntitlementChangedPayload;
   'ad:show:request': { placement: string };
   'ad:context:change': { context: string };
   'mission:complete': { missionId: string };

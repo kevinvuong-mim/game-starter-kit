@@ -50,9 +50,9 @@
         "name": "Double Coins",
         "description": "2x coins for 1 hour"
       },
-      "coins_pack": {
-        "name": "Coin Pack",
-        "description": "500 coins"
+      "remove_ads": {
+        "name": "Remove Ads",
+        "description": "Remove banner and interstitial ads permanently"
       }
     }
   },

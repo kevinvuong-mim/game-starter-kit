@@ -16,6 +16,8 @@ import { usePlatformStore } from '@platform/core/state';
 import { bindAdsController } from '@platform/modules/ads';
 import { i18n } from '@platform/modules/i18n/i18n.service';
 import { registerAdsProvider } from '@platform/bootstrap/ads';
+import { registerIapProvider } from '@platform/bootstrap/iap';
+import { bindIapController } from '@platform/modules/iap';
 import { gameSyncController } from '@platform/modules/game-sync';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
@@ -50,11 +52,12 @@ export class App {
 
     registerAnalyticsProviders();
     registerAdsProvider();
+    registerIapProvider();
 
     await Promise.all([
       i18n.init(),
       ads.init(),
-      iap.init(),
+      iap.initialize(),
       guest.init(),
       analytics.init(),
       leaderboard.init(),
@@ -77,6 +80,7 @@ export class App {
       leaderboardController.bind(events),
       gameSyncController.bind(events),
       bindAdsController(events),
+      bindIapController(events),
       missionController.bind(events)
     );
     this.bindLifecycle();

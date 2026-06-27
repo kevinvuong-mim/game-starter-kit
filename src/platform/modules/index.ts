@@ -9,3 +9,4 @@ export { gameSync, gameSyncController } from './game-sync';
 export type { SupportedLanguage } from './i18n/i18n.service';
 export { leaderboard, leaderboardController } from './leaderboard';
 export { dailyRewards, dailyRewardController } from './daily-rewards';
+export { iap, PRODUCTS, IAP_EVENTS, bindIapController, useEntitlement } from './iap';
