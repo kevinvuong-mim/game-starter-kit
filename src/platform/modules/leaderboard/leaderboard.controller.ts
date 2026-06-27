@@ -1,5 +1,4 @@
 import type { IEventBus } from '@platform/core/events';
-
 import { leaderboard, type LeaderboardService } from './leaderboard.service';
 
 /**

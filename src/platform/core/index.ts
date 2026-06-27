@@ -1,5 +1,4 @@
 export * from './api';
-export * from './iap';
 export * from './error';
 export * from './state';
 export * from './utils';

@@ -1,60 +1,53 @@
+import {
+  LEADERBOARD_LIMIT,
+  type LeaderboardData,
+  type LeaderboardCache,
+  createInitialPagination,
+  LEADERBOARD_CACHE_PREFIX,
+  type LeaderboardPagination,
+} from './leaderboard.model';
 import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import type { ApiEnvelope } from '@platform/core/api';
 
-import {
-  LEADERBOARD_LIMIT,
-  LEADERBOARD_CACHE_PREFIX,
-  createInitialPagination,
-  type LeaderboardBoard,
-  type LeaderboardCache,
-  type LeaderboardData,
-  type LeaderboardPagination,
-} from './leaderboard.model';
-
 export interface FetchLeaderboardParams {
-  board: LeaderboardBoard;
+  page?: number;
   gameId: string;
   limit?: number;
-  page?: number;
 }
 
 /**
  * API + cache layer for the leaderboard. The only place that talks to
- * `GET /leaderboard/global` or persists the offline cache.
+ * `GET /leaderboards` or persists the offline cache.
  */
 export class LeaderboardRepository {
   private readonly timeoutMs = 10_000;
 
-  /** Fetches one board page. Guest identity is sent via Bearer token when available. */
+  /** Fetches one page. Guest identity is sent via Bearer token when available. */
   async fetch(params: FetchLeaderboardParams): Promise<LeaderboardData> {
     const page = params.page ?? 1;
     const limit = params.limit ?? LEADERBOARD_LIMIT;
 
     const query = new URLSearchParams({
-      gameId: params.gameId,
       page: String(page),
       limit: String(limit),
+      gameId: params.gameId,
     });
 
     const envelope = await apiClient.get<ApiEnvelope<LeaderboardData>>(
-      `/leaderboard/${params.board}?${query.toString()}`,
+      `/leaderboards?${query.toString()}`,
       { timeout: this.timeoutMs }
     );
 
     return this.normalize(envelope.data, page, limit);
   }
 
-  async loadCache(
-    board: LeaderboardBoard,
-    gameId: string,
-    page: number
-  ): Promise<LeaderboardCache | null> {
-    return storage.load<LeaderboardCache>(this.cacheKey(board, gameId, page));
+  async loadCache(gameId: string, page: number): Promise<LeaderboardCache | null> {
+    return storage.load<LeaderboardCache>(this.cacheKey(gameId, page));
   }
 
   async saveCache(cache: LeaderboardCache, gameId: string): Promise<void> {
-    await storage.save(this.cacheKey(cache.board, gameId, cache.page), cache);
+    await storage.save(this.cacheKey(gameId, cache.page), cache);
   }
 
   private normalize(
@@ -66,14 +59,14 @@ export class LeaderboardRepository {
     const pagination = this.normalizePagination(data?.pagination, page, limit);
 
     return {
+      pagination,
       top: top.map((entry) => ({
+        rank: Number(entry?.rank ?? 0),
+        score: Number(entry?.score ?? 0),
         guestId: String(entry?.guestId ?? ''),
         name: typeof entry?.name === 'string' ? entry.name : null,
-        score: Number(entry?.score ?? 0),
-        rank: Number(entry?.rank ?? 0),
       })),
       myRank: typeof data?.myRank === 'number' ? data.myRank : null,
-      pagination,
     };
   }
 
@@ -94,8 +87,8 @@ export class LeaderboardRepository {
     };
   }
 
-  private cacheKey(board: LeaderboardBoard, gameId: string, page: number): string {
-    return `${LEADERBOARD_CACHE_PREFIX}${gameId}:${board}:p${page}`;
+  private cacheKey(gameId: string, page: number): string {
+    return `${LEADERBOARD_CACHE_PREFIX}${gameId}:p${page}`;
   }
 }
 

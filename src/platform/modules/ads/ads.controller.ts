@@ -1,0 +1,42 @@
+import { adsModule } from './ads.service';
+import { ads } from '@platform/core/advertising';
+import type { IEventBus } from '@platform/core/events';
+import { usePlatformStore } from '@platform/core/state';
+
+export function bindAdsController(events: IEventBus): () => void {
+  const unsubs = [
+    events.on('ad:reward:request', async ({ placement }) => {
+      const result = await adsModule.requestReward(placement);
+      events.emit('ad:reward:result', {
+        placement,
+        reward: result.reward,
+        success: result.success,
+        message: result.message,
+      });
+
+      if (result.success && result.reward) {
+        if (result.reward.type === 'coins') {
+          usePlatformStore.getState().addCoins(result.reward.amount);
+        }
+        events.emit('ad:reward', { placement, reward: result.reward });
+      }
+    }),
+
+    events.on('ad:show:request', async ({ placement }) => {
+      const result = await adsModule.showPlacement(placement);
+      events.emit('ad:show:result', { placement, ...result });
+    }),
+
+    events.on('ad:banner:hide', () => {
+      void ads.hideBanner();
+    }),
+
+    events.on('ad:context:change', ({ context }) => {
+      void adsModule.hideBannerForContext(context);
+    }),
+  ];
+
+  return () => {
+    for (const unsub of unsubs) unsub();
+  };
+}

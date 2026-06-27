@@ -1,17 +1,17 @@
+import {
+  hasClaimedToday,
+  type ClaimResult,
+  createDefaultModel,
+  getLocalDateString,
+  type RewardProgress,
+  type DailyRewardModel,
+} from './daily-reward.model';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
-
-import {
-  createDefaultModel,
-  getLocalDateString,
-  hasClaimedToday,
-  type ClaimResult,
-  type DailyRewardModel,
-  type RewardProgress,
-} from './daily-reward.model';
-import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
+import { saveService } from '@platform/modules/save/save.service';
+import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 
 const BACKWARD_CLOCK_TOLERANCE_MS = 60_000;
 
@@ -27,8 +27,11 @@ export class DailyRewardService {
   async init(): Promise<void> {
     const storeState = usePlatformStore.getState().dailyRewards;
     const migratedFromStore = this.repository.migrateFromStoreState(storeState);
+    const fromRepository = await this.repository.load();
+    const hasPrefs = await this.repository.hasPersistedModel();
 
-    this.model = migratedFromStore ?? (await this.repository.load());
+    // Preferences is the durable source of truth; game-save is used only for legacy migration.
+    this.model = hasPrefs ? fromRepository : (migratedFromStore ?? fromRepository);
 
     if (this.detectTimeManipulation()) {
       this.model.timeManipulated = true;
@@ -140,6 +143,7 @@ export class DailyRewardService {
   private async persist(): Promise<void> {
     await this.repository.save(this.model);
     usePlatformStore.getState().setDailyRewardState(this.repository.toStoreState(this.model));
+    await saveService.saveLocal();
   }
 }
 

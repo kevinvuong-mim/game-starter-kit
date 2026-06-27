@@ -3,9 +3,18 @@
  * App modules subscribe and react.
  */
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
-import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
+import type {
+  SyncResponse,
+  SyncRejectionReason,
+} from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
+import type {
+  IapEntitlementChangedPayload,
+  IapPurchaseFailedPayload,
+  IapPurchaseSuccessPayload,
+  IapRestoreSuccessPayload,
+} from '@platform/modules/iap/events/iap.events';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -36,8 +45,13 @@ export interface PlatformEventMap {
 
   // Platform
   'shop:restore': void;
-  'game:synced': SyncResponse;
+  'ad:banner:hide': void;
   'daily:claim:request': void;
+  'game:synced': SyncResponse;
+  'game:sync:rejected': {
+    gameId: string;
+    items: Array<{ score: number; replayHash: string; reason: SyncRejectionReason }>;
+  };
   'daily:status:request': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
@@ -51,8 +65,20 @@ export interface PlatformEventMap {
   };
   'leaderboard:page': { page: number };
   'leaderboard:update': LeaderboardView;
-  'iap:purchase': { productId: string };
+  'iap:purchase:success': IapPurchaseSuccessPayload;
+  'iap:purchase:failed': IapPurchaseFailedPayload;
+  'iap:restore:success': IapRestoreSuccessPayload;
+  'iap:entitlement:changed': IapEntitlementChangedPayload;
+  'ad:show:request': { placement: string };
+  'ad:context:change': { context: string };
   'mission:complete': { missionId: string };
+  'ad:reward:request': { placement: string };
+  'ad:reward:result': {
+    message?: string;
+    success: boolean;
+    placement: string;
+    reward?: { type: string; amount: number };
+  };
   'daily:claim': { day: number; streak: number };
   'error:report': { error: Error; context?: string };
   'settings:change': { key: string; value: unknown };
@@ -65,6 +91,7 @@ export interface PlatformEventMap {
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };
+  'ad:show:result': { placement: string; shown: boolean; error?: string };
 }
 
 export interface IEventBus {

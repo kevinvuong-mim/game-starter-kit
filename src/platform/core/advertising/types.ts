@@ -1,4 +1,16 @@
-export type AdType = 'banner' | 'rewarded' | 'interstitial';
+export type AdFormat = 'banner' | 'app_open' | 'rewarded' | 'interstitial';
+
+export type AdState =
+  | 'IDLE'
+  | 'ERROR'
+  | 'READY'
+  | 'LOADING'
+  | 'SHOWING'
+  | 'EXPIRED'
+  | 'COMPLETED'
+  | 'DESTROYED';
+
+export type BannerState = 'IDLE' | 'HIDDEN' | 'LOADING' | 'VISIBLE' | 'DESTROYED';
 
 export interface AdReward {
   type: string;
@@ -8,17 +20,99 @@ export interface AdReward {
 export interface AdShowResult {
   error?: string;
   shown: boolean;
-  rewarded?: AdReward;
+  rewarded?: boolean;
+  transactionId?: string;
+  providerPayload?: Record<string, unknown>;
+}
+
+export interface AdUnitIds {
+  banner?: string;
+  appOpen?: string;
+  rewarded?: string;
+  interstitial?: string;
+}
+
+export interface AdsProviderConfig {
+  appId?: string;
+  testing?: boolean;
+  adUnits: AdUnitIds;
 }
 
 export interface IAdsProvider {
   destroy(): void;
   hideBanner(): void;
-  init(): Promise<void>;
+  destroyBanner(): void;
   readonly name: string;
-  isReady(type: AdType): boolean;
-  preload(type: AdType): Promise<void>;
+  loadBanner(): Promise<void>;
+  loadAppOpen(): Promise<void>;
+  loadRewarded(): Promise<void>;
+  loadInterstitial(): Promise<void>;
+  isReady(format: AdFormat): boolean;
+  isCached(format: AdFormat): boolean;
   showBanner(placement?: string): Promise<void>;
+  init(config: AdsProviderConfig): Promise<void>;
+  showAppOpen(placement?: string): Promise<AdShowResult>;
   showRewarded(placement?: string): Promise<AdShowResult>;
   showInterstitial(placement?: string): Promise<AdShowResult>;
 }
+
+export interface AdsRemoteConfig {
+  bannerEnabled: boolean;
+  rewardEnabled: boolean;
+  appOpenEnabled: boolean;
+  cooldowns: {
+    app_open: number;
+    rewarded: number;
+    interstitial: number;
+  };
+  interstitialEnabled: boolean;
+  placements: Record<string, AdFormat>;
+  rewards: Record<string, AdReward>;
+}
+
+export const DEFAULT_REMOTE_CONFIG: AdsRemoteConfig = {
+  cooldowns: {
+    app_open: 0,
+    rewarded: 30,
+    interstitial: 90,
+  },
+  bannerEnabled: true,
+  rewardEnabled: true,
+  appOpenEnabled: false,
+  interstitialEnabled: true,
+  placements: {
+    HOME: 'banner',
+    SHOP: 'banner',
+    APP_START: 'app_open',
+    LEADERBOARD: 'banner',
+    EXTRA_LIFE: 'rewarded',
+    DOUBLE_COIN: 'rewarded',
+    GAME_OVER: 'interstitial',
+  },
+  rewards: {
+    DOUBLE_COIN: { type: 'coins', amount: 100 },
+    EXTRA_LIFE: { type: 'extra_life', amount: 1 },
+  },
+};
+
+export const BANNER_ALLOWED_PLACEMENTS = new Set(['HOME', 'LEADERBOARD', 'SHOP', 'GAME_OVER']);
+
+export const BANNER_BLOCKED_CONTEXTS = new Set(['GAMEPLAY', 'CUTSCENE', 'COMBAT']);
+
+export const AD_ANALYTICS_EVENTS = {
+  CLOSED: 'ads_closed',
+  FAILED: 'ads_failed',
+  LOADED: 'ads_loaded',
+  OPENED: 'ads_opened',
+  CLICKED: 'ads_clicked',
+  CACHE_HIT: 'ad_cache_hit',
+  CACHE_MISS: 'ad_cache_miss',
+  IMPRESSION: 'ads_impression',
+  BANNER_HIDDEN: 'banner_hidden',
+  BANNER_LOADED: 'banner_loaded',
+  ONLINE_RESTORE: 'online_restore',
+  REWARD_EARNED: 'ads_reward_earned',
+  REWARD_CLAIMED: 'ads_reward_claimed',
+  OFFLINE_ATTEMPT: 'offline_ads_attempt',
+  OFFLINE_REWARD_BLOCKED: 'offline_reward_blocked',
+} as const;

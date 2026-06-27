@@ -18,17 +18,34 @@ export class SaveService {
       timestamp: Date.now(),
       state: this.extractSaveableState(),
     };
-    await storage.save(SAVE_KEY, data, 'indexedDB');
+    await storage.save(SAVE_KEY, data, storage.getDurableProviderType());
     logger.debug('[Save] Local save complete');
   }
 
   async loadLocal(): Promise<boolean> {
-    const data = await storage.load<SaveData>(SAVE_KEY, 'indexedDB');
+    const durable = storage.getDurableProviderType();
+    let data = await storage.load<SaveData>(SAVE_KEY, durable);
+
+    if (!data?.state && durable === 'preferences') {
+      data = await this.migrateFromIndexedDb();
+    }
+
     if (!data?.state) return false;
 
     usePlatformStore.getState().hydrate(data.state);
     logger.info('[Save] Local save loaded');
     return true;
+  }
+
+  /** One-time migration for installs that saved to WebView IndexedDB before native Preferences. */
+  private async migrateFromIndexedDb(): Promise<SaveData | null> {
+    const legacy = await storage.load<SaveData>(SAVE_KEY, 'indexedDB');
+    if (!legacy?.state) return null;
+
+    await storage.save(SAVE_KEY, legacy, 'preferences');
+    await storage.remove(SAVE_KEY, 'indexedDB');
+    logger.info('[Save] Migrated save from IndexedDB to Preferences');
+    return legacy;
   }
 
   private extractSaveableState(): Partial<PlatformState> {

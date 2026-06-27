@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
-import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
-import { getLeaderboardDisplayName } from '@platform/modules/leaderboard';
 import type { UIButton } from '@platform/ui/types';
+import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { getLeaderboardDisplayName } from '@platform/modules/leaderboard';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import type { LeaderboardEntry, LeaderboardView } from '@platform/modules/leaderboard';
 
 const MAX_ROWS = 7;
@@ -18,19 +18,19 @@ const AUTO_REFRESH_MS = 30_000;
  * It never touches the API or the store directly.
  */
 export class LeaderboardPanel extends Phaser.GameObjects.Container {
-  private refreshButton!: UIButton;
+  private currentPage = 1;
   private retryButton!: UIButton;
+  private refreshButton!: UIButton;
   private prevPageButton!: UIButton;
   private nextPageButton!: UIButton;
-  private statusText!: Phaser.GameObjects.Text;
-  private rankText!: Phaser.GameObjects.Text;
-  private updatedText!: Phaser.GameObjects.Text;
   private pageText!: Phaser.GameObjects.Text;
-  private listContainer!: Phaser.GameObjects.Container;
-  private skeletonContainer!: Phaser.GameObjects.Container;
+  private rankText!: Phaser.GameObjects.Text;
+  private statusText!: Phaser.GameObjects.Text;
+  private updatedText!: Phaser.GameObjects.Text;
   private unsubscribers: Array<() => void> = [];
   private autoRefreshTimer?: Phaser.Time.TimerEvent;
-  private currentPage = 1;
+  private listContainer!: Phaser.GameObjects.Container;
+  private skeletonContainer!: Phaser.GameObjects.Container;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);

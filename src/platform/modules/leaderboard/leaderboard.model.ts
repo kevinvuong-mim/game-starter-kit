@@ -1,10 +1,8 @@
 /**
  * Leaderboard model (`documents/game.md` §7).
  *
- * The backend exposes a global all-time leaderboard per `gameId`.
+ * The backend exposes an all-time leaderboard per `gameId` via `GET /leaderboards`.
  */
-
-export type LeaderboardBoard = 'global';
 
 export type LeaderboardStatus = 'idle' | 'loading' | 'refreshing' | 'ready' | 'error';
 
@@ -14,7 +12,7 @@ export const LEADERBOARD_CACHE_TTL_MS = 60_000;
 /** Max entries the backend returns (`limit` is capped at 100). */
 export const LEADERBOARD_LIMIT = 100;
 
-/** Storage key prefix for the per-board offline cache. */
+/** Storage key prefix for the per-page offline cache. */
 export const LEADERBOARD_CACHE_PREFIX = 'leaderboard:cache:';
 
 /** A single ranked entry as returned by the backend. */
@@ -39,9 +37,8 @@ export interface LeaderboardPagination {
   totalPages: number;
 }
 
-/** Persisted cache entry for one board + page. */
+/** Persisted cache entry for one page. */
 export interface LeaderboardCache {
-  board: LeaderboardBoard;
   page: number;
   data: LeaderboardData;
   updatedAt: number;
@@ -49,7 +46,6 @@ export interface LeaderboardCache {
 
 /** Immutable view-model handed to the UI layer. */
 export interface LeaderboardView {
-  board: LeaderboardBoard;
   status: LeaderboardStatus;
   entries: LeaderboardEntry[];
   myRank: number | null;
@@ -65,9 +61,8 @@ export function createInitialPagination(page = 1): LeaderboardPagination {
   return { page, limit: LEADERBOARD_LIMIT, total: 0, totalPages: 0 };
 }
 
-export function createInitialView(board: LeaderboardBoard): LeaderboardView {
+export function createInitialView(): LeaderboardView {
   return {
-    board,
     status: 'idle',
     entries: [],
     myRank: null,

@@ -2,18 +2,18 @@ import type { RewardDayProgress } from './daily-reward.model';
 
 export interface CycleRewardDefinition {
   day: number;
-  type: 'coins' | 'random' | 'chest';
   coins?: number;
   itemId?: string;
   itemQuantity?: number;
+  type: 'coins' | 'random' | 'chest';
 }
 
 export interface ResolvedReward {
   day: number;
-  type: 'coins' | 'chest';
   coins?: number;
   itemId?: string;
   itemQuantity?: number;
+  type: 'coins' | 'chest';
 }
 
 const RANDOM_COIN_MIN = 150;
@@ -50,16 +50,16 @@ export class RewardResolver {
 
     if (definition.type === 'chest') {
       return {
-        day: definition.day,
         type: 'chest',
+        day: definition.day,
         itemId: definition.itemId,
         itemQuantity: definition.itemQuantity ?? 1,
       };
     }
 
     return {
-      day: definition.day,
       type: 'coins',
+      day: definition.day,
       coins: definition.coins ?? 0,
     };
   }
@@ -100,9 +100,9 @@ export class RewardResolver {
       return {
         day: entry.day,
         status,
+        coins: preview.coins,
         rewardType: preview.type,
         rewardLabel: preview.label,
-        coins: preview.coins,
       };
     });
   }

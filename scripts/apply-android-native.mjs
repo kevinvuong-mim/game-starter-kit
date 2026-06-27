@@ -1,9 +1,29 @@
-import { copyFileSync, existsSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+function loadEnvFile(name) {
+  const envPath = join(root, name);
+  if (!existsSync(envPath)) return;
+  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+// process.env is not auto-populated from .env files for plain node scripts.
+loadEnvFile('.env');
+
 const template = join(root, 'native/android/MainActivity.java');
+const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
+const admobSnippet = join(root, 'native/android/admob-manifest-snippet.xml');
 const target = join(
   root,
   'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java',
@@ -21,3 +41,24 @@ if (!existsSync(target)) {
 
 copyFileSync(template, target);
 console.log('[android-native] Applied fullscreen MainActivity');
+
+const admobAppId = process.env.VITE_ADMOB_ANDROID_APP_ID;
+if (admobAppId && existsSync(manifestPath) && existsSync(admobSnippet)) {
+  let manifest = readFileSync(manifestPath, 'utf8');
+  const metaTag = 'com.google.android.gms.ads.APPLICATION_ID';
+
+  if (!manifest.includes(metaTag)) {
+    const snippet = readFileSync(admobSnippet, 'utf8').replace('${ADMOB_ANDROID_APP_ID}', admobAppId);
+    const valueMatch = snippet.match(/android:value="([^"]+)"/);
+    const value = valueMatch?.[1] ?? admobAppId;
+
+    manifest = manifest.replace(
+      '</application>',
+      `    <meta-data android:name="${metaTag}" android:value="${value}" />\n  </application>`,
+    );
+    writeFileSync(manifestPath, manifest);
+    console.log('[android-native] Injected AdMob APPLICATION_ID into AndroidManifest.xml');
+  }
+} else if (!admobAppId) {
+  console.warn('[android-native] VITE_ADMOB_ANDROID_APP_ID not set — skip AdMob manifest injection');
+}

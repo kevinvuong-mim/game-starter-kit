@@ -44,10 +44,6 @@ export default tseslint.config(
               message: 'Use @game/utils for game utilities',
             },
             {
-              name: '@platform/core/iap',
-              message: 'Use eventBus or @platform/ui for IAP',
-            },
-            {
               name: '@platform/core/error',
               message: 'Use eventBus.emit("error:report", ...) instead',
             },

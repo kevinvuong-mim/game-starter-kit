@@ -13,6 +13,5 @@ export { HowToPlayPanel } from './how-to-play/HowToPlayPanel';
 export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { DailyRewardPopup } from './daily-reward/DailyRewardPopup';
-export { SignInSettingsPanel } from './settings/SignInSettingsPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';

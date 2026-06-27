@@ -94,7 +94,7 @@ export class ShopPanel extends Phaser.GameObjects.Container {
     });
     container.add(descText);
 
-    if (!owned || item.type === 'boost' || item.type === 'currency') {
+    if (!owned || item.type === 'boost') {
       const buyBtn = this.scene.add.rectangle(220, 0, 100, 40, 0x4a90d9);
       buyBtn.setStrokeStyle(1, 0xffffff);
       buyBtn.setInteractive({ useHandCursor: true });

@@ -18,7 +18,7 @@
     "allowImportingTsExtensions": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["DOM", "ES2022", "DOM.Iterable"],
     "paths": {
       "@game/*": ["src/game/*"],
       "@platform/ui/*": ["src/platform/ui/*"],

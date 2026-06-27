@@ -1,2 +1,4 @@
-export { ads, AdsService, MockAdsProvider } from './AdsService';
-export type { AdType, AdReward, IAdsProvider, AdShowResult } from './types';
+export * from './types';
+export { ads, AdsService } from './AdsService';
+export { AdStateMachine, BannerStateMachine } from './AdStateMachine';
+export { createAdsProvider, MockAdsProvider, AdMobAdsProvider } from './providers';

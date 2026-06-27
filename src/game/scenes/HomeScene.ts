@@ -19,7 +19,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.6 },
+      position: { x: width / 2, y: height * 0.5 },
       size: { width: 256, height: 78 },
       background: { key: 'play-button-background' },
       icon: {
@@ -37,7 +37,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.67 },
+      position: { x: width / 2, y: height * 0.57 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -49,7 +49,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.74 },
+      position: { x: width / 2, y: height * 0.64 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -61,7 +61,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.81 },
+      position: { x: width / 2, y: height * 0.71 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -73,7 +73,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.88 },
+      position: { x: width / 2, y: height * 0.78 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -85,7 +85,7 @@ export class HomeScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.95 },
+      position: { x: width / 2, y: height * 0.85 },
       size: { width: 256, height: 78 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
@@ -97,7 +97,7 @@ export class HomeScene extends Phaser.Scene {
 
     // createUIButton({
     //   scene: this,
-    //   position: { x: width / 2, y: height * 0.95 },
+    //   position: { x: width / 2, y: height * 0.85 },
     //   size: { width: 256, height: 78 },
     //   background: { key: UIButtonBackgroundKey.Rounded },
     //   text: {

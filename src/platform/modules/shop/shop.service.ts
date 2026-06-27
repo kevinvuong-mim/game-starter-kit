@@ -1,10 +1,11 @@
 import catalog from './catalog.json';
-import { iap } from '@platform/core/iap';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
+import { iap, getProductByKey } from '@platform/modules/iap';
+import type { ProductKey } from '@platform/modules/iap';
 
-export type ShopItemType = 'skin' | 'boost' | 'currency';
+export type ShopItemType = 'skin' | 'boost' | 'entitlement';
 
 export interface ShopItem {
   id: string;
@@ -14,9 +15,8 @@ export interface ShopItem {
   duration?: number;
   type: ShopItemType;
   description: string;
-  iapProductId?: string;
+  productKey?: ProductKey;
   currency: 'iap' | 'coins';
-  reward?: { coins?: number };
 }
 
 export class ShopService {
@@ -32,6 +32,14 @@ export class ShopService {
   }
 
   isOwned(id: string): boolean {
+    const item = this.getItem(id);
+    if (!item) return false;
+
+    if (item.type === 'entitlement' && item.productKey) {
+      const product = getProductByKey(item.productKey);
+      return iap.has(product.entitlement);
+    }
+
     return !!usePlatformStore.getState().inventory.items[id];
   }
 
@@ -42,25 +50,28 @@ export class ShopService {
       return false;
     }
 
-    const store = usePlatformStore.getState();
-
     if (item.type === 'skin' && this.isOwned(itemId)) {
       return false;
     }
 
-    if (item.currency === 'iap' && item.iapProductId) {
-      try {
-        const purchase = await iap.purchase(item.iapProductId);
-        this.grantItem(item);
+    if (item.type === 'entitlement' && item.productKey) {
+      if (this.isOwned(itemId)) return false;
+
+      const product = getProductByKey(item.productKey);
+      const result = await iap.purchase(product);
+
+      if (result.success) {
         eventBus.emit('shop:purchase', { itemId, price: item.price });
-        eventBus.emit('iap:purchase', { productId: purchase.productId });
         return true;
-      } catch (e) {
-        logger.error('[Shop] IAP purchase failed', e);
-        return false;
       }
+
+      if (!result.cancelled) {
+        logger.error('[Shop] IAP purchase failed', result.error);
+      }
+      return false;
     }
 
+    const store = usePlatformStore.getState();
     const spent = item.currency === 'coins' ? store.spendCoins(item.price) : false;
 
     if (!spent) return false;
@@ -71,19 +82,8 @@ export class ShopService {
   }
 
   async restore(): Promise<number> {
-    const purchases = await iap.restore();
-    let restored = 0;
-
-    for (const purchase of purchases) {
-      const item = this.items.find((i) => i.iapProductId === purchase.productId);
-      if (item) {
-        this.grantItem(item);
-        restored++;
-      }
-    }
-
-    eventBus.emit('shop:restore', undefined);
-    return restored;
+    const result = await iap.restore();
+    return result.restoredEntitlements.length;
   }
 
   private grantItem(item: ShopItem): void {
@@ -92,8 +92,6 @@ export class ShopService {
     if (item.type === 'skin' || item.type === 'boost') {
       store.addItem(item.id);
     }
-
-    if (item.reward?.coins) store.addCoins(item.reward.coins);
   }
 }
 
