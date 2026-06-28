@@ -19,7 +19,6 @@ export class GameEngine {
     setConfig(
       createConfig({
         gameId: gameConfig.id,
-        maxScore: gameConfig.maxScore,
         replaySecret: gameConfig.replaySecret,
       })
     );

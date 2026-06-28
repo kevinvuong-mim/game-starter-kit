@@ -1,7 +1,6 @@
 import {
   type SyncResponse,
   PENDING_RESULTS_KEY,
-  MAX_PENDING_AGE_DAYS,
   MAX_PENDING_RESULTS,
   type GameResultPayload,
   type PendingGameResult,
@@ -61,19 +60,18 @@ export class GameSyncRepository {
     await Preferences.remove({ key: PENDING_RESULTS_KEY });
   }
 
-  /** Uploads a batch of results for a single game. Guest auth via Bearer token. */
-  async sync(gameId: string, results: GameResultPayload[]): Promise<SyncResponse> {
+  /** Uploads a batch of results for a single game. Guest identity is sent in the body. */
+  async sync(gameId: string, guestId: string, results: GameResultPayload[]): Promise<SyncResponse> {
     const envelope = await apiClient.post<ApiEnvelope<SyncResponse>>(
       `/games/${encodeURIComponent(gameId)}/results`,
-      { results }
+      { guestId, results },
+      { auth: false }
     );
     return envelope.data;
   }
 
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {
-    const cutoff = Date.now() - MAX_PENDING_AGE_DAYS * 24 * 60 * 60 * 1000;
-    const fresh = queue.filter((item) => Date.parse(item.playedAt) >= cutoff);
-    return fresh.slice(-MAX_PENDING_RESULTS);
+    return queue.slice(-MAX_PENDING_RESULTS);
   }
 }
 

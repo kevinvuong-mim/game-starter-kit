@@ -19,8 +19,7 @@ Leaderboard module đọc all-time leaderboard từ `api-starter-kit`, cache the
 Endpoint:
 
 ```http
-GET /leaderboards?gameId={gameId}&page={page}&limit=100
-Authorization: Bearer <sessionToken> optional
+GET /leaderboards?gameId={gameId}&page={page}&limit=100&guestId={guestId}
 ```
 
 `gameId` comes from runtime config, which is set from `src/game/config.ts`.

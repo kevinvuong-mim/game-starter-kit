@@ -11,7 +11,6 @@ export const gameConfig = {
   version: '1.0.0',
   id: 'puzzle-quest',
   name: 'Game Starter Kit',
-  maxScore: 50000,
   replaySecret: 'puzzle-quest-dev-secret',
 };
 ```
@@ -27,21 +26,20 @@ export const gameConfig = {
 | `version` | string | Version game |
 | `width` | number | Phaser game width |
 | `height` | number | Phaser game height |
-| `maxScore` | number | Giới hạn score local; phải khớp backend `games.config.maxScore` |
 | `replaySecret` | string | Secret HMAC tạo `replayHash`; phải khớp backend `games.config.replaySecret` |
 
 ---
 
 ## Backend Contract
 
-`id`, `maxScore`, và `replaySecret` phải khớp row trong bảng `games` của `api-starter-kit`.
+`id` và `replaySecret` phải khớp row trong bảng `games` của `api-starter-kit`.
 
 Ví dụ seed dev hiện tại:
 
-| Game ID | maxScore | replaySecret |
-| ------- | -------- | ------------ |
-| `puzzle-quest` | `50000` | `puzzle-quest-dev-secret` |
-| `arcade-rush` | `100000` | `arcade-rush-dev-secret` |
+| Game ID | replaySecret |
+| ------- | ------------ |
+| `puzzle-quest` | `puzzle-quest-dev-secret` |
+| `arcade-rush` | `arcade-rush-dev-secret` |
 
 Nếu `gameConfig.id` không tồn tại trên backend:
 

@@ -4,7 +4,7 @@
 
 Tài liệu này mô tả các biến môi trường runtime của `game-starter-kit`. Vì project dùng Vite, các biến đọc trong client phải có prefix `VITE_`.
 
-Game identity (`gameId`, `maxScore`, `replaySecret`, size, version) nằm trong `src/game/config.ts`, không lấy từ `.env`.
+Game identity (`gameId`, `replaySecret`, size, version) nằm trong `src/game/config.ts`, không lấy từ `.env`.
 
 ---
 

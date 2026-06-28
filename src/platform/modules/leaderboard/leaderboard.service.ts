@@ -101,34 +101,18 @@ export class LeaderboardService {
       const data = await this.repository.fetch({
         gameId,
         page: this.currentPage,
+        guestId,
       });
       return this.applySuccess(data, guestId);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        const retried = await this.retryAfterGuestReset(gameId);
-        if (retried) return retried;
-      }
-
       if (error instanceof ApiError && error.status === 404) {
-        logger.error('[Leaderboard] Game not found on backend — check gameId config', error);
+        logger.error(
+          '[Leaderboard] Game or guest not found on backend — check identity/config',
+          error
+        );
       }
 
       return this.applyFailure(error);
-    }
-  }
-
-  /** Recover from auth failure by re-creating the guest once. */
-  private async retryAfterGuestReset(gameId: string): Promise<LeaderboardView | null> {
-    try {
-      const guestId = await this.guestService.reinit();
-      const data = await this.repository.fetch({
-        gameId,
-        page: this.currentPage,
-      });
-      return this.applySuccess(data, guestId);
-    } catch (error) {
-      logger.warn('[Leaderboard] Retry after guest reset failed', error);
-      return null;
     }
   }
 

@@ -101,7 +101,6 @@ Hash phải match backend `api-starter-kit` implementation.
 Before queueing:
 
 - Score được normalize về non-negative integer.
-- Nếu `score > maxScore`, item bị reject local và emit `game:sync:rejected`.
 - `playedAt` default là `new Date().toISOString()`.
 
 Before upload, metadata được sanitize để khớp backend:
@@ -144,7 +143,6 @@ Endpoint:
 
 ```http
 POST /games/:gameId/results
-Authorization: Bearer <sessionToken>
 Content-Type: application/json
 ```
 
@@ -152,6 +150,7 @@ Body:
 
 ```json
 {
+  "guestId": "550e8400-e29b-41d4-a716-446655440000",
   "results": [
     {
       "score": 1500,
@@ -194,11 +193,8 @@ Permanent rejection reasons:
 - `INVALID_REPLAY_HASH_FORMAT`
 - `INVALID_REPLAY_SIGNATURE`
 - `MISSING_RUN_SEED`
-- `SCORE_EXCEEDS_MAX`
 - `SCORE_MISMATCH`
 - `INVALID_PLAYED_AT`
-- `PLAYED_AT_IN_FUTURE`
-- `PLAYED_AT_TOO_OLD`
 
 Permanent rejected results are pruned from queue after emitting `game:sync:rejected`.
 

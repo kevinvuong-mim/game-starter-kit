@@ -6,24 +6,18 @@ function extractString(source, key) {
   return match?.[1];
 }
 
-function extractNumber(source, key) {
-  const match = new RegExp(`${key}:\\s*(\\d+)`).exec(source);
-  return match ? Number(match[1]) : undefined;
-}
-
 function readGameConfig() {
   const configPath = resolve(process.cwd(), 'src/game/config.ts');
   const source = readFileSync(configPath, 'utf8');
   const id = extractString(source, 'id');
   const name = extractString(source, 'name');
   const replaySecret = extractString(source, 'replaySecret');
-  const maxScore = extractNumber(source, 'maxScore');
 
-  if (!id || !name || !replaySecret || !maxScore) {
-    throw new Error('src/game/config.ts must define id, name, maxScore, and replaySecret.');
+  if (!id || !name || !replaySecret) {
+    throw new Error('src/game/config.ts must define id, name, and replaySecret.');
   }
 
-  return { id, name, maxScore, replaySecret };
+  return { id, name, replaySecret };
 }
 
 async function verifyApiGame(apiUrl, gameId) {

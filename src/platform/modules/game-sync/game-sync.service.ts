@@ -46,7 +46,7 @@ export class GameSyncService {
 
   /** Persists a finished match to the local queue (always succeeds offline). */
   async recordResult(params: RecordResultParams): Promise<void> {
-    const { gameId, maxScore, replaySecret } = getConfig();
+    const { gameId, replaySecret } = getConfig();
     const score = toNonNegativeInt(params.score);
     const runSeed = params.runSeed ?? generateRunSeed();
     const playedAt = params.playedAt ?? new Date().toISOString();
@@ -57,19 +57,6 @@ export class GameSyncService {
       runSeed,
       replaySecret,
     });
-
-    if (score > maxScore) {
-      logger.warn('[GameSync] Result rejected locally: score exceeds maxScore', {
-        score,
-        maxScore,
-        gameId,
-      });
-      eventBus.emit('game:sync:rejected', {
-        gameId,
-        items: [{ score, replayHash, reason: 'SCORE_EXCEEDS_MAX' }],
-      });
-      return;
-    }
 
     const result: PendingGameResult = {
       localId: generateId('result'),
@@ -108,17 +95,13 @@ export class GameSyncService {
 
     this.flushing = true;
     try {
-      await this.flushForGuest(gameId, guestId, true);
+      await this.flushForGuest(gameId, guestId);
     } finally {
       this.flushing = false;
     }
   }
 
-  private async flushForGuest(
-    gameId: string,
-    guestId: string,
-    allowAuthRetry: boolean
-  ): Promise<void> {
+  private async flushForGuest(gameId: string, guestId: string): Promise<void> {
     let queue = await this.repository.loadQueue();
     const now = Date.now();
     const pending = queue.filter(
@@ -142,6 +125,7 @@ export class GameSyncService {
       try {
         const response = await this.repository.sync(
           gameId,
+          guestId,
           batch.map(({ score, replayHash, playedAt, runSeed, metadata }) => ({
             score,
             replayHash,
@@ -175,14 +159,7 @@ export class GameSyncService {
           });
         }
       } catch (error) {
-        if (allowAuthRetry && (await this.handleGuestAuthError(error))) {
-          const newGuestId = await this.guestService.ensureGuestId();
-          if (newGuestId) {
-            await this.flushForGuest(gameId, newGuestId, false);
-          }
-          return;
-        }
-
+        this.logExpectedApiErrors(error);
         queue = this.incrementAttempts(queue, batch, gameId, error);
         await this.repository.saveQueue(queue);
         logger.warn('[GameSync] Batch sync failed, will retry later', error);
@@ -195,18 +172,13 @@ export class GameSyncService {
     }
   }
 
-  private async handleGuestAuthError(error: unknown): Promise<boolean> {
-    if (error instanceof ApiError && error.status === 401) {
-      logger.warn('[GameSync] Guest auth failed — reinitializing identity');
-      await this.guestService.reinit();
-      return true;
-    }
-
+  private logExpectedApiErrors(error: unknown): void {
     if (error instanceof ApiError && error.status === 404) {
-      logger.error('[GameSync] Game not found on backend — check gameId config', error);
+      logger.error(
+        '[GameSync] Game or guest not found on backend — check local identity/config',
+        error
+      );
     }
-
-    return false;
   }
 
   private applyBatchSyncResults(

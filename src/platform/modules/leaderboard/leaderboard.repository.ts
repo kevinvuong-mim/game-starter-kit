@@ -13,6 +13,7 @@ import type { ApiEnvelope } from '@platform/core/api';
 export interface FetchLeaderboardParams {
   page?: number;
   gameId: string;
+  guestId?: string | null;
   limit?: number;
 }
 
@@ -23,7 +24,7 @@ export interface FetchLeaderboardParams {
 export class LeaderboardRepository {
   private readonly timeoutMs = 10_000;
 
-  /** Fetches one page. Guest identity is sent via Bearer token when available. */
+  /** Fetches one page. Guest identity is sent as a public query param when available. */
   async fetch(params: FetchLeaderboardParams): Promise<LeaderboardData> {
     const page = params.page ?? 1;
     const limit = params.limit ?? LEADERBOARD_LIMIT;
@@ -33,10 +34,13 @@ export class LeaderboardRepository {
       limit: String(limit),
       gameId: params.gameId,
     });
+    if (params.guestId) {
+      query.set('guestId', params.guestId);
+    }
 
     const envelope = await apiClient.get<ApiEnvelope<LeaderboardData>>(
       `/leaderboards?${query.toString()}`,
-      { timeout: this.timeoutMs }
+      { timeout: this.timeoutMs, auth: false }
     );
 
     return this.normalize(envelope.data, page, limit);

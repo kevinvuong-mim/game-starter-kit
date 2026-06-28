@@ -16,7 +16,6 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
-  maxScore: number;
   replaySecret: string;
   adsEnabled: boolean;
   iapEnabled: boolean;
@@ -189,7 +188,6 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
     apiUrl: import.meta.env.VITE_API_URL ?? base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: 'puzzle-quest',
-    maxScore: 50000,
     replaySecret: 'puzzle-quest-dev-secret',
     firebase: resolveFirebaseConfig(),
     adsEnabled: base.adsEnabled ?? false,

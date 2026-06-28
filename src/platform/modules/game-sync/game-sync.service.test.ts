@@ -13,11 +13,10 @@ describe('GameSyncService', () => {
     setConfig(createConfig());
   });
 
-  it('rejects scores above runtime maxScore before writing to the offline queue', async () => {
+  it('queues valid results locally before syncing', async () => {
     setConfig(
       createConfig({
         gameId: 'puzzle-quest',
-        maxScore: 100,
         replaySecret: 'puzzle-quest-dev-secret',
       })
     );
@@ -32,22 +31,19 @@ describe('GameSyncService', () => {
       ensureGuestId: vi.fn(),
       reinit: vi.fn(),
     };
-    const rejected = vi.fn();
-    eventBus.on('game:sync:rejected', rejected);
 
     const service = new GameSyncService(repository, guestService as never);
     await service.recordResult({ score: 101, runSeed: 'run-1' });
 
-    expect(repository.loadQueue).not.toHaveBeenCalled();
-    expect(repository.saveQueue).not.toHaveBeenCalled();
-    expect(rejected).toHaveBeenCalledWith({
-      gameId: 'puzzle-quest',
-      items: [
-        expect.objectContaining({
-          score: 101,
-          reason: 'SCORE_EXCEEDS_MAX',
-        }),
-      ],
-    });
+    expect(repository.loadQueue).toHaveBeenCalledOnce();
+    expect(repository.saveQueue).toHaveBeenCalledOnce();
+    expect(repository.saveQueue).toHaveBeenCalledWith([
+      expect.objectContaining({
+        gameId: 'puzzle-quest',
+        score: 101,
+        runSeed: 'run-1',
+        synced: false,
+      }),
+    ]);
   });
 });
