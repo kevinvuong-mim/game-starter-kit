@@ -71,16 +71,6 @@ export class GuestRepository {
     return payload;
   }
 
-  /** Calls `GET /guest/me` — guest is identified by public guestId. */
-  async getProfile(guestId: string): Promise<GuestProfilePayload> {
-    const query = new URLSearchParams({ guestId });
-    const envelope = await apiClient.get<ApiEnvelope<GuestProfilePayload>>(
-      `/guest/me?${query.toString()}`,
-      { auth: false }
-    );
-    return envelope.data;
-  }
-
   /** Calls `PATCH /guest/name` — guest is identified by public guestId. */
   async updateName(guestId: string, name: string): Promise<GuestProfilePayload> {
     const envelope = await apiClient.patch<ApiEnvelope<GuestProfilePayload>>(
