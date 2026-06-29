@@ -1,10 +1,6 @@
-# BUILD_SPEC — game-starter-kit
+# BUILD SPEC — game-starter-kit
 
-> **Mục đích:** Tài liệu này mô tả đầy đủ repo `game-starter-kit` để một AI agent khác có thể tái tạo repo **giống hệt** mà không cần đọc source gốc. Đọc toàn bộ spec trước khi bắt đầu; tuân thủ thứ tự build ở cuối file.
-
----
-
-## 1. Tổng quan
+## 0. Tổng quan
 
 **game-starter-kit** là starter kit production-grade cho hyper-casual / casual mobile games. Mô hình **clone-per-game**: mỗi game = một repo riêng, clone từ kit này.
 
@@ -23,11 +19,11 @@
 
 **Node.js:** `>= 20`
 
-**Backend companion:** `api-starter-kit` — `gameId` và `replaySecret` trong `src/game/config.ts` phải khớp bảng `games` trên backend (mặc định: `puzzle-quest` / `puzzle-quest-dev-secret`).
+**Backend companion:** `game-api` — `gameId` và `replaySecret` trong `src/game/config.ts` phải khớp bảng `games` trên backend (mặc định: `puzzle-quest` / `puzzle-quest-dev-secret`).
 
 ---
 
-## 2. Kiến trúc 5 lớp
+## 1. Kiến trúc 5 lớp
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -64,12 +60,11 @@
 
 ---
 
-## 3. Cây thư mục đầy đủ
+## 2. Cây thư mục đầy đủ
 
 ```
 game-starter-kit/
 ├── .env.example
-├── .github/workflows/ci.yml
 ├── .gitignore
 ├── .prettierignore
 ├── .prettierrc
@@ -274,9 +269,9 @@ game-starter-kit/
 
 ---
 
-## 4. Root config files (tạo chính xác)
+## 3. Root config files (tạo chính xác)
 
-### 4.1 `package.json`
+### 3.1 `package.json`
 
 ```json
 {
@@ -339,7 +334,7 @@ game-starter-kit/
 }
 ```
 
-### 4.2 `tsconfig.json`
+### 3.2 `tsconfig.json`
 
 - `include`: `["src", "vite.config.ts"]`
 - `exclude`: `["dist", "node_modules"]`
@@ -351,14 +346,14 @@ game-starter-kit/
   - `@platform/modules/*` → `src/platform/modules/*`
   - `@platform/bootstrap/*` → `src/platform/bootstrap/*`
 
-### 4.3 `vite.config.ts`
+### 3.3 `vite.config.ts`
 
 - Server: `host: true`, `port: 5173`
 - Aliases (bare, không có `/*`): `@game`, `@platform/ui`, `@platform/core`, `@platform/modules`, `@platform/bootstrap` → tương ứng `src/...`
 - Build: `outDir: 'dist'`, `sourcemap: true`, `target: 'es2022'`, `chunkSizeWarningLimit: 1600`
 - `manualChunks`: phaser → `'phaser'`; zustand → `'vendor'`; i18n locales → `'locales'`
 
-### 4.4 `capacitor.config.ts`
+### 3.4 `capacitor.config.ts`
 
 ```typescript
 const config: CapacitorConfig = {
@@ -373,7 +368,7 @@ const config: CapacitorConfig = {
 };
 ```
 
-### 4.5 `eslint.config.js`
+### 3.5 `eslint.config.js`
 
 Flat config với `typescript-eslint`:
 - Extends: `eslint.configs.recommended`, `tseslint.configs.recommended`, `eslintConfigPrettier`
@@ -383,13 +378,13 @@ Flat config với `typescript-eslint`:
   - Pattern `@platform/modules/*`
   - Paths: `@platform/core/advertising`, `config`, `utils`, `error`, `state`, `storage`, `api`, `analytics` (với message hướng dẫn dùng eventBus)
 
-### 4.6 `.prettierrc`
+### 3.6 `.prettierrc`
 
 ```json
 { "semi": true, "tabWidth": 2, "printWidth": 100, "singleQuote": true, "trailingComma": "es5" }
 ```
 
-### 4.7 `.prettierignore`
+### 3.7 `.prettierignore`
 
 ```
 ios
@@ -399,7 +394,7 @@ android
 node_modules
 ```
 
-### 4.8 `.gitignore`
+### 3.8 `.gitignore`
 
 ```
 .env
@@ -418,7 +413,7 @@ test-results/
 playwright-report/
 ```
 
-### 4.9 `index.html`
+### 3.9 `index.html`
 
 - `lang="en"`, viewport `viewport-fit=cover`, `user-scalable=no`, `theme-color #1a1a2e`
 - Google Fonts: **Fredoka** (400;500;600;700) + **Nunito Sans** (400;500;600;700)
@@ -426,7 +421,7 @@ playwright-report/
 - `#game-container` 100%×100%
 - Entry: `<script type="module" src="/src/main.ts"></script>`
 
-### 4.10 `.env.example`
+### 3.10 `.env.example`
 
 ```bash
 VITE_APP_ENV=dev
@@ -456,30 +451,9 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID= ...
 ```
 
-### 4.11 `.github/workflows/ci.yml`
-
-```yaml
-name: Game CI
-on:
-  pull_request:
-  push:
-    branches: [main]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
-      - run: SKIP_API_CHECK=true npm run game:verify-config
-```
-
 ---
 
-## 5. Path aliases
+## 4. Path aliases
 
 | Alias (tsconfig `/*`) | Vite bare alias | Path |
 |-----------------------|-----------------|------|
@@ -491,9 +465,9 @@ jobs:
 
 ---
 
-## 6. Entry point & bootstrap flow
+## 5. Entry point & bootstrap flow
 
-### 6.1 `src/main.ts`
+### 5.1 `src/main.ts`
 
 ```typescript
 import { gameEngine } from '@platform/bootstrap/GameEngine';
@@ -509,7 +483,7 @@ async function main(): Promise<void> {
 main();
 ```
 
-### 6.2 `GameEngine.bootstrap()` sequence
+### 5.2 `GameEngine.bootstrap()` sequence
 
 1. `setupGlobalErrorHandlers()`
 2. `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`
@@ -522,7 +496,7 @@ main();
 
 **Phaser config:** `type: AUTO`, `parent: 'game-container'`, `width/height` từ `gameConfig`, `backgroundColor: '#1a1a2e'`, `fps.target: 60`, `scale.mode: ENVELOP`, `scale.autoCenter: CENTER_BOTH`, `render: { antialias: true, pixelArt: false, roundPixels: true }`, `banner: config.debug`.
 
-### 6.3 `App.init()` sequence
+### 5.3 `App.init()` sequence
 
 1. Ensure `user.id` in store (`generateId('user')`, displayName `'Player'`)
 2. `registerAnalyticsProviders()`
@@ -538,7 +512,7 @@ main();
 12. Push unsubscribers: `leaderboardController.bind`, `gameSyncController.bind`, `bindAdsController`, `bindIapController`, `missionController.bind`
 13. `bindLifecycle()` — web `visibilitychange`; native dùng Capacitor `appStateChange`
 
-### 6.4 Scene flow
+### 5.4 Scene flow
 
 ```
 Boot → Preload → Home
@@ -554,9 +528,9 @@ Boot → Preload → Home
 
 ---
 
-## 7. Game layer (`src/game/`)
+## 6. Game layer (`src/game/`)
 
-### 7.1 `config.ts`
+### 6.1 `config.ts`
 
 ```typescript
 export interface GameConfig {
@@ -578,11 +552,11 @@ export const gameConfig: GameConfig = {
 };
 ```
 
-### 7.2 `utils/ObjectPool.ts`
+### 6.2 `utils/ObjectPool.ts`
 
 Generic pool: `constructor(factory, reset, initialSize=10)`. Methods: `warm()`, `acquire()`, `release(item)`, `releaseAll()`. Getters: `activeCount`, `poolSize`.
 
-### 7.3 Scenes — hành vi mẫu
+### 6.3 Scenes — hành vi mẫu
 
 | Scene | Key | Hành vi |
 |-------|-----|---------|
@@ -602,9 +576,9 @@ Generic pool: `constructor(factory, reset, initialSize=10)`. Methods: `warm()`, 
 
 ---
 
-## 8. Platform Core (`src/platform/core/`)
+## 7. Platform Core (`src/platform/core/`)
 
-### 8.1 EventBus (`core/events/`)
+### 7.1 EventBus (`core/events/`)
 
 Singleton `eventBus`. Typed `PlatformEventMap`. Methods: `emit`, `on` (returns unsub), `off`, `once` (returns unsub), `clear`. `emit` wraps handlers in `Promise.resolve().catch(console.error)`; removes once-listeners after fire.
 
@@ -656,7 +630,7 @@ Singleton `eventBus`. Typed `PlatformEventMap`. Methods: `emit`, `on` (returns u
 
 `AnalyticsEvents` constants: `session_start`, `session_end`, `game_start`, `game_over`, `level_start`, `level_complete`, `purchase`, `ad_reward`, `shop_open`, `daily_claim`, `mission_complete`.
 
-### 8.2 State (`core/state/`) — Zustand vanilla, in-memory
+### 7.2 State (`core/state/`) — Zustand vanilla, in-memory
 
 `PlatformState` slices:
 - `user`: `{ id, createdAt, avatarUrl?, displayName, lastLoginAt }`
@@ -671,7 +645,7 @@ Actions: `setUser`, `addCoins`, `spendCoins`, `addItem`, `removeItem`, `equipIte
 
 Export: `usePlatformStore`, `getStoreState()`.
 
-### 8.3 Config (`core/config/index.ts`)
+### 7.3 Config (`core/config/index.ts`)
 
 `RuntimeConfig`: `{ ads, iap, apiUrl, debug, gameId, replaySecret, adsEnabled, iapEnabled, firebase, analyticsEnabled }`.
 
@@ -684,7 +658,7 @@ Export: `usePlatformStore`, `getStoreState()`.
 
 `createConfig(overrides?)`: merge env + overrides. `iapEnabled = VITE_IAP_ENABLED === 'true'`. `VITE_ADMOB_TESTING === 'true'` → Google test ad units. Module cache: `getConfig()`, `setConfig()`, `getEnvironment()`.
 
-### 8.4 API (`core/api/`)
+### 7.4 API (`core/api/`)
 
 `ApiClient` singleton `apiClient`:
 - Fetch-based, timeout 15s (AbortController), retries default 2, delay `1000 * (attempt+1)`, retryable `[429,500,502,503,504]`
@@ -693,15 +667,15 @@ Export: `usePlatformStore`, `getStoreState()`.
 
 `ApiEnvelope<T>`: `{ success, statusCode, message, data, path, timestamp }`. Helpers: `unwrapEnvelope`, `isApiErrorEnvelope`.
 
-### 8.5 Storage (`core/storage/`)
+### 7.5 Storage (`core/storage/`)
 
 `StorageService` singleton `storage`. Providers: `memory`, `indexedDB`, `preferences`, `localStorage`. Durable: native → `preferences`, web → `indexedDB`. Prefix `gsk:`. IndexedDB: DB `game-starter-kit`, store `kv`, version 1.
 
-### 8.6 Analytics (`core/analytics/`)
+### 7.6 Analytics (`core/analytics/`)
 
 `AnalyticsService` singleton `analytics`. Multi-provider. Console always allowed. `FirebaseAnalyticsProvider` lazy-loads firebase/app + firebase/analytics.
 
-### 8.7 Advertising (`core/advertising/`)
+### 7.7 Advertising (`core/advertising/`)
 
 `AdsService` singleton `ads`. State machines per format. `DEFAULT_REMOTE_CONFIG`:
 - Cooldowns: app_open 0, rewarded 30, interstitial 90
@@ -711,35 +685,35 @@ Export: `usePlatformStore`, `getStoreState()`.
 
 Providers: `MockAdsProvider`, `AdMobAdsProvider` (dynamic import `@capacitor-community/admob`). Factory `createAdsProvider(name)`.
 
-### 8.8 Error (`core/error/`)
+### 7.8 Error (`core/error/`)
 
 `Logger` singleton `logger` (minLevel production='warn', dev='debug'). `ErrorBoundary` singleton `errorBoundary`. `setupGlobalErrorHandlers()` for window error + unhandledrejection.
 
-### 8.9 Services locator (`core/services/`)
+### 7.9 Services locator (`core/services/`)
 
 ```typescript
 services = { ads, iap, storage, analytics, api: apiClient, events: eventBus, config: getConfig }
 refreshServicesFromConfig() // analytics/ads/iap enabled flags + api base URL
 ```
 
-### 8.10 Utils (`core/utils/`)
+### 7.10 Utils (`core/utils/`)
 
 `generateId(prefix='id')` → `${prefix}_${Date.now()}_${random}`. `formatNumber` (K/M). `time.ts`: `now()`, `getLocalDateKey(at)` → `YYYY-MM-DD`.
 
 ---
 
-## 9. Platform Modules (`src/platform/modules/`)
+## 8. Platform Modules (`src/platform/modules/`)
 
 **Convention:** mỗi module = service singleton + optional repository/controller/model + `index.ts` barrel.
 
-### 9.1 i18n
+### 8.1 i18n
 
 - `SUPPORTED_LANGUAGES = ['en', 'vi']`, fallback `'en'`
 - Lazy load locale JSON (separate Vite chunk `locales`)
 - `t(key, params?)` — dot-path + `{{param}}` interpolation
 - Persist language via storage key `settings:language`
 
-### 9.2 shop
+### 8.2 shop
 
 `catalog.json`:
 ```json
@@ -753,7 +727,7 @@ refreshServicesFromConfig() // analytics/ads/iap enabled flags + api base URL
 }
 ```
 
-### 9.3 missions
+### 8.3 missions
 
 `missions.json`:
 ```json
@@ -762,25 +736,25 @@ refreshServicesFromConfig() // analytics/ads/iap enabled flags + api base URL
 
 Tracker binds `ad:reward` → increment WATCH_AD. Controller binds tracker + `app:resume` → daily resets.
 
-### 9.4 leaderboard
+### 8.4 leaderboard
 
 - `GET /leaderboards?page&limit&gameId&guestId` (auth: false, timeout 10s)
 - Cache TTL 60s, limit 100, key `leaderboard:cache:{gameId}:p{page}`
 - Controller: `leaderboard:request/refresh/page`, `game:synced` → refresh
 
-### 9.5 daily-rewards
+### 8.5 daily-rewards
 
 7-day cycle rewards: days 1–3 (100,150,200 coins), day 4 random 150–350, day 5–6 (300,500), day 7 chest `rare_chest×1`. Version 2 model in Capacitor Preferences. Time manipulation detection (60s tolerance).
 
-### 9.6 save
+### 8.6 save
 
 Key `game-save`. `SaveData { version: 1, timestamp, state }`. Extracts: user, currency, inventory, progress, settings, missions, dailyRewards. Migrates IndexedDB → Preferences on native.
 
-### 9.7 guest
+### 8.7 guest
 
 Preferences keys: `game_guest_id`, `game_install_id`. `POST /guest/init` `{installId}` (auth: false). `PATCH /guest/name`. Lazy init — no network on boot.
 
-### 9.8 game-sync
+### 8.8 game-sync
 
 **Replay hash:** `HMAC-SHA256(replaySecret, "{gameId}|{score}|{runSeed}")` → lowercase hex via Web Crypto.
 
@@ -794,17 +768,17 @@ Backoff: base 30s, max 30min. Controller binds `game:over`, `app:resume`, `onlin
 
 **Tests:** `game-sync.model.test.ts` (replay vectors, sanitize, rejections), `game-sync.service.test.ts` (queue before sync).
 
-### 9.9 ads (module)
+### 8.9 ads (module)
 
 `AdsModuleService`: applies `DEFAULT_REMOTE_CONFIG`. `bindAdsController(events)`: `ad:reward:request`, `ad:show:request`, `ad:banner:hide`, `ad:context:change`.
 
-### 9.10 iap
+### 8.10 iap
 
 `PRODUCTS.REMOVE_ADS`: `{ id: 'remove_ads', type: 'non_consumable', entitlement: 'remove_ads' }`. Client-authoritative entitlements. Storage key `iap-entitlements`. Purchase timeout 60s. Adapters: `mock`, `revenuecat`. `bindIapController` syncs `ads.setAdsRemoved` on entitlement change.
 
 ---
 
-## 10. Platform UI (`src/platform/ui/`)
+## 9. Platform UI (`src/platform/ui/`)
 
 Export constants: `FREDOKA_FONT = '"Fredoka", sans-serif'`, `NUNITO_FONT = '"Nunito Sans", sans-serif'`.
 
@@ -826,7 +800,7 @@ Export constants: `FREDOKA_FONT = '"Fredoka", sans-serif'`, `NUNITO_FONT = '"Nun
 
 ---
 
-## 11. API Contracts (`contracts/`)
+## 10. API Contracts (`contracts/`)
 
 ### `game-platform.v1.json`
 ```json
@@ -859,7 +833,7 @@ Export constants: `FREDOKA_FONT = '"Fredoka", sans-serif'`, `NUNITO_FONT = '"Nun
 
 ---
 
-## 12. Scripts (`scripts/`)
+## 11. Scripts (`scripts/`)
 
 | Script | Chức năng |
 |--------|-----------|
@@ -870,7 +844,7 @@ Export constants: `FREDOKA_FONT = '"Fredoka", sans-serif'`, `NUNITO_FONT = '"Nun
 
 ---
 
-## 13. Native templates (`native/`)
+## 12. Native templates (`native/`)
 
 ### `android/MainActivity.java`
 - Package `com.studio.gamestarterkit`
@@ -894,7 +868,7 @@ Export constants: `FREDOKA_FONT = '"Fredoka", sans-serif'`, `NUNITO_FONT = '"Nun
 
 ---
 
-## 14. Static assets
+## 13. Static assets
 
 ### `public/assets/ui/` (load trong PreloadScene)
 - `home-screen-background.jpeg`
@@ -906,7 +880,7 @@ Source cho `capacitor-assets generate`.
 
 ---
 
-## 15. i18n locale keys (structure)
+## 14. i18n locale keys (structure)
 
 Cả `en.json` và `vi.json` phải có cùng key structure:
 
@@ -927,13 +901,13 @@ howToPlay.{title,content}
 
 ---
 
-## 16. `src/vite-env.d.ts`
+## 15. `src/vite-env.d.ts`
 
 Khai báo `ImportMetaEnv` với tất cả `VITE_*` vars (required + optional) như trong `.env.example`. Thêm `VITE_API_URL?: string`.
 
 ---
 
-## 17. Conventions & patterns
+## 16. Conventions & patterns
 
 | Pattern | Quy tắc |
 |---------|---------|
@@ -949,7 +923,7 @@ Khai báo `ImportMetaEnv` với tất cả `VITE_*` vars (required + optional) n
 
 ---
 
-## 18. Documentation files
+## 17. Documentation files
 
 Tạo các file sau (nội dung tham chiếu từ repo gốc hoặc tóm tắt từ spec này):
 
@@ -963,7 +937,7 @@ Tạo các file sau (nội dung tham chiếu từ repo gốc hoặc tóm tắt t
 
 ---
 
-## 19. Verification checklist
+## 18. Verification checklist
 
 Sau khi tái tạo repo, chạy tuần tự:
 
@@ -987,7 +961,7 @@ npm run dev           # http://localhost:5173 — Boot → Preload → Home
 
 ---
 
-## 20. Thứ tự build cho AI agent
+## 19. Thứ tự build cho AI agent
 
 1. **Scaffold root:** `package.json`, `tsconfig.json`, `vite.config.ts`, `capacitor.config.ts`, `eslint.config.js`, `.prettierrc`, `.prettierignore`, `.gitignore`, `index.html`, `.env.example`, `.github/workflows/ci.yml`
 2. **Contracts & scripts:** `contracts/*.json`, `scripts/*.mjs`, `native/**`
@@ -1005,7 +979,7 @@ npm run dev           # http://localhost:5173 — Boot → Preload → Home
 
 ---
 
-## 21. Backend integration summary
+## 20. Backend integration summary
 
 | Feature | Endpoint | Auth |
 |---------|----------|------|
