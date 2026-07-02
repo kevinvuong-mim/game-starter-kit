@@ -554,17 +554,63 @@ registerAnalyticsProviders()
 
 registerAdsProvider()
 
-Promise.all([
+Promise.allSettled([
   i18n.init(),
   ads.init(),
   guest.init(),     // đọc token từ storage hoặc gọi API tạo mới (chỉ 1 lần duy nhất)
   analytics.init(),
   leaderboard.init()
 ])
+// Dùng allSettled thay vì all: 1 service lỗi (đặc biệt guest.init() khi
+// offline lúc mở app lần đầu) không được phép chặn các service độc lập
+// khác (i18n, ads, analytics, leaderboard) — giữ đúng nguyên tắc Offline-first.
+// Log riêng từng promise bị reject ra error/logger, không throw tiếp.
 
 analyticsUserId =
 guest.getGuestId() ?? store.user.id
 
+registerIapProvider(analyticsUserId)
+...
+```
+
+### Xử lý lỗi `guest.init()` — degraded mode + auto-retry khi có mạng
+
+`guest.init()` **không bao giờ throw ra ngoài** — tự bắt lỗi bên trong và luôn
+resolve, để không chặn `App.init()`:
+
+```text
+guest.init():
+  try:
+    (đọc storage hoặc gọi POST /guest/init như mô tả ở Section 8)
+    → thành công: set guestStatus = 'ready'
+  catch (network/API lỗi):
+    → set guestStatus = 'pending' (không có guestId/secretToken)
+    → KHÔNG throw — resolve bình thường
+    → log error qua logger, KHÔNG hiện lỗi chặn màn hình chơi
+    → đăng ký lắng nghe @capacitor/network 'networkStatusChange'
+       → khi connected = true lần đầu tiên sau đó: tự gọi lại
+         guest.init() 1 lần trong nền (không chặn UI)
+       → nếu vẫn lỗi: giữ nguyên guestStatus = 'pending', chờ lần
+         networkStatusChange kế tiếp
+```
+
+Hệ quả khi `guestStatus = 'pending'`:
+
+```text
+- Gameplay, HUD, shop (currency local), missions, daily-rewards vẫn chạy
+  bình thường 100% offline (không phụ thuộc guestId).
+- game-sync: kết quả trận đấu vẫn được ghi vào local queue (game-sync)
+  như bình thường — CHỈ hoãn gọi POST /games/:gameId/results tới khi
+  guestStatus chuyển sang 'ready' (không mất dữ liệu, không lỗi giả).
+- leaderboard: hiển thị cache cục bộ (nếu có) hoặc trạng thái "chưa kết nối",
+  không crash UI.
+- analyticsUserId tạm dùng store.user.id; khi guest.init() thành công
+  muộn hơn (qua auto-retry), gọi lại analytics.setUserId(guestId mới)
+  để đồng bộ — chấp nhận đánh đổi: các event analytics phát trong lúc
+  'pending' được gắn với store.user.id, không hồi tố gán lại guestId.
+```
+
+```text
 registerIapProvider(analyticsUserId)
 
 iap.initialize()
@@ -905,6 +951,41 @@ retryable:
 504
 ```
 
+> **Ngoại lệ — `POST /api/guest/init` KHÔNG được auto-retry:**
+> Endpoint này không idempotent (mỗi lần gọi thành công = tạo 1 guest mới trên
+> server, không có idempotency key). Nếu response bị mất giữa đường (timeout,
+> 502/503/504) trong khi server đã tạo guest thành công, auto-retry sẽ tạo
+> thêm 1 guest thứ hai độc lập — guest đầu tiên trở thành zombie row vĩnh viễn.
+> `ApiClient` cần hỗ trợ cấu hình `retry: false` theo từng request, và
+> `guest.init()` phải luôn gọi với cờ này tắt retry tự động:
+>
+> ```ts
+> api.post('/guest/init', { gameId }, { retry: false });
+> ```
+>
+> Việc thử lại `guest.init()` sau khi thất bại được `guest` module tự quản lý
+> theo chiến lược riêng (xem Section 8 → Guest → "Xử lý lỗi `guest.init()`"),
+> không phải qua cơ chế retry chung của `ApiClient`.
+
+### Interceptor — phục hồi khi token hết hiệu lực (401)
+
+```text
+Response interceptor bắt lỗi 401 (áp dụng cho mọi request có Bearer token,
+trừ chính request POST /guest/init):
+
+1. Xoá gsk:guest khỏi storage (guestId + secretToken cũ không còn hợp lệ)
+2. Gọi lại guest.init() để tạo guest mới (không có "relink" — guest cũ mất luôn,
+   đúng triết lý "mỗi lần cài app = một guest mới" đã định nghĩa ở Section 8)
+3. Nếu guest.init() thành công → setAuthToken(token mới) → retry lại
+   đúng 1 lần request gốc đã bị 401 với token mới
+4. Nếu guest.init() cũng thất bại → propagate lỗi gốc lên caller,
+   không retry thêm (tránh vòng lặp vô hạn 401 → init → 401 → init...)
+
+Giới hạn: cơ chế này chỉ chạy tối đa 1 lần cho mỗi request gốc,
+đánh dấu bằng flag nội bộ trên request (ví dụ header _retried401 = true)
+để không lặp lại nếu guest mới vẫn tiếp tục bị 401.
+```
+
 Methods:
 
 ```text
@@ -1136,6 +1217,28 @@ MAX_SYNC_ATTEMPTS = 10
 MAX_PENDING_RESULTS = 500
 ```
 
+Chính sách khi vượt giới hạn:
+
+```text
+Vượt MAX_PENDING_RESULTS (500):
+→ Drop item CŨ NHẤT trong queue theo thứ tự tạo (FIFO eviction)
+  trước khi thêm item mới vào, để queue không bao giờ vượt 500.
+→ Lý do chọn drop-oldest: item mới luôn là kết quả trận gần nhất,
+  ưu tiên giữ lại dữ liệu gần với hiện tại hơn là dữ liệu cũ đã
+  tồn đọng lâu (khả năng cao đã retry nhiều lần mà vẫn fail).
+
+Item retry đủ MAX_SYNC_ATTEMPTS (10) lần vẫn fail:
+→ Bỏ hẳn item đó khỏi queue (không giữ lại chờ vô thời hạn).
+→ Emit event `game:sync:dropped` kèm { clientResultId, attempts }
+  để analytics/logger ghi nhận, tránh mất dấu hoàn toàn khi debug.
+→ Không tính vào lỗi chặn UI — người chơi không bị gián đoạn trải nghiệm.
+
+Lưu ý: mỗi lần retry gửi lại NGUYÊN VẸN cùng `clientResultId` đã tạo
+từ lần đầu (không tạo id mới mỗi lần retry) — nhờ backend dedup atomic
+theo (gameId, guestId, clientResultId), retry an toàn, không tạo duplicate
+result kể cả khi request trước đó thật ra đã thành công phía server.
+```
+
 ### Leaderboard
 
 Endpoint:
@@ -1192,7 +1295,13 @@ gold
 ```text
 apply-android-native.mjs
 apply-ios-native.mjs
-verify-game-config.mjs    — kiểm tra VITE_REPLAY_SECRET không rỗng, gameId hợp lệ
+verify-game-config.mjs
+  — kiểm tra VITE_REPLAY_SECRET không rỗng
+  — kiểm tra VITE_REPLAY_SECRET đúng định dạng SHA256 hex
+    (64 ký tự, lowercase a-f0-9) — khớp với validation
+    replaySecret ở backend Startup Guard (game-api Section 3/11)
+  — kiểm tra gameId hợp lệ
+  — sai định dạng hoặc rỗng → exit code khác 0, chặn build production
 ```
 
 ---
@@ -1291,7 +1400,7 @@ cp .env.example .env
 # Điền VITE_REPLAY_SECRET vào .env trước khi chạy
 npm run lint
 npm run build
-SKIP_API_CHECK=true npm run game:verify-config
+npm run game:verify-config
 npm run dev
 ```
 
@@ -1376,7 +1485,7 @@ metadata
 ✅ VITE_REPLAY_SECRET đọc từ env, không hardcode
 ✅ .env không commit (có trong .gitignore)
 ✅ .env.example có VITE_REPLAY_SECRET= (rỗng, chỉ là placeholder)
-✅ verify-game-config.mjs kiểm tra VITE_REPLAY_SECRET không rỗng khi build production
+✅ verify-game-config.mjs kiểm tra VITE_REPLAY_SECRET không rỗng VÀ đúng định dạng SHA256 hex khi build production
 ✅ secretToken lưu trong Capacitor Preferences (key: gsk:guest), không log ra console
 ✅ deviceId KHÔNG gửi lên server — behavior đồng nhất iOS/Android
 ✅ Không log replaySecret ở bất kỳ đâu
