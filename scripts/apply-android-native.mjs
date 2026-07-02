@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+const GOOGLE_SAMPLE_ANDROID_APP_ID = 'ca-app-pub-3940256099942544~3347511713';
+const ADMOB_META_NAME = 'com.google.android.gms.ads.APPLICATION_ID';
+
 function loadEnvFile(name) {
   const envPath = join(root, name);
   if (!existsSync(envPath)) return;
@@ -18,47 +21,76 @@ function loadEnvFile(name) {
   }
 }
 
-// process.env is not auto-populated from .env files for plain node scripts.
+function resolveAdMobAppId() {
+  const configured = process.env.VITE_ADMOB_ANDROID_APP_ID?.trim();
+  if (configured) return configured;
+  if (process.env.VITE_ADMOB_TESTING === 'true') return GOOGLE_SAMPLE_ANDROID_APP_ID;
+  return '';
+}
+
+function injectAdMobManifest(manifestPath, appId) {
+  let manifest = readFileSync(manifestPath, 'utf8');
+
+  if (manifest.includes(ADMOB_META_NAME)) {
+    const updated = manifest.replace(
+      new RegExp(
+        `<meta-data\\s+android:name="${ADMOB_META_NAME}"\\s+android:value="[^"]*"\\s*/>`,
+        's',
+      ),
+      `<meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />`,
+    );
+
+    if (updated !== manifest) {
+      writeFileSync(manifestPath, updated);
+      return 'updated';
+    }
+
+    return 'present';
+  }
+
+  manifest = manifest.replace(
+    '</application>',
+    `        <meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />\n    </application>`,
+  );
+  writeFileSync(manifestPath, manifest);
+  return 'injected';
+}
+
 loadEnvFile('.env');
 
 const template = join(root, 'native/android/MainActivity.java');
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
-const admobSnippet = join(root, 'native/android/admob-manifest-snippet.xml');
 const target = join(
   root,
   'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java',
 );
 
-if (!existsSync(template)) {
-  console.warn('[android-native] Template not found, skipping');
-  process.exit(0);
+if (existsSync(template) && existsSync(target)) {
+  copyFileSync(template, target);
+  console.log('[android-native] Applied MainActivity template');
+} else if (!existsSync(target)) {
+  console.warn('[android-native] Android project not found — run `npx cap add android` first');
 }
 
-if (!existsSync(target)) {
-  console.warn('[android-native] Android project not found, run `npx cap add android` first');
-  process.exit(0);
-}
+const adsProvider = process.env.VITE_ADS_PROVIDER ?? 'mock';
+const admobAppId = resolveAdMobAppId();
 
-copyFileSync(template, target);
-console.log('[android-native] Applied fullscreen MainActivity');
-
-const admobAppId = process.env.VITE_ADMOB_ANDROID_APP_ID;
-if (admobAppId && existsSync(manifestPath) && existsSync(admobSnippet)) {
-  let manifest = readFileSync(manifestPath, 'utf8');
-  const metaTag = 'com.google.android.gms.ads.APPLICATION_ID';
-
-  if (!manifest.includes(metaTag)) {
-    const snippet = readFileSync(admobSnippet, 'utf8').replace('${ADMOB_ANDROID_APP_ID}', admobAppId);
-    const valueMatch = snippet.match(/android:value="([^"]+)"/);
-    const value = valueMatch?.[1] ?? admobAppId;
-
-    manifest = manifest.replace(
-      '</application>',
-      `    <meta-data android:name="${metaTag}" android:value="${value}" />\n  </application>`,
-    );
-    writeFileSync(manifestPath, manifest);
-    console.log('[android-native] Injected AdMob APPLICATION_ID into AndroidManifest.xml');
+if (adsProvider === 'admob') {
+  if (!existsSync(manifestPath)) {
+    console.error('[android-native] AndroidManifest.xml not found — cannot inject AdMob App ID');
+    process.exit(1);
   }
-} else if (!admobAppId) {
-  console.warn('[android-native] VITE_ADMOB_ANDROID_APP_ID not set — skip AdMob manifest injection');
+
+  if (!admobAppId) {
+    console.error(
+      '[android-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_ANDROID_APP_ID (or VITE_ADMOB_TESTING=true)',
+    );
+    process.exit(1);
+  }
+
+  const result = injectAdMobManifest(manifestPath, admobAppId);
+  console.log(`[android-native] AdMob APPLICATION_ID ${result}: ${admobAppId}`);
+} else if (admobAppId && existsSync(manifestPath)) {
+  const result = injectAdMobManifest(manifestPath, admobAppId);
+  console.log(`[android-native] AdMob APPLICATION_ID ${result}: ${admobAppId}`);
 }

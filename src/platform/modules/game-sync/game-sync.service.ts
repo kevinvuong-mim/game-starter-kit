@@ -36,20 +36,11 @@ export class GameSyncService {
   ) {}
 
   async recordResult(params: RecordResultParams): Promise<void> {
-    const { gameId, replaySecret } = getConfig();
+    const { gameId } = getConfig();
     const guestId = this.guestService.getGuestId() ?? '';
     const score = toNonNegativeInt(params.score);
     const playedAt = params.playedAt ?? new Date().toISOString();
     const clientResultId = generateId('result');
-
-    const signature = await computeReplaySignature({
-      gameId,
-      guestId,
-      clientResultId,
-      score,
-      playedAt,
-      replaySecret,
-    });
 
     const result: PendingGameResult = {
       localId: clientResultId,
@@ -58,7 +49,6 @@ export class GameSyncService {
       guestId,
       score,
       playedAt,
-      signature,
       metadata: params.metadata,
       synced: false,
       syncAttempts: 0,
@@ -77,8 +67,8 @@ export class GameSyncService {
 
     const gameId = getConfig().gameId;
     const guestId = this.guestService.getGuestId();
-    if (!guestId) {
-      logger.debug('[GameSync] Flush skipped — no guest credentials');
+    if (!guestId || this.guestService.getStatus() !== 'ready') {
+      logger.debug('[GameSync] Flush skipped — guest not ready');
       return;
     }
 
@@ -102,13 +92,31 @@ export class GameSyncService {
     );
     if (pending.length === 0) return;
 
+    const { replaySecret } = getConfig();
+
     for (let i = 0; i < pending.length; i += MAX_BATCH_SIZE) {
       const batch = pending.slice(i, i + MAX_BATCH_SIZE);
+      const signedBatch = await Promise.all(
+        batch.map(async (item) => ({
+          ...item,
+          guestId,
+          signature:
+            item.signature ??
+            (await computeReplaySignature({
+              gameId,
+              guestId,
+              clientResultId: item.clientResultId,
+              score: item.score,
+              playedAt: item.playedAt,
+              replaySecret,
+            })),
+        }))
+      );
 
       try {
         const response = await this.repository.sync(
           gameId,
-          batch.map(({ clientResultId, score, playedAt, signature, metadata }) => ({
+          signedBatch.map(({ clientResultId, score, playedAt, signature, metadata }) => ({
             clientResultId,
             score,
             playedAt,
@@ -124,6 +132,7 @@ export class GameSyncService {
       } catch (error) {
         this.logExpectedApiErrors(error);
         queue = this.incrementAttempts(queue, batch, gameId, error);
+        queue = this.pruneQueue(queue);
         await this.repository.saveQueue(queue);
         logger.warn('[GameSync] Batch sync failed, will retry later', error);
         throw error;
@@ -160,7 +169,25 @@ export class GameSyncService {
   }
 
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {
-    return queue.filter((item) => !item.synced && item.syncAttempts < MAX_SYNC_ATTEMPTS);
+    const kept: PendingGameResult[] = [];
+
+    for (const item of queue) {
+      if (item.synced) {
+        continue;
+      }
+
+      if (item.syncAttempts >= MAX_SYNC_ATTEMPTS) {
+        eventBus.emit('game:sync:dropped', {
+          clientResultId: item.clientResultId,
+          attempts: item.syncAttempts,
+        });
+        continue;
+      }
+
+      kept.push(item);
+    }
+
+    return kept;
   }
 
   private incrementAttempts(

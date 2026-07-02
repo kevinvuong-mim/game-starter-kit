@@ -16,9 +16,11 @@ function isPendingGameResult(value: unknown): value is PendingGameResult {
     typeof item.localId === 'string' &&
     typeof item.clientResultId === 'string' &&
     typeof item.gameId === 'string' &&
-    typeof item.signature === 'string' &&
     typeof item.playedAt === 'string' &&
-    typeof item.score === 'number'
+    typeof item.score === 'number' &&
+    typeof item.synced === 'boolean' &&
+    typeof item.syncAttempts === 'number' &&
+    (item.signature === undefined || typeof item.signature === 'string')
   );
 }
 

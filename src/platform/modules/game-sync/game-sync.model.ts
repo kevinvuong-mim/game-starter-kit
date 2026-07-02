@@ -20,7 +20,7 @@ export interface PendingGameResult {
   synced: boolean;
   playedAt: string;
   createdAt: string;
-  signature: string;
+  signature?: string;
   syncAttempts: number;
   lastAttemptAt?: string;
   nextAttemptAt?: string;

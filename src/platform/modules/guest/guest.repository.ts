@@ -39,7 +39,7 @@ export class GuestRepository {
     const envelope = await apiClient.post<ApiEnvelope<InitGuestPayload>>(
       '/guest/init',
       { gameId },
-      { auth: false }
+      { auth: false, retries: 0 }
     );
     const payload = envelope.data;
 

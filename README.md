@@ -238,10 +238,12 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 | `npm run assets:generate` | Generate app icons/splash from `assets/`                      |
 | `npm run build:android`   | Add platform + build + assets + sync Android + native patches |
 | `npm run build:ios`       | Add platform + build + assets + sync iOS + native patches     |
+| `npm run run:android`     | Build + compile APK + boot emulator + install + launch        |
+| `npm run run:ios`         | Build + xcodebuild simulator + install + launch               |
 
 ## Platform Updates
 
-For cloned games, keep game-specific code in `src/game` and treat `src/platform` as the shared platform layer. See [documents/platform-versioning.md](./documents/platform-versioning.md) for the dry-run update workflow.
+For cloned games, keep game-specific code in `src/game` and treat `src/platform` as the shared platform layer.
 
 ## License
 

@@ -58,9 +58,20 @@ cap sync android
 node scripts/apply-android-native.mjs
 ```
 
-`build:ios` chạy tương tự với `apply-ios-native.mjs`.
+`build:ios` chạy:
+
+```bash
+npm run build
+npm run cap:add:ios
+node scripts/apply-ios-native.mjs pre-sync   # pin UMP trước pod install
+npm run assets:generate
+cap sync ios
+node scripts/apply-ios-native.mjs            # post-sync: templates + AdMob plist
+```
 
 Các script trong `scripts/` merge template từ `native/` để giữ native changes repeatable sau mỗi lần regenerate platform.
+
+Hướng dẫn chi tiết build + chạy emulator/simulator (CLI & IDE): [Emulator and Simulator](../build/emulator-and-simulator.md).
 
 ---
 
@@ -88,6 +99,6 @@ Các event/lifecycle chính:
 
 ## Related Documentation
 
+- [Emulator and Simulator](../build/emulator-and-simulator.md)
 - [Environment Variables](./environment-variables.md)
-- [Ads and IAP](../integrations/ads-and-iap.md)
 - [Runtime Architecture](../architecture/runtime-architecture.md)

@@ -1,9 +1,13 @@
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+const GOOGLE_SAMPLE_IOS_APP_ID = 'ca-app-pub-3940256099942544~1458002511';
+const SWIFT_FILE = 'FullscreenBridgeViewController.swift';
+const SWIFT_FILE_REF_ID = 'F5LL5CRN1FED79650016851F';
+const SWIFT_BUILD_FILE_ID = 'F5LL5CRN2FED79650016851F';
 
 function loadEnvFile(name) {
   const envPath = join(root, name);
@@ -19,16 +23,26 @@ function loadEnvFile(name) {
   }
 }
 
-// process.env is not auto-populated from .env files for plain node scripts.
-loadEnvFile('.env');
+function resolveAdMobAppId() {
+  const configured = process.env.VITE_ADMOB_IOS_APP_ID?.trim();
+  if (configured) return configured;
+  if (process.env.VITE_ADMOB_TESTING === 'true') return GOOGLE_SAMPLE_IOS_APP_ID;
+  return '';
+}
 
-const iosAppDir = join(root, 'ios/App/App');
-const iosProject = join(root, 'ios/App/App.xcodeproj/project.pbxproj');
-const nativeDir = join(root, 'native/ios');
+function patchPodfile(podfilePath) {
+  if (!existsSync(podfilePath)) return false;
+  let content = readFileSync(podfilePath, 'utf8');
+  if (content.includes("pod 'GoogleUserMessagingPlatform'")) return false;
 
-const SWIFT_FILE = 'FullscreenBridgeViewController.swift';
-const SWIFT_FILE_REF_ID = 'F5LL5CRN1FED79650016851F';
-const SWIFT_BUILD_FILE_ID = 'F5LL5CRN2FED79650016851F';
+  content = content.replace(
+    /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
+    `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`,
+  );
+  writeFileSync(podfilePath, content);
+  console.log('[ios-native] Pinned GoogleUserMessagingPlatform ~> 2.3 in Podfile');
+  return true;
+}
 
 function patchInfoPlist(plistPath) {
   let content = readFileSync(plistPath, 'utf8');
@@ -38,25 +52,26 @@ function patchInfoPlist(plistPath) {
       '</dict>\n</plist>',
       '\t<key>UIStatusBarHidden</key>\n\t<true/>\n\t<key>UIStatusBarStyle</key>\n\t<string>UIStatusBarStyleLightContent</string>\n</dict>\n</plist>',
     );
+    writeFileSync(plistPath, content);
+    console.log('[ios-native] Applied status bar Info.plist keys');
   }
-
-  writeFileSync(plistPath, content);
 }
 
-function patchAdMobPlist(plistPath) {
-  const appId = process.env.VITE_ADMOB_IOS_APP_ID;
-  if (!appId) {
-    console.warn('[ios-native] VITE_ADMOB_IOS_APP_ID not set — skip AdMob Info.plist injection');
-    return;
-  }
-
+function patchAdMobPlist(plistPath, appId) {
   let content = readFileSync(plistPath, 'utf8');
+
   if (content.includes('GADApplicationIdentifier')) {
-    return;
+    const updated = content.replace(
+      /<key>GADApplicationIdentifier<\/key>\s*<string>[^<]*<\/string>/,
+      `<key>GADApplicationIdentifier</key>\n\t<string>${appId}</string>`,
+    );
+    if (updated !== content) {
+      writeFileSync(plistPath, updated);
+      return 'updated';
+    }
+    return 'present';
   }
 
-  // GADApplicationIdentifier is required by Google Mobile Ads SDK — missing it crashes on launch.
-  // SKAdNetworkItems enables ad attribution; NSUserTrackingUsageDescription drives the ATT prompt.
   const snippet =
     `\t<key>GADApplicationIdentifier</key>\n\t<string>${appId}</string>\n` +
     `\t<key>NSUserTrackingUsageDescription</key>\n` +
@@ -67,15 +82,12 @@ function patchAdMobPlist(plistPath) {
 
   content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
   writeFileSync(plistPath, content);
-  console.log('[ios-native] Injected AdMob GADApplicationIdentifier into Info.plist');
+  return 'injected';
 }
 
 function patchPbxproj(projectPath) {
   let content = readFileSync(projectPath, 'utf8');
-
-  if (content.includes(SWIFT_FILE)) {
-    return;
-  }
+  if (content.includes(SWIFT_FILE)) return;
 
   content = content.replace(
     '504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };',
@@ -102,50 +114,69 @@ function patchPbxproj(projectPath) {
   );
 
   writeFileSync(projectPath, content);
+  console.log('[ios-native] Registered FullscreenBridgeViewController in Xcode project');
 }
 
-// @capacitor-community/admob@6.2.0 uses the legacy UMPConsentStatus API. The Google
-// Mobile Ads pod only requires GoogleUserMessagingPlatform >= 1.1, so a fresh `pod install`
-// pulls UMP 3.x which renamed it (UMPConsentStatus -> ConsentStatus) and breaks the build.
-// Pin UMP to the 2.x line; re-run `pod install` if we had to add the pin.
-function patchPodfile(podfilePath) {
-  if (!existsSync(podfilePath)) return;
-  let content = readFileSync(podfilePath, 'utf8');
-  if (content.includes("pod 'GoogleUserMessagingPlatform'")) return;
+loadEnvFile('.env');
 
-  content = content.replace(
-    /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
-    `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`,
-  );
-  writeFileSync(podfilePath, content);
-  console.log('[ios-native] Pinned GoogleUserMessagingPlatform ~> 2.3 in Podfile');
-
-  try {
-    execSync('pod install', { cwd: join(root, 'ios/App'), stdio: 'inherit' });
-  } catch {
-    console.warn('[ios-native] `pod install` failed — run it manually in ios/App');
-  }
-}
-
-if (!existsSync(nativeDir)) {
-  console.warn('[ios-native] Template not found, skipping');
-  process.exit(0);
-}
+const mode = process.argv[2] ?? 'post-sync';
+const iosAppDir = join(root, 'ios/App/App');
+const iosProject = join(root, 'ios/App/App.xcodeproj/project.pbxproj');
+const nativeDir = join(root, 'native/ios');
+const plistPath = join(iosAppDir, 'Info.plist');
+const podDir = join(root, 'ios/App');
+const podfilePath = join(podDir, 'Podfile');
+const podfileLockPath = join(podDir, 'Podfile.lock');
 
 if (!existsSync(iosAppDir)) {
-  console.warn('[ios-native] iOS project not found, run `npx cap add ios` first');
+  console.warn('[ios-native] iOS project not found — run `npx cap add ios` first');
   process.exit(0);
 }
 
-copyFileSync(join(nativeDir, SWIFT_FILE), join(iosAppDir, SWIFT_FILE));
-copyFileSync(join(nativeDir, 'Main.storyboard'), join(iosAppDir, 'Base.lproj/Main.storyboard'));
-patchInfoPlist(join(iosAppDir, 'Info.plist'));
-patchAdMobPlist(join(iosAppDir, 'Info.plist'));
-
-if (existsSync(iosProject)) {
-  patchPbxproj(iosProject);
+if (mode === 'pre-sync') {
+  const podfileChanged = patchPodfile(podfilePath);
+  if (podfileChanged && existsSync(podfileLockPath)) {
+    unlinkSync(podfileLockPath);
+    console.log('[ios-native] Cleared Podfile.lock after UMP pin change');
+  }
+  process.exit(0);
 }
 
-patchPodfile(join(root, 'ios/App/Podfile'));
+if (existsSync(nativeDir)) {
+  const swiftTemplate = join(nativeDir, SWIFT_FILE);
+  const storyboardTemplate = join(nativeDir, 'Main.storyboard');
 
-console.log('[ios-native] Applied fullscreen iOS native config');
+  if (existsSync(swiftTemplate)) {
+    copyFileSync(swiftTemplate, join(iosAppDir, SWIFT_FILE));
+  }
+  if (existsSync(storyboardTemplate)) {
+    copyFileSync(storyboardTemplate, join(iosAppDir, 'Base.lproj/Main.storyboard'));
+  }
+  if (existsSync(iosProject) && existsSync(swiftTemplate)) {
+    patchPbxproj(iosProject);
+  }
+} else {
+  console.warn('[ios-native] native/ios templates not found — skipping fullscreen storyboard copy');
+}
+
+patchInfoPlist(plistPath);
+
+const adsProvider = process.env.VITE_ADS_PROVIDER ?? 'mock';
+const admobAppId = resolveAdMobAppId();
+
+if (adsProvider === 'admob') {
+  if (!admobAppId) {
+    console.error(
+      '[ios-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_IOS_APP_ID (or VITE_ADMOB_TESTING=true)',
+    );
+    process.exit(1);
+  }
+
+  const result = patchAdMobPlist(plistPath, admobAppId);
+  console.log(`[ios-native] AdMob GADApplicationIdentifier ${result}: ${admobAppId}`);
+} else if (admobAppId) {
+  const result = patchAdMobPlist(plistPath, admobAppId);
+  console.log(`[ios-native] AdMob GADApplicationIdentifier ${result}: ${admobAppId}`);
+}
+
+console.log('[ios-native] Applied iOS native config');

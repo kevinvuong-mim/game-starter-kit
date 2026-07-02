@@ -142,10 +142,11 @@ build:android
 build:ios
 lint
 game:verify-config
-platform:update
 lint:fix
 format
 format:check
+test
+test:watch
 ```
 
 Dependencies:
@@ -706,7 +707,7 @@ export const gameConfig: GameConfig = {
   width: 720,
   height: 1280,
   version: '1.0.0',
-  id: 'GAME_STARTER_KIT', // phải khớp với GameId enum trên backend
+  id: 'FRULOOP', // phải khớp với GameId enum trên backend
   name: 'Game Starter Kit',
   replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
 };
@@ -839,6 +840,9 @@ daily:*
 
 game:sync:*
 
+game:synced
+game:sync:dropped
+
 iap:*
 
 auth:*
@@ -960,7 +964,7 @@ retryable:
 > `guest.init()` phải luôn gọi với cờ này tắt retry tự động:
 >
 > ```ts
-> api.post('/guest/init', { gameId }, { retry: false });
+> api.post('/guest/init', { gameId }, { auth: false, retries: 0 });
 > ```
 >
 > Việc thử lại `guest.init()` sau khi thất bại được `guest` module tự quản lý
@@ -982,8 +986,11 @@ trừ chính request POST /guest/init):
    không retry thêm (tránh vòng lặp vô hạn 401 → init → 401 → init...)
 
 Giới hạn: cơ chế này chỉ chạy tối đa 1 lần cho mỗi request gốc,
-đánh dấu bằng flag nội bộ trên request (ví dụ header _retried401 = true)
+đánh dấu bằng flag nội bộ trên request (`_retried401: true`)
 để không lặp lại nếu guest mới vẫn tiếp tục bị 401.
+
+`ApiClient.setAuthRecoveryHandler()` đăng ký handler (gọi từ `App.init()`):
+handler gọi `guest.recoverFromUnauthorized()` → clear `gsk:guest` → `guest.init()` lại.
 ```
 
 Methods:
@@ -1131,6 +1138,7 @@ missions
 leaderboard
 daily-rewards
 save
+settings
 guest
 game-sync
 ads
@@ -1167,6 +1175,13 @@ remove_ads
 ```
 
 > `secretToken` vĩnh viễn — không có TTL, không rotate. Mất khi uninstall/clear data app.
+
+**`guestStatus`:** `'ready' | 'pending'`
+
+- `'ready'`: có `guestId` + `secretToken` hợp lệ trong memory/storage
+- `'pending'`: chưa có guest (offline lúc mở app lần đầu hoặc init thất bại)
+
+**`guest.onReady(listener)`:** đăng ký callback khi `guestStatus` chuyển sang `'ready'` (dùng cho analytics userId và game-sync flush).
 
 Endpoints:
 
@@ -1223,15 +1238,18 @@ Chính sách khi vượt giới hạn:
 Vượt MAX_PENDING_RESULTS (500):
 → Drop item CŨ NHẤT trong queue theo thứ tự tạo (FIFO eviction)
   trước khi thêm item mới vào, để queue không bao giờ vượt 500.
-→ Lý do chọn drop-oldest: item mới luôn là kết quả trận gần nhất,
-  ưu tiên giữ lại dữ liệu gần với hiện tại hơn là dữ liệu cũ đã
-  tồn đọng lâu (khả năng cao đã retry nhiều lần mà vẫn fail).
 
 Item retry đủ MAX_SYNC_ATTEMPTS (10) lần vẫn fail:
 → Bỏ hẳn item đó khỏi queue (không giữ lại chờ vô thời hạn).
 → Emit event `game:sync:dropped` kèm { clientResultId, attempts }
   để analytics/logger ghi nhận, tránh mất dấu hoàn toàn khi debug.
-→ Không tính vào lỗi chặn UI — người chơi không bị gián đoạn trải nghiệm.
+
+Signature được tính tại flush time (khi guest ready), không tính lúc queue
+nếu chưa có guestId — tránh signature invalid với guestId rỗng.
+
+Retry backoff (bổ sung): exponential backoff giữa các lần retry
+(`BASE_SYNC_BACKOFF_MS` = 30s, `MAX_SYNC_BACKOFF_MS` = 30 phút),
+lưu `nextAttemptAt` trên từng item.
 
 Lưu ý: mỗi lần retry gửi lại NGUYÊN VẸN cùng `clientResultId` đã tạo
 từ lần đầu (không tạo id mới mỗi lần retry) — nhờ backend dedup atomic
@@ -1300,7 +1318,9 @@ verify-game-config.mjs
   — kiểm tra VITE_REPLAY_SECRET đúng định dạng SHA256 hex
     (64 ký tự, lowercase a-f0-9) — khớp với validation
     replaySecret ở backend Startup Guard (game-api Section 3/11)
-  — kiểm tra gameId hợp lệ
+  — đọc gameId từ src/game/config.ts
+  — live API probe: GET /leaderboards?gameId=...&page=1&limit=1
+    (bỏ qua khi SKIP_API_CHECK=true)
   — sai định dạng hoặc rỗng → exit code khác 0, chặn build production
 ```
 

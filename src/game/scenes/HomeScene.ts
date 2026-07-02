@@ -10,6 +10,11 @@ export class HomeScene extends Phaser.Scene {
     super({ key: 'Home' });
   }
 
+  /** Phaser reuses prior scene data when start() omits the data arg — always pass returnTo. */
+  private openScreen(key: string): void {
+    this.scene.start(key, { returnTo: 'Home' });
+  }
+
   create(): void {
     const { width, height } = this.cameras.main;
 
@@ -44,7 +49,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.leaderboard'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => this.scene.start('Leaderboard'),
+      onClick: () => this.openScreen('Leaderboard'),
     });
 
     createUIButton({
@@ -56,7 +61,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.settings'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => this.scene.start('Settings'),
+      onClick: () => this.openScreen('Settings'),
     });
 
     createUIButton({
@@ -68,7 +73,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.shop'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => this.scene.start('Shop'),
+      onClick: () => this.openScreen('Shop'),
     });
 
     createUIButton({
@@ -80,7 +85,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.missions'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => this.scene.start('Missions'),
+      onClick: () => this.openScreen('Missions'),
     });
 
     createUIButton({
@@ -92,7 +97,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.dailyReward'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
-      onClick: () => this.scene.start('DailyReward'),
+      onClick: () => this.openScreen('DailyReward'),
     });
 
     // createUIButton({

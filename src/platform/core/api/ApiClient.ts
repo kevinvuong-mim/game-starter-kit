@@ -5,6 +5,7 @@ import type {
   ErrorInterceptor,
   RequestInterceptor,
   ResponseInterceptor,
+  AuthRecoveryHandler,
 } from './types';
 import { ApiError as ApiErrorClass } from './types';
 
@@ -16,6 +17,7 @@ const DEFAULT_RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
 export class ApiClient implements IApiClient {
   private baseUrl: string;
   private authToken: string | null = null;
+  private authRecoveryHandler: AuthRecoveryHandler | null = null;
   private errorInterceptors: ErrorInterceptor[] = [];
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
@@ -30,6 +32,10 @@ export class ApiClient implements IApiClient {
 
   setAuthToken(token: string | null): void {
     this.authToken = token;
+  }
+
+  setAuthRecoveryHandler(handler: AuthRecoveryHandler | null): void {
+    this.authRecoveryHandler = handler;
   }
 
   addRequestInterceptor(interceptor: RequestInterceptor): () => void {
@@ -95,6 +101,20 @@ export class ApiClient implements IApiClient {
         return result.data;
       } catch (error) {
         lastError = error as Error;
+
+        if (
+          error instanceof ApiErrorClass &&
+          error.status === 401 &&
+          finalConfig.auth !== false &&
+          !finalConfig._retried401 &&
+          this.authRecoveryHandler
+        ) {
+          const recovered = await this.authRecoveryHandler();
+          if (recovered) {
+            return this.request<T>(path, { ...finalConfig, _retried401: true });
+          }
+        }
+
         if (error instanceof ApiErrorClass && !this.shouldRetry(error, finalConfig)) break;
         if (attempt < retries) {
           await this.delay(this.getRetryDelay(error, finalConfig, attempt));

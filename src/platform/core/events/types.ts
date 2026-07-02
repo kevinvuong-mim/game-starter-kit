@@ -45,6 +45,7 @@ export interface PlatformEventMap {
   'ad:banner:hide': void;
   'daily:claim:request': void;
   'game:synced': SyncResponse;
+  'game:sync:dropped': { clientResultId: string; attempts: number };
   'daily:status:request': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;

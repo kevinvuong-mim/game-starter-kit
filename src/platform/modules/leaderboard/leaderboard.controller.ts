@@ -8,8 +8,6 @@ import { leaderboard, type LeaderboardService } from './leaderboard.service';
  * - `leaderboard:request` → load (cache-aware).
  * - `leaderboard:refresh` → force a network refresh.
  * - `leaderboard:page`    → load a specific page.
- * - `game:synced`         → refresh so a newly synced score shows up without
- *                           manual interaction.
  */
 export class LeaderboardController {
   constructor(private readonly service: LeaderboardService = leaderboard) {}
@@ -26,10 +24,6 @@ export class LeaderboardController {
 
       events.on('leaderboard:page', ({ page }) => {
         void this.service.fetchLeaderboard({ page, force: true }).catch(() => undefined);
-      }),
-
-      events.on('game:synced', () => {
-        void this.service.refreshLeaderboard().catch(() => undefined);
       }),
     ];
 
