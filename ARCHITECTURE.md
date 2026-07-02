@@ -380,4 +380,3 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 ## Related docs
 
 - [README.md](./README.md) — quick start, env vars, deployment, scripts
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — code style, module checklist, provider swapping

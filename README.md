@@ -114,8 +114,6 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 ```
 
-ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
 **i18n:** import `t` from `@platform/ui` (or `@platform/ui/index`), not from `@platform/modules`.
 
 ## Platform Modules
@@ -240,10 +238,6 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 | `npm run assets:generate` | Generate app icons/splash from `assets/`                      |
 | `npm run build:android`   | Add platform + build + assets + sync Android + native patches |
 | `npm run build:ios`       | Add platform + build + assets + sync iOS + native patches     |
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Platform Updates
 

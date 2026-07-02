@@ -19,7 +19,7 @@
 
 Node.js: `>= 20`
 
-Backend companion: `game-api` — `gameId` và `replaySecret` trong `src/game/config.ts` phải khớp với `GameId enum` và `GAME_CONFIG` trên backend (xem `BUILD_GAME_API_SPEC.md`).
+Backend companion: `game-api` — `gameId` trong `src/game/config.ts` phải khớp với `GameId enum` trên backend, và `replaySecret` phải được inject qua biến môi trường `VITE_REPLAY_SECRET`.
 
 ---
 
@@ -69,30 +69,21 @@ game-starter-kit/
 ├── .prettierignore
 ├── .prettierrc
 ├── ARCHITECTURE.md
-├── BUILD_SPEC.md
-├── CONTRIBUTING.md
+├── GAME_STARTER_KIT_BUILD_SPEC.md
 ├── README.md
 ├── capacitor.config.ts
-├── contracts/
-│   ├── game-platform.v1.json
-│   ├── replay-hash-vectors.json
-│   └── sync-rejection-reasons.json
 ├── documents/
 │   ├── architecture/runtime-architecture.md
 │   ├── modules/
 │   │   ├── game-result-sync.md
 │   │   ├── guest-identity.md
 │   │   └── leaderboard.md
-│   ├── platform-versioning.md
 │   └── setup/
 │       ├── environment-variables.md
 │       ├── game-configuration.md
 │       └── mobile-build.md
 ├── eslint.config.js
 ├── index.html
-├── native/
-│   ├── android/
-│   └── ios/
 ├── package.json
 ├── public/assets/ui/
 ├── resources/
@@ -150,8 +141,6 @@ assets:generate
 build:android
 build:ios
 lint
-test
-test:watch
 game:verify-config
 platform:update
 lint:fix
@@ -275,6 +264,7 @@ outDir: dist
 sourcemap: true
 target: es2022
 chunkSizeWarningLimit: 1600
+# Lý do: Phaser 3 minified ~1MB+, giới hạn mặc định 500kb sẽ false-positive
 ```
 
 ### manualChunks
@@ -341,7 +331,7 @@ argsIgnorePattern: '^_'
 varsIgnorePattern: '^_'
 ```
 
-### src/game/\*_/_.ts cấm import
+### src/game/\*\*/\*.ts cấm import
 
 ```text
 @platform/modules/*
@@ -400,7 +390,6 @@ android/
 coverage/
 node_modules/
 !.env.example
-test-results/
 playwright-report/
 ```
 
@@ -447,17 +436,32 @@ Entry:
 ## 3.10 .env.example
 
 ```bash
+# App
 VITE_APP_ENV=dev
 VITE_API_URL=http://localhost:3000/api
+
+# Game — phải khớp với GameId enum và GAME_CONFIG trên backend
+# VITE_GAME_ID được đọc trong src/game/config.ts
+# VITE_REPLAY_SECRET KHÔNG được commit; lấy từ backend team
+VITE_REPLAY_SECRET=
+
+# IAP
 VITE_IAP_ENABLED=false
 VITE_IAP_PROVIDER=mock
 VITE_REVENUECAT_ANDROID_API_KEY=
 VITE_REVENUECAT_IOS_API_KEY=
+
+# Ads
 VITE_ADS_PROVIDER=mock
 VITE_ADMOB_TESTING=true
-```
 
-(...giữ nguyên phần còn lại như spec)
+# Firebase
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
+```
 
 ---
 
@@ -503,7 +507,7 @@ setupGlobalErrorHandlers()
 
 setConfig(createConfig({
   gameId: gameConfig.id,
-  replaySecret: gameConfig.replaySecret
+  replaySecret: gameConfig.replaySecret   // inject từ env, không hardcode
 }))
 
 refreshServicesFromConfig()
@@ -553,7 +557,7 @@ registerAdsProvider()
 Promise.all([
   i18n.init(),
   ads.init(),
-  guest.init(),
+  guest.init(),     // đọc token từ storage hoặc gọi API tạo mới (chỉ 1 lần duy nhất)
   analytics.init(),
   leaderboard.init()
 ])
@@ -574,9 +578,6 @@ analytics.setUserProperty(
   'game_id',
   config().gameId
 )
-
-background guest.ensureGuestId()
-→ update userId
 
 saveService.loadLocal()
 
@@ -643,6 +644,8 @@ gameScenes:
 
 ## 6.1 config.ts
 
+`replaySecret` KHÔNG được hardcode trong source. Phải đọc từ `import.meta.env.VITE_REPLAY_SECRET`.
+
 ```ts
 export interface GameConfig {
   id: string;
@@ -657,11 +660,17 @@ export const gameConfig: GameConfig = {
   width: 720,
   height: 1280,
   version: '1.0.0',
-  id: 'puzzle-quest',
+  id: 'GAME_STARTER_KIT', // phải khớp với GameId enum trên backend
   name: 'Game Starter Kit',
-  replaySecret: 'puzzle-quest-dev-secret',
+  replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
 };
 ```
+
+> **Lưu ý quan trọng khi clone cho game mới:**
+>
+> 1. Đổi `id` thành đúng `GameId` trên backend (ví dụ: `'FRULOOP'`, `'STACK_JUMP'`).
+> 2. Lấy `VITE_REPLAY_SECRET` từ backend team, điền vào file `.env` local và CI/CD secrets.
+> 3. Không bao giờ commit giá trị thật của `VITE_REPLAY_SECRET`.
 
 ---
 
@@ -750,6 +759,8 @@ clear
 Promise.resolve()
 .catch(console.error)
 ```
+
+> **Lưu ý:** EventBus dùng fire-and-forget async. Subscriber throw lỗi sẽ bị catch và log ra console nhưng không làm crash emitter. Subscriber có side-effect quan trọng cần tự xử lý lỗi bên trong.
 
 Event categories:
 
@@ -907,11 +918,16 @@ setBaseUrl
 setAuthToken
 ```
 
-Envelope:
+Envelope (match backend response format):
 
 ```ts
 {
-  (success, statusCode, message, data, path, timestamp);
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: T;
+  path: string;
+  timestamp: string;
 }
 ```
 
@@ -1051,21 +1067,65 @@ remove_ads
 
 ### Guest
 
-```text
-POST /guest/init
+**Triết lý:** Mỗi lần cài app = một guest mới. Không relink khi uninstall/clear data. Behavior đồng nhất trên iOS và Android.
 
-PATCH /guest/name
+**`guest.init()` flow (gọi một lần trong `App.init()`):**
+
+```text
+Đọc { guestId, secretToken } từ Capacitor Preferences (key: gsk:guest)
+
+→ Có rồi:
+    Gọi api.setAuthToken(secretToken)
+    Xong — KHÔNG gọi API
+
+→ Không có:
+    Gọi POST /api/guest/init
+    Nhận { guestId, secretToken }
+    Lưu vào Capacitor Preferences (key: gsk:guest)
+    Gọi api.setAuthToken(secretToken)
+```
+
+> `secretToken` vĩnh viễn — không có TTL, không rotate. Mất khi uninstall/clear data app.
+
+Endpoints:
+
+```text
+POST /api/guest/init
+  Body: { gameId }
+  # deviceId KHÔNG được gửi
+  # Mỗi lần gọi là tạo guest mới trên server
+  Response: { guestId, gameId, secretToken }
+
+PATCH /api/guest/name
+  Header: Authorization: Bearer <secretToken>
+  Body: { name }
+```
+
+Storage key:
+
+```text
+gsk:guest → JSON { guestId: string, secretToken: string }
+Provider: Capacitor Preferences (native) / localStorage (web)
 ```
 
 ### Game sync
 
-Replay:
+Replay signature — phải khớp chính xác với backend:
 
 ```text
 HMAC-SHA256(
   replaySecret,
-  ${gameId}|${guestId}|${clientResultId}|${score}|${playedAt || ''}
+  `${gameId}|${guestId}|${clientResultId}|${score}|${playedAt || ''}`
 )
+```
+
+Endpoint:
+
+```text
+POST /api/games/:gameId/results
+  Header: Authorization: Bearer <secretToken>
+  Body: { items: [{ clientResultId, score, playedAt, metadata, signature }] }
+  Response: { success, insertedCount, message }
 ```
 
 Limits:
@@ -1074,6 +1134,15 @@ Limits:
 MAX_BATCH_SIZE = 50
 MAX_SYNC_ATTEMPTS = 10
 MAX_PENDING_RESULTS = 500
+```
+
+### Leaderboard
+
+Endpoint:
+
+```text
+GET /api/leaderboards?gameId=&page=&limit=&guestId=
+  Response: { gameId, total, page, limit, items, self: { rank, bestScore } }
 ```
 
 ---
@@ -1118,47 +1187,17 @@ gold
 
 ---
 
-# 10. API Contracts
-
-Files:
-
-```text
-contracts/game-platform.v1.json
-contracts/replay-hash-vectors.json
-contracts/sync-rejection-reasons.json
-```
-
-Contracts:
-
-```text
-guest
-sync
-leaderboard
-```
-
----
-
-# 11. Scripts
+# 10. Scripts
 
 ```text
 apply-android-native.mjs
 apply-ios-native.mjs
-verify-game-config.mjs
-update-platform.mjs
+verify-game-config.mjs    — kiểm tra VITE_REPLAY_SECRET không rỗng, gameId hợp lệ
 ```
 
 ---
 
-# 12. Native templates
-
-```text
-android/
-ios/
-```
-
----
-
-# 13. Static assets
+# 11. Static assets
 
 ```text
 public/assets/ui/
@@ -1172,7 +1211,7 @@ resources/logo.webp
 
 ---
 
-# 14. i18n locale keys
+# 12. i18n locale keys
 
 ```text
 common.*
@@ -1189,17 +1228,34 @@ howToPlay.*
 
 ---
 
-# 15. src/vite-env.d.ts
+# 13. src/vite-env.d.ts
 
-```text
-ImportMetaEnv
-VITE_*
-VITE_API_URL?
+```ts
+interface ImportMetaEnv {
+  readonly VITE_APP_ENV: 'dev' | 'staging' | 'production';
+  readonly VITE_API_URL?: string;
+  readonly VITE_REPLAY_SECRET: string;
+  readonly VITE_IAP_ENABLED?: string;
+  readonly VITE_IAP_PROVIDER?: 'mock' | 'revenuecat';
+  readonly VITE_REVENUECAT_ANDROID_API_KEY?: string;
+  readonly VITE_REVENUECAT_IOS_API_KEY?: string;
+  readonly VITE_ADS_PROVIDER?: 'mock' | 'admob';
+  readonly VITE_ADMOB_TESTING?: string;
+  readonly VITE_FIREBASE_API_KEY?: string;
+  readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
+  readonly VITE_FIREBASE_PROJECT_ID?: string;
+  readonly VITE_FIREBASE_APP_ID?: string;
+  readonly VITE_FIREBASE_MEASUREMENT_ID?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 ```
 
 ---
 
-# 16. Conventions & patterns
+# 14. Conventions & patterns
 
 | Pattern            | Quy tắc                             |
 | ------------------ | ----------------------------------- |
@@ -1214,57 +1270,39 @@ VITE_API_URL?
 
 ---
 
-# 17. Documentation files
+# 15. Documentation files
 
 ```text
 README.md
 ARCHITECTURE.md
-CONTRIBUTING.md
 
 documents/setup/*
 documents/modules/*
 documents/architecture/*
-documents/platform-versioning.md
 ```
 
 ---
 
-# 18. Verification checklist
+# 16. Verification checklist
 
 ```bash
 npm install
 cp .env.example .env
+# Điền VITE_REPLAY_SECRET vào .env trước khi chạy
 npm run lint
-npm run test
 npm run build
 SKIP_API_CHECK=true npm run game:verify-config
 npm run dev
 ```
 
-Smoke test:
-
-```text
-Home
-Gameplay
-GameOver
-Shop
-Missions
-Leaderboard
-DailyReward
-Settings
-Language
-Android
-iOS
-```
-
 ---
 
-# 19. Thứ tự build cho AI agent
+# 17. Thứ tự build cho AI agent
 
 ```text
 Scaffold root
 
-Contracts & scripts
+Scripts
 
 Platform core
 
@@ -1287,26 +1325,40 @@ Verify
 
 ---
 
-# 20. Backend integration summary
+# 18. Backend integration summary
 
-| Feature      | Endpoint                    | Auth   |
-| ------------ | --------------------------- | ------ |
-| Guest init   | POST /guest/init            | Không  |
-| Guest rename | PATCH /guest/name           | Bearer |
-| Game sync    | POST /games/:gameId/results | Bearer |
-| Leaderboard  | GET /leaderboards           | Không  |
+| Feature      | Endpoint                        | Auth   |
+| ------------ | ------------------------------- | ------ |
+| Guest init   | POST /api/guest/init            | Không  |
+| Guest rename | PATCH /api/guest/name           | Bearer |
+| Game sync    | POST /api/games/:gameId/results | Bearer |
+| Leaderboard  | GET /api/leaderboards           | Không  |
 
 Lưu ý:
 
 ```text
-gameId + replaySecret
-phải khớp backend
+gameId
+→ phải khớp GameId enum trên backend
+→ ví dụ: 'FRULOOP', 'STACK_JUMP'
+
+replaySecret
+→ inject qua VITE_REPLAY_SECRET (env var)
+→ KHÔNG hardcode trong source
+→ phải khớp GAME_CONFIG[gameId].replaySecret trên backend
 
 secretToken
-→ Authorization: Bearer
+→ nhận từ POST /api/guest/init (chỉ lần đầu cài app)
+→ lưu vĩnh viễn trong Capacitor Preferences (key: gsk:guest)
+→ dùng làm: Authorization: Bearer <secretToken>
+→ không có TTL, không rotate
+→ mất khi uninstall/clear data → tạo guest mới
+
+deviceId
+→ KHÔNG gửi lên server
+→ mỗi lần install = guest mới, behavior đồng nhất iOS/Android
 
 signature
-→ HMAC-SHA256(...)
+→ HMAC-SHA256(replaySecret, `${gameId}|${guestId}|${clientResultId}|${score}|${playedAt || ''}`)
 
 playedAt
 → ISO8601
@@ -1314,4 +1366,18 @@ playedAt
 metadata
 → max 10 keys
 → 2048 bytes
+```
+
+---
+
+# 19. Security checklist
+
+```text
+✅ VITE_REPLAY_SECRET đọc từ env, không hardcode
+✅ .env không commit (có trong .gitignore)
+✅ .env.example có VITE_REPLAY_SECRET= (rỗng, chỉ là placeholder)
+✅ verify-game-config.mjs kiểm tra VITE_REPLAY_SECRET không rỗng khi build production
+✅ secretToken lưu trong Capacitor Preferences (key: gsk:guest), không log ra console
+✅ deviceId KHÔNG gửi lên server — behavior đồng nhất iOS/Android
+✅ Không log replaySecret ở bất kỳ đâu
 ```
