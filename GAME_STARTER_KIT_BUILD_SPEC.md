@@ -145,8 +145,6 @@ game:verify-config
 lint:fix
 format
 format:check
-test
-test:watch
 ```
 
 Dependencies:
@@ -181,7 +179,6 @@ prettier
 typescript
 typescript-eslint
 vite
-vitest
 ```
 
 Engine:
@@ -1395,7 +1392,6 @@ interface ImportMeta {
 | Game↔Platform      | eventBus                            |
 | Persistence        | SaveService                         |
 | i18n import        | @platform/ui                        |
-| Tests              | Vitest                              |
 
 ---
 

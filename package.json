@@ -19,8 +19,6 @@
     "run:android": "bash scripts/run-android-emulator.sh",
     "run:ios": "bash scripts/run-ios-simulator.sh",
     "lint": "tsc --noEmit && eslint src",
-    "test": "vitest run",
-    "test:watch": "vitest",
     "game:verify-config": "node scripts/verify-game-config.mjs",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\" \"*.{ts,json,md}\"",
@@ -52,8 +50,7 @@
     "prettier": "^3.5.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.0",
-    "vite": "^6.1.0",
-    "vitest": "^4.1.9"
+    "vite": "^6.1.0"
   },
   "engines": {
     "node": ">=20.0.0"
