@@ -112,7 +112,7 @@ npm run preview   # local smoke test
 ### Android
 
 ```bash
-npm run build:android   # add platform (if missing) + build + icons/splash + cap sync + native/ patches
+npm run build:android   # wrapper: build + add platform if missing + icons/splash + cap sync + native/ patches
 npm run cap:android     # open Android Studio
 ```
 
@@ -124,6 +124,8 @@ npm run cap:ios
 ```
 
 `android/` and `ios/` are gitignored — each developer generates them locally. `build:android` / `build:ios` auto-run `cap:add:android` / `cap:add:ios`, which add the platform only when the folder is missing (idempotent), so no manual `cap add` is needed.
+
+Internally, the `cap:add:*` and `build:*` scripts are routed through `scripts/native-ops.mjs` to keep the native build flow in one place.
 
 ### Environment Variables (CI/CD)
 

@@ -133,13 +133,13 @@ dev
 build
 preview
 cap:sync
-cap:add:android
-cap:add:ios
+cap:add:android  # via scripts/native-ops.mjs ensure android
+cap:add:ios      # via scripts/native-ops.mjs ensure ios
 cap:android
 cap:ios
 assets:generate
-build:android
-build:ios
+build:android    # via scripts/native-ops.mjs build android
+build:ios        # via scripts/native-ops.mjs build ios
 lint
 game:verify-config
 lint:fix

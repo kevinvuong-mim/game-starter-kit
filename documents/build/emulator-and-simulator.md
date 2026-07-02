@@ -10,32 +10,32 @@ Tài liệu này mô tả end-to-end cách build native app và chạy trên **A
 
 Hai script one-command — build native rồi mở app trên emulator/simulator:
 
-| Command | Script | Mô tả |
-| ------- | ------ | ----- |
-| `npm run run:android` | `scripts/run-android-emulator.sh` | `build:android` → `assembleDebug` → boot emulator (nếu chưa có device) → cài APK → launch |
-| `npm run run:ios` | `scripts/run-ios-simulator.sh` | `build:ios` → `xcodebuild` (simulator) → boot simulator → cài `.app` → launch |
+| Command               | Script                            | Mô tả                                                                                                                    |
+| --------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `npm run run:android` | `scripts/run-android-emulator.sh` | `build:android` (qua `scripts/native-ops.mjs`) → `assembleDebug` → boot emulator (nếu chưa có device) → cài APK → launch |
+| `npm run run:ios`     | `scripts/run-ios-simulator.sh`    | `build:ios` (qua `scripts/native-ops.mjs`) → `xcodebuild` (simulator) → boot simulator → cài `.app` → launch             |
 
 ### Biến môi trường tuỳ chọn
 
 **Android** (`run:android`):
 
-| Variable | Mô tả |
-| -------- | ----- |
-| `ANDROID_AVD` | Tên AVD (mặc định: AVD đầu tiên trong `emulator -list-avds`) |
-| `ANDROID_HEADLESS=1` | Emulator không cửa sổ (CI) |
-| `SKIP_BUILD=1` | Bỏ qua `npm run build:android` |
-| `SKIP_GRADLE=1` | Bỏ qua `./gradlew assembleDebug` |
-| `BOOT_TIMEOUT_SEC=300` | Timeout chờ emulator boot |
-| `SHOW_LOGS=1` | Tail `adb logcat` Capacitor sau khi launch |
+| Variable               | Mô tả                                                        |
+| ---------------------- | ------------------------------------------------------------ |
+| `ANDROID_AVD`          | Tên AVD (mặc định: AVD đầu tiên trong `emulator -list-avds`) |
+| `ANDROID_HEADLESS=1`   | Emulator không cửa sổ (CI)                                   |
+| `SKIP_BUILD=1`         | Bỏ qua `npm run build:android` (native-ops build helper)     |
+| `SKIP_GRADLE=1`        | Bỏ qua `./gradlew assembleDebug`                             |
+| `BOOT_TIMEOUT_SEC=300` | Timeout chờ emulator boot                                    |
+| `SHOW_LOGS=1`          | Tail `adb logcat` Capacitor sau khi launch                   |
 
 **iOS** (`run:ios`):
 
-| Variable | Mô tả |
-| -------- | ----- |
+| Variable             | Mô tả                                                     |
+| -------------------- | --------------------------------------------------------- |
 | `IOS_SIMULATOR_UDID` | UUID simulator (mặc định: đang boot hoặc iPhone đầu tiên) |
-| `SKIP_BUILD=1` | Bỏ qua `npm run build:ios` |
-| `SKIP_XCODEBUILD=1` | Dùng lại build trong `.derived-data/ios` |
-| `SHOW_LOGS=1` | In log simulator 1 phút gần nhất |
+| `SKIP_BUILD=1`       | Bỏ qua `npm run build:ios` (native-ops build helper)      |
+| `SKIP_XCODEBUILD=1`  | Dùng lại build trong `.derived-data/ios`                  |
+| `SHOW_LOGS=1`        | In log simulator 1 phút gần nhất                          |
 
 Ví dụ:
 
@@ -54,13 +54,13 @@ npm run build && SKIP_BUILD=1 npm run run:android
 
 ## Yêu cầu hệ thống
 
-| Thành phần | Android | iOS |
-| ---------- | ------- | --- |
-| OS | macOS / Linux / Windows | **macOS** (bắt buộc) |
-| Node.js | ≥ 20 | ≥ 20 |
-| IDE / SDK | Android Studio + Android SDK | **Xcode** (kèm iOS Simulator) |
-| Biến môi trường | `ANDROID_HOME` trỏ tới Android SDK | Không bắt buộc thêm |
-| Java | JDK 17 (Gradle Android) | — |
+| Thành phần      | Android                            | iOS                           |
+| --------------- | ---------------------------------- | ----------------------------- |
+| OS              | macOS / Linux / Windows            | **macOS** (bắt buộc)          |
+| Node.js         | ≥ 20                               | ≥ 20                          |
+| IDE / SDK       | Android Studio + Android SDK       | **Xcode** (kèm iOS Simulator) |
+| Biến môi trường | `ANDROID_HOME` trỏ tới Android SDK | Không bắt buộc thêm           |
+| Java            | JDK 17 (Gradle Android)            | —                             |
 
 Kiểm tra nhanh:
 
@@ -126,7 +126,7 @@ npm run start:dev
 
 ## Luồng build native
 
-Thư mục `android/` và `ios/` được generate bởi Capacitor và **gitignored**. Scripts `build:android` / `build:ios` tự add platform nếu thiếu.
+Thư mục `android/` và `ios/` được generate bởi Capacitor và **gitignored**. Scripts `build:android` / `build:ios` tự đảm nhiệm add platform nếu thiếu, rồi generate assets, sync và apply native patches qua `scripts/native-ops.mjs`.
 
 ### Android
 
@@ -435,16 +435,16 @@ xcrun simctl launch booted com.studio.gamestarterkit
 
 ## Troubleshooting
 
-| Triệu chứng | Nguyên nhân / Cách xử lý |
-| ----------- | ------------------------ |
-| Android crash ngay khi mở, log AdMob SDK | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
-| iOS crash AdMob lúc launch | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios` |
-| iOS `pod install` conflict UMP 3.x | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install` |
-| `No connected devices!` (Gradle) | Emulator/device chưa boot — `adb devices` phải thấy `device` |
-| Emulator không hiện trong `adb devices` | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio |
-| API guest/leaderboard fail trên Android emulator | Đổi `VITE_API_URL` thành `http://10.0.2.2:3000/api` rồi `npm run build:android` lại |
-| Ads không load trên emulator | Bình thường; dùng device thật hoặc `VITE_ADMOB_TESTING=true` |
-| `android/` hoặc `ios/` mất sau clone | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform |
+| Triệu chứng                                      | Nguyên nhân / Cách xử lý                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Android crash ngay khi mở, log AdMob SDK         | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
+| iOS crash AdMob lúc launch                       | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios`                                                          |
+| iOS `pod install` conflict UMP 3.x               | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
+| `No connected devices!` (Gradle)                 | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
+| Emulator không hiện trong `adb devices`          | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
+| API guest/leaderboard fail trên Android emulator | Đổi `VITE_API_URL` thành `http://10.0.2.2:3000/api` rồi `npm run build:android` lại                                      |
+| Ads không load trên emulator                     | Bình thường; dùng device thật hoặc `VITE_ADMOB_TESTING=true`                                                             |
+| `android/` hoặc `ios/` mất sau clone             | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
 
 ---
 
@@ -452,12 +452,12 @@ xcrun simctl launch booted com.studio.gamestarterkit
 
 Scripts đọc `.env` và apply template từ `native/`:
 
-| Script | Android | iOS |
-| ------ | ------- | --- |
-| MainActivity | `native/android/MainActivity.java` → `android/.../MainActivity.java` | — |
-| AdMob App ID | `AndroidManifest.xml` meta-data | `Info.plist` `GADApplicationIdentifier` |
-| Fullscreen / status bar | — | `native/ios/FullscreenBridgeViewController.swift`, `Main.storyboard` |
-| CocoaPods pin | — | `GoogleUserMessagingPlatform ~> 2.3` (pre-sync) |
+| Script                  | Android                                                              | iOS                                                                  |
+| ----------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| MainActivity            | `native/android/MainActivity.java` → `android/.../MainActivity.java` | —                                                                    |
+| AdMob App ID            | `AndroidManifest.xml` meta-data                                      | `Info.plist` `GADApplicationIdentifier`                              |
+| Fullscreen / status bar | —                                                                    | `native/ios/FullscreenBridgeViewController.swift`, `Main.storyboard` |
+| CocoaPods pin           | —                                                                    | `GoogleUserMessagingPlatform ~> 2.3` (pre-sync)                      |
 
 Chi tiết build scripts: [Mobile Build](../setup/mobile-build.md).
 
