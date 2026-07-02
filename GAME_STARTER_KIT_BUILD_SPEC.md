@@ -668,7 +668,7 @@ export const gameConfig: GameConfig = {
 
 > **Lưu ý quan trọng khi clone cho game mới:**
 >
-> 1. Đổi `id` thành đúng `GameId` trên backend (ví dụ: `'FRULOOP'`, `'STACK_JUMP'`).
+> 1. Đổi `id` thành đúng `GameId` trên backend (ví dụ: `'FRULOOP'`).
 > 2. Lấy `VITE_REPLAY_SECRET` từ backend team, điền vào file `.env` local và CI/CD secrets.
 > 3. Không bao giờ commit giá trị thật của `VITE_REPLAY_SECRET`.
 
@@ -1339,7 +1339,7 @@ Lưu ý:
 ```text
 gameId
 → phải khớp GameId enum trên backend
-→ ví dụ: 'FRULOOP', 'STACK_JUMP'
+→ ví dụ: 'FRULOOP'
 
 replaySecret
 → inject qua VITE_REPLAY_SECRET (env var)

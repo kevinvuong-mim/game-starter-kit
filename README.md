@@ -16,7 +16,7 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 | Analytics   | Console (dev) + Firebase Analytics (staging/production)          |
 | Ads         | Mock (web/dev) + AdMob via `@capacitor-community/admob` (native) |
 
-IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `api-starter-kit` does not yet store or validate entitlements server-side. Add a backend entitlement module before treating premium state as tamper-resistant.
+IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `game-api` does not store or validate entitlements server-side.
 
 **Node.js:** `>= 20`
 
@@ -118,21 +118,21 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 
 ## Platform Modules
 
-| Module        | Description                                                           |
-| ------------- | --------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON        |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases              |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                 |
-| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                    |
-| daily-rewards | 7-day streak calendar, local persistence                              |
-| save          | Single `game-save` key — hydrates Zustand store on boot               |
-| settings      | Language, sound, vibration, graphics — part of store state            |
-| guest         | Anonymous guest + `installId` identity (`POST /guest/init`)           |
-| game-sync     | Offline queue → HMAC `replayHash` + per-item sync status from API     |
-| ads (module)  | Static placement config, reward flow, controller wired to event bus   |
-| analytics     | Provider interface — Console + Firebase                               |
-| advertising   | AdMob / mock providers, placement state machines                      |
-| IAP           | Provider interface — purchase, restore, client-side entitlement state |
+| Module        | Description                                                                   |
+| ------------- | ----------------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                      |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                         |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                            |
+| daily-rewards | 7-day streak calendar, local persistence                                      |
+| save          | Single `game-save` key — hydrates Zustand store on boot                       |
+| settings      | Language, sound, vibration, graphics — part of store state                    |
+| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)     |
+| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /games/:gameId/results`) |
+| ads (module)  | Static placement config, reward flow, controller wired to event bus           |
+| analytics     | Provider interface — Console + Firebase                                       |
+| advertising   | AdMob / mock providers, placement state machines                              |
+| IAP           | Provider interface — purchase, restore, client-side entitlement state         |
 
 ## UI Framework
 
@@ -186,7 +186,7 @@ VITE_ADMOB_IOS_APP_ID=
 | `VITE_API_URL`        | Optional API base URL override                       |
 | `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. `VITE_API_URL` overrides the environment preset. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — both must match a row in api-starter-kit `games` (e.g. `puzzle-quest` and `puzzle-quest-dev-secret`).
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. `VITE_API_URL` overrides the environment preset. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — `id` must match `GameId` on `game-api`, and `VITE_REPLAY_SECRET` must match `REPLAY_SECRET_<GAME_ID>` on the backend.
 
 Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
 

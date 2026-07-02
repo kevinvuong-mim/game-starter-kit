@@ -1,40 +1,44 @@
 /**
  * Guest identity model.
  *
- * A `guestId` is the player's persistent anonymous identity, shared across all
- * games on the device. `installId` is generated once per app install and lets
- * the backend return the same guest for the same installation.
+ * Each app install gets one guest via `POST /guest/init`. Credentials are stored
+ * permanently until uninstall/clear data — no relink, no installId.
  */
 
-/** Capacitor Preferences key for the persisted guest id. */
-export const GUEST_STORAGE_KEY = 'game_guest_id';
+/** Storage key → persisted as `gsk:guest` by the storage providers. */
+export const GUEST_STORAGE_KEY = 'guest';
 
-/** Capacitor Preferences key for the persisted install id (survives reinit). */
-export const INSTALL_ID_STORAGE_KEY = 'game_install_id';
+export interface GuestCredentials {
+  guestId: string;
+  secretToken: string;
+}
 
 /** Shape of the `POST /guest/init` response payload (inside the envelope). */
 export interface InitGuestPayload {
   guestId: string;
-  relinked: boolean;
+  gameId: string;
+  secretToken: string;
 }
 
-/** Shape of guest profile payloads (`GET /guest/me`, `PATCH /guest/name`). */
+/** Shape of guest profile payloads (`PATCH /guest/name`). */
 export interface GuestProfilePayload {
   guestId: string;
+  gameId: string;
   name: string | null;
 }
 
-/** Loose UUID v4 format check. */
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function isValidGuestId(value: unknown): value is string {
   return typeof value === 'string' && UUID_PATTERN.test(value);
 }
 
-export function isValidInstallId(value: unknown): value is string {
-  return typeof value === 'string' && UUID_PATTERN.test(value);
-}
-
-export function generateInstallId(): string {
-  return crypto.randomUUID();
+export function isValidGuestCredentials(value: unknown): value is GuestCredentials {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Partial<GuestCredentials>;
+  return (
+    isValidGuestId(record.guestId) &&
+    typeof record.secretToken === 'string' &&
+    record.secretToken.length > 0
+  );
 }

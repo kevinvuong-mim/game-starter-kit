@@ -16,13 +16,6 @@ export interface FetchOptions {
   force?: boolean;
 }
 
-/**
- * Orchestrates leaderboard reads.
- *
- * Owns an in-memory view, a TTL cache, predictable loading/error
- * transitions, and offline fallback to the persisted cache. The UI consumes
- * the emitted {@link LeaderboardView}; it never calls the API directly.
- */
 export class LeaderboardService {
   private view: LeaderboardView = createInitialView();
   private currentPage = 1;
@@ -33,7 +26,6 @@ export class LeaderboardService {
     private readonly guestService: GuestService = guest
   ) {}
 
-  /** Warm the in-memory view from the persisted cache (offline-friendly). */
   async init(): Promise<void> {
     const gameId = getConfig().gameId;
     const cache = await this.repository.loadCache(gameId, this.currentPage);
@@ -50,7 +42,6 @@ export class LeaderboardService {
     return this.view;
   }
 
-  /** Loads the leaderboard, using a fresh cache when available unless `force` is set. */
   async fetchLeaderboard(options: FetchOptions = {}): Promise<LeaderboardView> {
     if (options.page) {
       this.currentPage = options.page;
@@ -78,12 +69,10 @@ export class LeaderboardService {
     return request;
   }
 
-  /** Force a network refresh for the current page. */
   async refreshLeaderboard(page?: number): Promise<LeaderboardView> {
     return this.fetchLeaderboard({ force: true, page });
   }
 
-  /** Ensures the leaderboard is loaded and returns the current player's rank (or null). */
   async fetchPlayerRank(): Promise<number | null> {
     const view = await this.fetchLeaderboard();
     return view.myRank;
@@ -95,7 +84,7 @@ export class LeaderboardService {
 
     this.transition({ status: hasData ? 'refreshing' : 'loading', error: null });
 
-    const guestId = await this.guestService.ensureGuestId();
+    const guestId = this.guestService.getGuestId();
 
     try {
       const data = await this.repository.fetch({
@@ -106,10 +95,7 @@ export class LeaderboardService {
       return this.applySuccess(data, guestId);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
-        logger.error(
-          '[Leaderboard] Game or guest not found on backend — check identity/config',
-          error
-        );
+        logger.error('[Leaderboard] Game not found on backend — check gameId config', error);
       }
 
       return this.applyFailure(error);
@@ -121,10 +107,7 @@ export class LeaderboardService {
     guestId: string | null
   ): Promise<LeaderboardView> {
     const updatedAt = Date.now();
-    await this.repository.saveCache(
-      { page: data.pagination.page, data, updatedAt },
-      getConfig().gameId
-    );
+    await this.repository.saveCache({ page: data.page, data, updatedAt }, getConfig().gameId);
 
     const view = this.buildView(data, {
       fromCache: false,
@@ -156,13 +139,21 @@ export class LeaderboardService {
     data: LeaderboardData,
     extra: { fromCache: boolean; lastUpdated: number; myGuestId?: string | null }
   ): LeaderboardView {
+    const totalPages = data.total > 0 ? Math.ceil(data.total / data.limit) : 0;
+
     return {
       status: 'ready',
-      entries: data.top,
-      myRank: data.myRank,
-      pagination: data.pagination,
+      entries: data.items,
+      myRank: data.self?.rank ?? null,
+      myBestScore: data.self?.bestScore ?? null,
+      pagination: {
+        page: data.page,
+        limit: data.limit,
+        total: data.total,
+        totalPages,
+      },
       myGuestId: extra.myGuestId ?? this.guestService.getGuestId(),
-      isEmpty: data.top.length === 0,
+      isEmpty: data.items.length === 0,
       fromCache: extra.fromCache,
       lastUpdated: extra.lastUpdated,
       error: null,
@@ -176,9 +167,15 @@ export class LeaderboardService {
 
   private toData(view: LeaderboardView): LeaderboardData {
     return {
-      top: view.entries,
-      myRank: view.myRank,
-      pagination: view.pagination,
+      gameId: getConfig().gameId,
+      total: view.pagination.total,
+      page: view.pagination.page,
+      limit: view.pagination.limit,
+      items: view.entries,
+      self:
+        view.myRank !== null && view.myBestScore !== null
+          ? { rank: view.myRank, bestScore: view.myBestScore }
+          : null,
     };
   }
 

@@ -75,14 +75,6 @@ export class App {
       analytics.setUserId(analyticsUserId);
     }
     analytics.setUserProperty('game_id', config().gameId);
-    void guest
-      .ensureGuestId()
-      .then((guestId) => {
-        if (guestId) {
-          analytics.setUserId(guestId);
-        }
-      })
-      .catch((error) => logger.warn('[App] Background guest init failed', error));
 
     await saveService.loadLocal();
     await dailyRewards.init();

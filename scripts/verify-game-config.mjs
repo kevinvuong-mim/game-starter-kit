@@ -1,34 +1,48 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function extractString(source, key) {
-  const match = new RegExp(`${key}:\\s*['"]([^'"]+)['"]`).exec(source);
-  return match?.[1];
+const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/;
+
+function loadEnvFile() {
+  const envPath = resolve(process.cwd(), '.env');
+  if (!existsSync(envPath)) return;
+
+  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
 }
 
-function readGameConfig() {
+function readGameIdFromConfig() {
   const configPath = resolve(process.cwd(), 'src/game/config.ts');
   const source = readFileSync(configPath, 'utf8');
-  const id = extractString(source, 'id');
-  const name = extractString(source, 'name');
-  const replaySecret = extractString(source, 'replaySecret');
+  const match = /id:\s*['"]([^'"]+)['"]/.exec(source);
 
-  if (!id || !name || !replaySecret) {
-    throw new Error('src/game/config.ts must define id, name, and replaySecret.');
+  if (!match?.[1]) {
+    throw new Error('src/game/config.ts must define id.');
   }
 
-  return { id, name, replaySecret };
+  return match[1];
 }
 
 async function verifyApiGame(apiUrl, gameId) {
-  const url = new URL('/leaderboards', apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`);
+  const url = new URL('leaderboards', apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`);
   url.searchParams.set('gameId', gameId);
   url.searchParams.set('page', '1');
   url.searchParams.set('limit', '1');
 
   const response = await fetch(url);
   if (response.status === 404) {
-    throw new Error(`Backend does not know gameId "${gameId}". Run api-starter-kit npm run game:register.`);
+    throw new Error(`Backend does not support gameId "${gameId}".`);
   }
 
   if (!response.ok) {
@@ -37,19 +51,37 @@ async function verifyApiGame(apiUrl, gameId) {
 }
 
 async function main() {
-  const config = readGameConfig();
+  loadEnvFile();
+  const gameId = readGameIdFromConfig();
+  const replaySecret = process.env.VITE_REPLAY_SECRET ?? '';
   const apiUrl = process.env.VITE_API_URL ?? 'http://localhost:3000/api';
+  const appEnv = process.env.VITE_APP_ENV ?? 'dev';
+  const isProductionBuild = process.env.NODE_ENV === 'production' || appEnv === 'production';
 
   console.log('Client game config:');
-  console.log(JSON.stringify({ ...config, replaySecret: '<redacted>' }, null, 2));
+  console.log(JSON.stringify({ id: gameId, replaySecret: '<redacted>' }, null, 2));
+
+  if (!replaySecret) {
+    throw new Error('VITE_REPLAY_SECRET is required. Set it in .env before building.');
+  }
+
+  if (!SHA256_HEX_PATTERN.test(replaySecret)) {
+    throw new Error(
+      'VITE_REPLAY_SECRET must be a 64-character lowercase SHA256 hex string (^[a-f0-9]{64}$).'
+    );
+  }
+
+  if (isProductionBuild && !replaySecret) {
+    throw new Error('VITE_REPLAY_SECRET must not be empty for production builds.');
+  }
 
   if (process.env.SKIP_API_CHECK === 'true') {
     console.log('Skipped backend check because SKIP_API_CHECK=true.');
     return;
   }
 
-  await verifyApiGame(apiUrl, config.id);
-  console.log(`Backend accepts gameId "${config.id}" at ${apiUrl}.`);
+  await verifyApiGame(apiUrl, gameId);
+  console.log(`Backend accepts gameId "${gameId}" at ${apiUrl}.`);
 }
 
 main().catch((error) => {

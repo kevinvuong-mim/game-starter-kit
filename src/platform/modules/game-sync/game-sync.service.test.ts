@@ -16,8 +16,8 @@ describe('GameSyncService', () => {
   it('queues valid results locally before syncing', async () => {
     setConfig(
       createConfig({
-        gameId: 'puzzle-quest',
-        replaySecret: 'puzzle-quest-dev-secret',
+        gameId: 'FRULOOP',
+        replaySecret: 'a'.repeat(64),
       })
     );
 
@@ -27,22 +27,24 @@ describe('GameSyncService', () => {
       sync: vi.fn(),
     } as unknown as GameSyncRepository;
     const guestService = {
-      getGuestId: vi.fn().mockReturnValue('guest-1'),
-      ensureGuestId: vi.fn(),
-      reinit: vi.fn(),
+      getGuestId: vi.fn().mockReturnValue('550e8400-e29b-41d4-a716-446655440000'),
     };
 
     const service = new GameSyncService(repository, guestService as never);
-    await service.recordResult({ score: 101, runSeed: 'run-1' });
+    await service.recordResult({
+      score: 101,
+      playedAt: '2026-01-15T10:00:00.000Z',
+    });
 
     expect(repository.loadQueue).toHaveBeenCalledOnce();
     expect(repository.saveQueue).toHaveBeenCalledOnce();
     expect(repository.saveQueue).toHaveBeenCalledWith([
       expect.objectContaining({
-        gameId: 'puzzle-quest',
+        gameId: 'FRULOOP',
         score: 101,
-        runSeed: 'run-1',
+        playedAt: '2026-01-15T10:00:00.000Z',
         synced: false,
+        signature: expect.stringMatching(/^[a-f0-9]{64}$/),
       }),
     ]);
   });
