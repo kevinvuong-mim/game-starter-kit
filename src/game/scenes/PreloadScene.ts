@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 
+import { SOUND_POP_KEY, SOUND_COIN_DROP_KEY } from '@platform/ui/audio/SoundManager';
+
 export class PreloadScene extends Phaser.Scene {
   constructor() {
     super({ key: 'Preload' });
@@ -19,9 +21,11 @@ export class PreloadScene extends Phaser.Scene {
       console.warn(`[Assets] Missing starter asset: ${file.key}`);
     });
 
-    this.load.image('home-screen-background', '/assets/ui/home-screen-background.jpeg');
-    this.load.image('play-button-background', '/assets/ui/play-button-background.webp');
-    this.load.image('play-button-icon', '/assets/ui/play-button-icon.webp');
+    this.load.audio(SOUND_COIN_DROP_KEY, '/assets/audio/coin-drop.mp3');
+    this.load.audio(SOUND_POP_KEY, '/assets/audio/pop-sound-effect.mp3');
+    this.load.image('play-button-icon', '/assets/images/play-button-icon.webp');
+    this.load.image('home-screen-background', '/assets/images/home-screen-background.jpeg');
+    this.load.image('play-button-background', '/assets/images/play-button-background.webp');
   }
 
   create(): void {

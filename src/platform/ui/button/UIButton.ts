@@ -6,10 +6,12 @@ import type {
   UIButtonSize,
   UIButtonText,
   UIButtonBadge,
+  UIButtonSound,
   UIButtonOptions,
   UIButtonTextStyle,
 } from '../types';
 import { FREDOKA_FONT } from '@platform/ui/index';
+import { soundManager } from '@platform/ui/audio/SoundManager';
 
 export const UIButtonBackgroundKey = {
   Primary: '__ui-button-primary',
@@ -200,7 +202,8 @@ function bindButtonInteractions(
   scene: Phaser.Scene,
   inputTarget: Phaser.GameObjects.GameObject,
   visualTarget: Phaser.GameObjects.GameObject,
-  onClick?: () => void
+  onClick?: () => void,
+  sound: UIButtonSound = 'pop'
 ): void {
   let isPressed = false;
 
@@ -220,8 +223,10 @@ function bindButtonInteractions(
   };
 
   inputTarget.on('pointerdown', () => {
-    if (scene.sound.locked) {
-      scene.sound.unlock();
+    if (sound === 'pop') {
+      soundManager.playPop();
+    } else if (sound === 'coin-drop') {
+      soundManager.playCoinDrop();
     }
 
     isPressed = true;
@@ -253,7 +258,8 @@ function createHitZone(
 }
 
 export function createUIButton(options: UIButtonOptions): UIButton {
-  const { scene, position, background, text, icon, badge, depth, disabled, onClick } = options;
+  const { scene, position, background, text, icon, badge, depth, disabled, onClick, sound } =
+    options;
 
   ensureDefaultButtonTextures(scene);
 
@@ -286,7 +292,7 @@ export function createUIButton(options: UIButtonOptions): UIButton {
   const ensureInteractive = () => {
     if (!hitZone) {
       hitZone = createHitZone(scene, container, offsetX, offsetY, width, height);
-      bindButtonInteractions(scene, hitZone, container, onClick);
+      bindButtonInteractions(scene, hitZone, container, onClick, sound);
     } else {
       hitZone.setInteractive({ useHandCursor: true });
     }

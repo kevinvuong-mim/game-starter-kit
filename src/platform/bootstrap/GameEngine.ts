@@ -5,6 +5,7 @@ import { gameScenes } from '@game/scenes';
 import { app } from '@platform/bootstrap/App';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { loadGameFonts } from '@platform/bootstrap/fonts';
+import { soundManager } from '@platform/ui/audio/SoundManager';
 import { refreshServicesFromConfig } from '@platform/core/services';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
@@ -65,6 +66,7 @@ export class GameEngine {
 
     this.game = new PhaserLib.Game(phaserConfig);
     toast.init(this.game);
+    soundManager.init(this.game);
 
     return this.game;
   }

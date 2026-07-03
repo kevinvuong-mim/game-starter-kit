@@ -47,7 +47,7 @@ Then customize:
 2. **`src/game/config.ts`** — set `name`, `version`, screen size (`width` / `height`)
 3. **`capacitor.config.ts`** — set `appId` and `appName`
 4. **`src/game/scenes/GameplayScene.ts`** — implement your game mechanics
-5. **`src/game/scenes/PreloadScene.ts`** — load your assets
+5. **`src/game/scenes/PreloadScene.ts`** — load your assets (images under `public/assets/images/`, audio under `public/assets/audio/`)
 6. Add art/audio under **`public/assets/`** (served at `/assets/…` in dev/build)
 7. Run `npm run dev`
 
@@ -60,13 +60,15 @@ game-starter-kit/
 │   ├── platform/              # Reusable platform (keep as-is across games)
 │   │   ├── core/              # events, state, storage, api, analytics, advertising, iap, error
 │   │   ├── modules/           # i18n, shop, missions, leaderboard, save, settings, guest, game-sync, ads
-│   │   ├── ui/                # Phaser UI: panels, HUD, toast, screen stack, buttons
+│   │   ├── ui/                # Phaser UI: panels, HUD, toast, audio, screen stack, buttons
 │   │   └── bootstrap/         # App, GameEngine, analytics, ads, iap, capacitor
 │   └── game/                  # YOUR game — customize per project
 │       ├── config.ts          # Game identity & screen size
 │       ├── utils/             # e.g. ObjectPool
 │       └── scenes/            # Boot → Preload → Home + feature scenes
 ├── public/assets/             # Static game assets (create per project)
+│   ├── images/                # UI/game art
+│   └── audio/                 # SFX (e.g. pop-sound-effect, coin-drop)
 ├── native/                    # Native templates applied on cap sync (AdMob, splash, etc.)
 ├── scripts/                   # apply-android-native.mjs, apply-ios-native.mjs
 ├── index.html
@@ -90,7 +92,7 @@ game-starter-kit/
 ```
 Game Layer        → src/game/ — gameplay only (scenes, entities, systems)
      ↓ eventBus
-Platform UI       → src/platform/ui — Phaser panels, HUD, toast, screen stack
+Platform UI       → src/platform/ui — Phaser panels, HUD, toast, sound, screen stack
      ↓
 Platform Modules  → src/platform/modules — feature services + controllers
      ↓
@@ -141,12 +143,18 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 Feature screens are **Phaser scenes** that compose reusable **panels**:
 
 ```typescript
-import { t, createUIButton, ShopPanel, toast } from '@platform/ui';
+import { t, createUIButton, ShopPanel, toast, soundManager } from '@platform/ui';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 
 // Overlay stack (e.g. modal on Home)
 screenManager.open('modal', { message: 'Hello!' });
 toast.show({ message: 'Coins +50', type: 'success' });
+
+// UIButton plays pop SFX on pointerdown by default; override with sound: 'coin-drop' | false
+createUIButton({ scene, position: { x: 0, y: 0 }, background: { key: '...' }, sound: 'coin-drop' });
+
+// Play SFX directly (respects settings.soundEnabled)
+soundManager.playCoinDrop();
 ```
 
 Built-in scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyReward, Settings, HowToPlay, Legal.

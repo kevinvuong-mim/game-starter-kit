@@ -31,7 +31,7 @@ Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts
 │  config / scenes / utils — gameplay only     │
 ├─────────────────────────────────────────────┤
 │         PLATFORM UI (src/platform/ui/)       │
-│  panels / hud / toast / button / screen      │
+│  panels / hud / toast / audio / button / screen │
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n shop missions leaderboard daily-rewards│
@@ -86,7 +86,8 @@ game-starter-kit/
 ├── eslint.config.js
 ├── index.html
 ├── package.json
-├── public/assets/ui/
+├── public/assets/images/
+├── public/assets/audio/
 ├── resources/
 │   └── logo.webp
 ├── scripts/
@@ -527,6 +528,7 @@ await document.fonts.ready
 Create Phaser game với gameScenes từ @game/scenes
 
 toast.init(game)
+soundManager.init(game)
 
 Phaser config:
 type: AUTO
@@ -758,12 +760,12 @@ Getters:
 | Scene             | Key      | Hành vi                            |
 | ----------------- | -------- | ---------------------------------- |
 | BootScene         | Boot     | Particle → SESSION_START → Preload |
-| PreloadScene      | Preload  | Progress → assets → Home           |
+| PreloadScene      | Preload  | Progress → images + audio → Home   |
 | HomeScene         | Home     | Background + navigation            |
 | GameplayScene     | Gameplay | Tap-to-jump + HUD + events         |
 | GameOverScene     | GameOver | Score + Retry/Home                 |
 | Shop/Missions/... | wrapper  | Panel + Close                      |
-| SettingsScene     | Settings | Language + navigation              |
+| SettingsScene     | Settings | Language + sound + navigation      |
 
 ### Rules
 
@@ -1288,16 +1290,18 @@ NUNITO_FONT
 Components:
 
 ```text
-UIButton
+UIButton              # createUIButton(); sound: 'pop' | 'coin-drop' | false (default 'pop')
 ScreenManager
 ModalScreen
 ToastManager
+SoundManager          # SFX singleton; init in GameEngine; respects settings.soundEnabled
 HUD
 ShopPanel
 MissionsPanel
 LeaderboardPanel
 DailyRewardPopup
 LanguageSettingsPanel
+SoundSettingsPanel    # On/Off toggle in SettingsScene
 HowToPlayPanel
 LegalPanel
 ```
@@ -1340,11 +1344,16 @@ verify-game-config.mjs
 # 11. Static assets
 
 ```text
-public/assets/ui/
+public/assets/images/
 
 home-screen-background.jpeg
 play-button-background.webp
 play-button-icon.webp
+
+public/assets/audio/
+
+pop-sound-effect.mp3    # default UIButton press SFX (key: pop-sound-effect)
+coin-drop.mp3           # reward/coin actions (key: coin-drop)
 
 resources/logo.webp
 ```

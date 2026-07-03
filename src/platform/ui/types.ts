@@ -94,6 +94,8 @@ export interface UIButtonBadge {
   textStyle?: UIButtonTextStyle;
 }
 
+export type UIButtonSound = 'pop' | 'coin-drop' | false;
+
 export interface UIButtonOptions {
   origin?: {
     x: number;
@@ -109,6 +111,7 @@ export interface UIButtonOptions {
   size?: UIButtonSize;
   text?: UIButtonText;
   onClick?: () => void;
+  sound?: UIButtonSound;
   badge?: UIButtonBadge;
   position: UIButtonPosition;
 }

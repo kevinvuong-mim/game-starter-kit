@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
@@ -27,6 +28,7 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     new LanguageSettingsPanel(this, 0, height * 0.15);
+    new SoundSettingsPanel(this, 0, height * 0.25);
 
     createUIButton({
       scene: this,

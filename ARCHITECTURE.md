@@ -10,7 +10,7 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 │  config / scenes / utils                     │
 ├─────────────────────────────────────────────┤
 │         PLATFORM UI (src/platform/ui/)       │
-│  panels / hud / toast / button / screen      │
+│  panels / hud / toast / audio / button / screen │
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n / shop / missions / leaderboard / save │
@@ -76,22 +76,24 @@ src/
     │   ├── ads/                 # static placement config module + controller
     │   └── iap/                 # purchase flow, entitlements, ads integration
     ├── ui/
-    │   ├── button/UIButton.ts   # createUIButton()
+    │   ├── button/UIButton.ts   # createUIButton() — optional sound on pointerdown
     │   ├── hud/HUD.ts
     │   ├── screen/ScreenManager.ts
     │   ├── shop/ShopPanel.ts
     │   ├── toast/ToastManager.ts
+    │   ├── audio/SoundManager.ts
     │   ├── modal/ModalScreen.ts
     │   ├── missions/MissionsPanel.ts
     │   ├── leaderboard/LeaderboardPanel.ts
     │   ├── daily-reward/DailyRewardPopup.ts
     │   ├── settings/LanguageSettingsPanel.ts
+    │   ├── settings/SoundSettingsPanel.ts
     │   ├── how-to-play/HowToPlayPanel.ts
     │   ├── legal/LegalPanel.ts
     │   └── typography.ts        # FREDOKA_FONT, NUNITO_FONT (in index.ts)
     └── bootstrap/
         ├── App.ts               # Module wiring, event handlers, lifecycle
-        ├── GameEngine.ts        # Phaser bootstrap, fonts, toast init
+        ├── GameEngine.ts        # Phaser bootstrap, fonts, toast + sound init
         ├── analytics.ts         # registerAnalyticsProviders()
         ├── ads.ts               # registerAdsProvider()
         ├── iap.ts               # registerIapProvider()
@@ -100,6 +102,8 @@ src/
 native/                          # Templates merged on build:android / build:ios
 scripts/                         # apply-android-native.mjs, apply-ios-native.mjs
 public/assets/                   # Static assets (per-game)
+  images/                        # UI/game art
+  audio/                         # SFX (pop-sound-effect, coin-drop, …)
 ```
 
 ## Path Aliases
@@ -221,14 +225,16 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | Component                       | Purpose                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------ |
 | `ScreenManager` / `BaseScreen`  | Overlay stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
-| `createUIButton`                | Shared button factory (`primary` / `rounded` variants)                   |
-| `HUD`                           | Score, coins — subscribes to store                                       |
-| `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                    |
-| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                          |
-| `MissionsPanel`                 | Mission list UI                                                          |
-| `LeaderboardPanel`              | Paginated leaderboard UI                                                 |
-| `DailyRewardPopup`              | Daily reward claim UI                                                    |
-| `LanguageSettingsPanel`         | Language picker                                                          |
+| `createUIButton`                | Shared button factory; plays SFX on `pointerdown` (`sound`: `'pop'` default, `'coin-drop'`, or `false`) |
+| `HUD`                           | Score, coins — subscribes to store                                                       |
+| `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                    |
+| `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`              |
+| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                                          |
+| `MissionsPanel`                 | Mission list UI                                                                          |
+| `LeaderboardPanel`              | Paginated leaderboard UI                                                                 |
+| `DailyRewardPopup`              | Daily reward claim UI                                                                    |
+| `LanguageSettingsPanel`         | Language picker                                                                          |
+| `SoundSettingsPanel`            | Sound on/off toggle in `SettingsScene`                                                    |
 | `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                      |
 | `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                             |
 
@@ -269,7 +275,7 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 16. bindLifecycle() (web visibility)
 ```
 
-`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. `toast.init(game)` runs after the game instance exists.
+`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. `toast.init(game)` and `soundManager.init(game)` run after the game instance exists. Audio files are preloaded in `PreloadScene`; `SoundManager` reads `settings.soundEnabled` from the store before playing.
 
 `BootScene` emits `app:ready` → `App.ts` hides native splash and requests APP_START/HOME ads.
 
@@ -349,7 +355,7 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 3. Update `src/game/config.ts` (`name`, `version`, `width`, `height`)
 4. Update `capacitor.config.ts` (appId, appName)
 5. Implement gameplay in `src/game/scenes/GameplayScene.ts`
-6. Load assets in `PreloadScene.ts`; place files under `public/assets/`
+6. Load assets in `PreloadScene.ts`; place images under `public/assets/images/` and audio under `public/assets/audio/`
 7. Configure AdMob/Firebase env vars for native release builds
 
 ## Adding a New Platform Module

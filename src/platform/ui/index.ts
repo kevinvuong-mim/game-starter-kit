@@ -13,5 +13,7 @@ export { HowToPlayPanel } from './how-to-play/HowToPlayPanel';
 export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { DailyRewardPopup } from './daily-reward/DailyRewardPopup';
+export { SoundSettingsPanel } from './settings/SoundSettingsPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';
+export { soundManager, SoundManager, SOUND_POP_KEY, SOUND_COIN_DROP_KEY } from './audio/SoundManager';

@@ -97,6 +97,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.dailyReward'),
         style: { fontSize: 36, fontStyle: 'bold' },
       },
+      sound: 'coin-drop',
       onClick: () => this.openScreen('DailyReward'),
     });
 

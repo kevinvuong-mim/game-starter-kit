@@ -33,6 +33,7 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 6. Load fonts `Fredoka` và `Nunito Sans`.
 7. Create Phaser game với `gameScenes`.
 8. `toast.init(game)`.
+9. `soundManager.init(game)`.
 
 ---
 

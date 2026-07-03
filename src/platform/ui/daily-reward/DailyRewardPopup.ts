@@ -104,6 +104,7 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
         content: t('dailyReward.claim'),
         style: { fontSize: 22, fontStyle: 'bold' },
       },
+      sound: 'coin-drop',
       onClick: () => {
         eventBus.emit('daily:claim:request', undefined);
       },
