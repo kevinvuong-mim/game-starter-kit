@@ -431,18 +431,18 @@ xcrun simctl launch booted com.studio.gamestarterkit
 
 ## Troubleshooting
 
-| Triệu chứng                                      | Nguyên nhân / Cách xử lý                                                                                                 |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Android crash ngay khi mở, log AdMob SDK         | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
-| iOS crash AdMob lúc launch                       | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios`                                                          |
-| iOS `pod install` conflict UMP 3.x               | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
-| `No connected devices!` (Gradle)                 | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
-| Emulator không hiện trong `adb devices`          | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
-| API guest/leaderboard fail trên Android emulator | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
-| Ads không load trên emulator                     | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
-| `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                            |
-| Android vẫn thấy navigation bar (3 nút dưới)     | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                              |
-| `android/` hoặc `ios/` mất sau clone             | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
+| Triệu chứng                                       | Nguyên nhân / Cách xử lý                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Android crash ngay khi mở, log AdMob SDK          | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
+| iOS crash AdMob lúc launch                        | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios`                                                          |
+| iOS `pod install` conflict UMP 3.x                | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
+| `No connected devices!` (Gradle)                  | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
+| Emulator không hiện trong `adb devices`           | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
+| API guest/leaderboard fail trên Android emulator  | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
+| Ads không load trên emulator                      | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
+| `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                           |
+| Android vẫn thấy navigation bar (3 nút dưới)      | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                             |
+| `android/` hoặc `ios/` mất sau clone              | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
 
 ---
 

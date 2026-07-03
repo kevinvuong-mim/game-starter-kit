@@ -4,13 +4,13 @@ import type { IAPProvider, ProviderProduct, ProviderPurchase } from '../types/ia
 
 const MOCK_PRODUCTS: ProviderProduct[] = [
   {
-    id: 'remove_ads',
-    type: 'non_consumable',
-    title: 'Remove Ads',
-    description: 'Permanent ad removal',
     price: '$4.99',
     currency: 'USD',
+    id: 'remove_ads',
     priceAmount: 4.99,
+    title: 'Remove Ads',
+    type: 'non_consumable',
+    description: 'Permanent ad removal',
   },
 ];
 

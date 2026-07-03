@@ -56,34 +56,16 @@ export class DailyRewardRepository {
   }
 
   migrateFromStoreState(state: DailyRewardState | undefined): DailyRewardModel | null {
-    if (!state) return null;
+    if (!state || state.version < DAILY_REWARD_MODEL_VERSION) return null;
 
-    if (state.version >= DAILY_REWARD_MODEL_VERSION) {
-      return {
-        version: state.version,
-        currentDay: clampDay(state.currentDay),
-        lastClaimDate: state.lastClaimDate,
-        lastClaimWallClock: state.lastClaimWallClock ?? 0,
-        lastSessionTimestamp: state.lastSessionTimestamp ?? 0,
-        timeManipulated: state.timeManipulated ?? false,
-      };
-    }
-
-    const hasLegacyFields =
-      state.lastClaimAt !== undefined ||
-      state.streak !== undefined ||
-      (state.claimedDays?.length ?? 0) > 0;
-
-    if (hasLegacyFields || !state.version) {
-      return migrateLegacyState({
-        streak: state.streak ?? 0,
-        currentDay: state.currentDay,
-        lastClaimAt: state.lastClaimAt ?? 0,
-        claimedDays: state.claimedDays ?? [],
-      });
-    }
-
-    return null;
+    return {
+      version: state.version,
+      currentDay: clampDay(state.currentDay),
+      lastClaimDate: state.lastClaimDate,
+      lastClaimWallClock: state.lastClaimWallClock ?? 0,
+      lastSessionTimestamp: state.lastSessionTimestamp ?? 0,
+      timeManipulated: state.timeManipulated ?? false,
+    };
   }
 
   toStoreState(model: DailyRewardModel): DailyRewardState {

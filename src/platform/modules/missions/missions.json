@@ -1,10 +1,10 @@
 [
   {
+    "target": 3,
     "id": "watch_ad_3",
     "type": "WATCH_AD",
-    "target": 3,
-    "titleKey": "missions.watchAd3",
     "resetPolicy": "daily",
+    "titleKey": "missions.watchAd3",
     "reward": { "type": "coins", "amount": 100 }
   }
 ]

@@ -1,8 +1,8 @@
 import { logger } from '@platform/core/error';
-import type { IEventBus } from '@platform/core/events';
 import { guest } from '@platform/modules/guest';
-import { gameSync, type GameSyncService } from './game-sync.service';
+import type { IEventBus } from '@platform/core/events';
 import type { PluginListenerHandle } from '@capacitor/core';
+import { gameSync, type GameSyncService } from './game-sync.service';
 
 /**
  * Bridges platform/lifecycle events to the sync service.

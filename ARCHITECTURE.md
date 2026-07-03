@@ -238,12 +238,12 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                  |
-| --------------- | --------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle              |
-| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game |
-| `analytics.ts`  | Registers Console + Firebase analytics providers                      |
-| `ads.ts`        | Registers Mock or AdMob provider based on platform + env              |
+| File            | Role                                                                   |
+| --------------- | ---------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle               |
+| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game  |
+| `analytics.ts`  | Registers Console + Firebase analytics providers                       |
+| `ads.ts`        | Registers Mock or AdMob provider based on platform + env               |
 | `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume` |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`

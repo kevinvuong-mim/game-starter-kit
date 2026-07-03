@@ -1,11 +1,10 @@
-import { iap } from '@platform/modules/iap';
-
 import { apiClient } from '../api';
 import { ads } from '../advertising';
 import { eventBus } from '../events';
 import { storage } from '../storage';
 import { getConfig } from '../config';
 import { analytics } from '../analytics';
+import { iap } from '@platform/modules/iap';
 
 /**
  * Service locator for core platform services.

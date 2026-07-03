@@ -10,8 +10,8 @@ Guest identity quản lý anonymous player cho `game-api`.
 
 ## Storage
 
-| Key | Provider | Nội dung |
-|-----|----------|----------|
+| Key         | Provider                                            | Nội dung                   |
+| ----------- | --------------------------------------------------- | -------------------------- |
 | `gsk:guest` | Capacitor Preferences (native) / localStorage (web) | `{ guestId, secretToken }` |
 
 ## `guest.init()` flow

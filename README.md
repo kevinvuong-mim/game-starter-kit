@@ -224,26 +224,26 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 
 ## Scripts
 
-| Command                   | Description                                                 |
-| ------------------------- | ----------------------------------------------------------- |
-| `npm run dev`             | Vite dev server (`:5173`)                                   |
-| `npm run build`           | Typecheck + production build → `dist/`                      |
-| `npm run preview`         | Preview production build                                    |
-| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`                           |
-| `npm run game:verify-config` | Validate `VITE_GAME_ID` / `VITE_REPLAY_SECRET` + API probe |
-| `npm run lint:fix`        | ESLint with auto-fix                                        |
-| `npm run format`          | Prettier write                                              |
-| `npm run format:check`    | Prettier check                                              |
-| `npm run cap:sync`        | `cap sync`                                                  |
-| `npm run cap:add:android` | Ensure Android platform exists (idempotent, via native-ops) |
-| `npm run cap:add:ios`     | Ensure iOS platform exists (idempotent, via native-ops)     |
-| `npm run cap:android`     | Open Android Studio                                         |
-| `npm run cap:ios`         | Open Xcode                                                  |
-| `npm run assets:generate` | Generate app icons/splash from `resources/`                 |
-| `npm run build:android`   | Full Android pipeline via `scripts/native-ops.mjs`          |
-| `npm run build:ios`       | Full iOS pipeline via `scripts/native-ops.mjs`              |
-| `npm run run:android`     | Build + compile APK + boot emulator + install + launch      |
-| `npm run run:ios`         | Build + xcodebuild simulator + install + launch             |
+| Command                      | Description                                                 |
+| ---------------------------- | ----------------------------------------------------------- |
+| `npm run dev`                | Vite dev server (`:5173`)                                   |
+| `npm run build`              | Typecheck + production build → `dist/`                      |
+| `npm run preview`            | Preview production build                                    |
+| `npm run lint`               | `tsc --noEmit` + ESLint on `src/`                           |
+| `npm run game:verify-config` | Validate `VITE_GAME_ID` / `VITE_REPLAY_SECRET` + API probe  |
+| `npm run lint:fix`           | ESLint with auto-fix                                        |
+| `npm run format`             | Prettier write                                              |
+| `npm run format:check`       | Prettier check                                              |
+| `npm run cap:sync`           | `cap sync`                                                  |
+| `npm run cap:add:android`    | Ensure Android platform exists (idempotent, via native-ops) |
+| `npm run cap:add:ios`        | Ensure iOS platform exists (idempotent, via native-ops)     |
+| `npm run cap:android`        | Open Android Studio                                         |
+| `npm run cap:ios`            | Open Xcode                                                  |
+| `npm run assets:generate`    | Generate app icons/splash from `resources/`                 |
+| `npm run build:android`      | Full Android pipeline via `scripts/native-ops.mjs`          |
+| `npm run build:ios`          | Full iOS pipeline via `scripts/native-ops.mjs`              |
+| `npm run run:android`        | Build + compile APK + boot emulator + install + launch      |
+| `npm run run:ios`            | Build + xcodebuild simulator + install + launch             |
 
 ## Platform Updates
 

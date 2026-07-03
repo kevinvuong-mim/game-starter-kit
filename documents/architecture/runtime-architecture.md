@@ -72,14 +72,14 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event | Handler |
-| ----- | ------- |
-| `game:over` | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result |
-| `app:resume` | Flush pending results; reset daily missions; daily reward checks |
-| `leaderboard:request` | Load leaderboard cache/network |
-| `ad:reward:request` | Show rewarded ad and grant reward |
-| `settings:change` | Save local |
-| `shop:purchase` | Track purchase and save local |
+| Event                 | Handler                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `game:over`           | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result |
+| `app:resume`          | Flush pending results; reset daily missions; daily reward checks                          |
+| `leaderboard:request` | Load leaderboard cache/network                                                            |
+| `ad:reward:request`   | Show rewarded ad and grant reward                                                         |
+| `settings:change`     | Save local                                                                                |
+| `shop:purchase`       | Track purchase and save local                                                             |
 
 ---
 
@@ -87,14 +87,14 @@ Platform controllers sẽ nhận event:
 
 Zustand store là runtime state in-memory. Durable persistence do services quản lý:
 
-| Data | Owner | Storage key |
-| ---- | ----- | ----------- |
-| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService` | `game-save` |
-| Guest identity/session | `GuestRepository` | `guest` → `gsk:guest` trên Preferences/localStorage |
-| Pending game results | `GameSyncRepository` | `game-sync:pending` |
-| Leaderboard page cache | `LeaderboardRepository` | `leaderboard:cache:{gameId}:p{page}` |
-| IAP entitlements | `PurchaseStorage` | `iap-entitlements` |
-| Daily reward model | `DailyRewardRepository` | `daily-reward-v2` (Capacitor Preferences trực tiếp, không qua `gsk:` prefix) |
+| Data                                                                                             | Owner                   | Storage key                                                                  |
+| ------------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------------------------------------------------------- |
+| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`           | `game-save`                                                                  |
+| Guest identity/session                                                                           | `GuestRepository`       | `guest` → `gsk:guest` trên Preferences/localStorage                          |
+| Pending game results                                                                             | `GameSyncRepository`    | `game-sync:pending`                                                          |
+| Leaderboard page cache                                                                           | `LeaderboardRepository` | `leaderboard:cache:{gameId}:p{page}`                                         |
+| IAP entitlements                                                                                 | `PurchaseStorage`       | `iap-entitlements`                                                           |
+| Daily reward model                                                                               | `DailyRewardRepository` | `daily-reward-v2` (Capacitor Preferences trực tiếp, không qua `gsk:` prefix) |
 
 Durable provider (`StorageService`):
 

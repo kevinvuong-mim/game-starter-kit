@@ -15,15 +15,15 @@ export interface GuestCredentials {
 
 /** Shape of the `POST /guest/init` response payload (inside the envelope). */
 export interface InitGuestPayload {
-  guestId: string;
   gameId: string;
+  guestId: string;
   secretToken: string;
 }
 
 /** Shape of guest profile payloads (`PATCH /guest/name`). */
 export interface GuestProfilePayload {
-  guestId: string;
   gameId: string;
+  guestId: string;
   name: string | null;
 }
 

@@ -4,12 +4,12 @@
 
 ## Events
 
-| Event | Mô tả |
-| ----- | ----- |
+| Event                 | Mô tả                              |
+| --------------------- | ---------------------------------- |
 | `leaderboard:request` | Load cache-aware (mặc định page 1) |
-| `leaderboard:refresh` | Bỏ cache, fetch lại từ network |
-| `leaderboard:page` | Load page cụ thể |
-| `leaderboard:update` | UI nhận view model sau khi load |
+| `leaderboard:refresh` | Bỏ cache, fetch lại từ network     |
+| `leaderboard:page`    | Load page cụ thể                   |
+| `leaderboard:update`  | UI nhận view model sau khi load    |
 
 ## Endpoint
 
@@ -23,9 +23,7 @@
   "total": 150,
   "page": 1,
   "limit": 20,
-  "items": [
-    { "rank": 1, "guestId": "uuid", "name": "PlayerOne", "bestScore": 9999 }
-  ],
+  "items": [{ "rank": 1, "guestId": "uuid", "name": "PlayerOne", "bestScore": 9999 }],
   "self": { "rank": 12, "bestScore": 5000 }
 }
 ```

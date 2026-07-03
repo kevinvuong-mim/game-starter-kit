@@ -1,17 +1,16 @@
+import {
+  GUEST_STORAGE_KEY,
+  type GuestCredentials,
+  type InitGuestPayload,
+  isValidGuestCredentials,
+  type GuestProfilePayload,
+} from './guest.model';
 import { Capacitor } from '@capacitor/core';
 import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
-import type { ApiEnvelope } from '@platform/core/api';
 import { getConfig } from '@platform/core/config';
+import type { ApiEnvelope } from '@platform/core/api';
 import type { StorageProviderType } from '@platform/core/storage';
-
-import {
-  GUEST_STORAGE_KEY,
-  isValidGuestCredentials,
-  type GuestCredentials,
-  type InitGuestPayload,
-  type GuestProfilePayload,
-} from './guest.model';
 
 function guestStorageProvider(): StorageProviderType {
   return Capacitor.isNativePlatform() ? 'preferences' : 'localStorage';

@@ -1,14 +1,14 @@
-import { storage } from '@platform/core/storage';
-import { apiClient } from '@platform/core/api';
-import { logger } from '@platform/core/error';
 import {
   type SyncResponse,
   PENDING_RESULTS_KEY,
   MAX_PENDING_RESULTS,
-  type GameResultBatchRequest,
   type GameResultPayload,
   type PendingGameResult,
+  type GameResultBatchRequest,
 } from './game-sync.model';
+import { logger } from '@platform/core/error';
+import { apiClient } from '@platform/core/api';
+import { storage } from '@platform/core/storage';
 
 function isPendingGameResult(value: unknown): value is PendingGameResult {
   if (!value || typeof value !== 'object') return false;

@@ -1,34 +1,34 @@
-import { logger } from '@platform/core/error';
-import { eventBus } from '@platform/core/events';
-import type { IEventBus } from '@platform/core/events';
-import { getConfig } from '@platform/core/config';
-import { IAP_PURCHASE_TIMEOUT_MS, PRODUCTS, getProductById } from '../config/iap.config';
-import { MockIapAdapter } from '../adapters/mock.adapter';
-import { purchaseStorage, type PurchaseStorage } from '../storage/purchase.storage';
-import { IAP_EVENTS } from '../events/iap.events';
 import type {
   IAPProvider,
   IapInitState,
-  ProductDefinition,
-  PurchaseResult,
   RestoreResult,
+  PurchaseResult,
+  ProductDefinition,
 } from '../types/iap.types';
 import { IapError } from '../types/iap.types';
+import { logger } from '@platform/core/error';
+import { eventBus } from '@platform/core/events';
+import { getConfig } from '@platform/core/config';
+import { IAP_EVENTS } from '../events/iap.events';
+import type { IEventBus } from '@platform/core/events';
+import { MockIapAdapter } from '../adapters/mock.adapter';
+import { purchaseStorage, type PurchaseStorage } from '../storage/purchase.storage';
+import { PRODUCTS, getProductById, IAP_PURCHASE_TIMEOUT_MS } from '../config/iap.config';
 
 export interface IapServiceDeps {
-  storage?: PurchaseStorage;
   emit?: IEventBus['emit'];
+  storage?: PurchaseStorage;
 }
 
 export class IapService {
-  private provider: IAPProvider | null = null;
-  private enabled = true;
   private ready = false;
-  private initPromise: Promise<void> | null = null;
-  private purchasing = false;
+  private enabled = true;
   private restoring = false;
+  private purchasing = false;
   private authorityWarningLogged = false;
   private entitlements = new Set<string>();
+  private provider: IAPProvider | null = null;
+  private initPromise: Promise<void> | null = null;
   private initState: IapInitState = { loading: false, ready: false, error: null };
 
   private readonly storage: PurchaseStorage;

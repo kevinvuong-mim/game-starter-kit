@@ -13,14 +13,14 @@ export const gameConfig: GameConfig = {
 };
 ```
 
-| Field          | Nguồn              | Mô tả                                                                |
-| -------------- | ------------------ | -------------------------------------------------------------------- |
-| `id`           | `VITE_GAME_ID`     | Phải khớp `GameId` enum trên `game-api`                              |
-| `replaySecret` | `VITE_REPLAY_SECRET` | Khớp `REPLAY_SECRET_<GAME_ID>` trên backend                        |
-| `name`         | File               | Tên hiển thị của game                                                |
-| `width`        | File               | Chiều rộng canvas Phaser                                             |
-| `height`       | File               | Chiều cao canvas Phaser                                              |
-| `version`      | File               | Phiên bản game (semver)                                              |
+| Field          | Nguồn                | Mô tả                                       |
+| -------------- | -------------------- | ------------------------------------------- |
+| `id`           | `VITE_GAME_ID`       | Phải khớp `GameId` enum trên `game-api`     |
+| `replaySecret` | `VITE_REPLAY_SECRET` | Khớp `REPLAY_SECRET_<GAME_ID>` trên backend |
+| `name`         | File                 | Tên hiển thị của game                       |
+| `width`        | File                 | Chiều rộng canvas Phaser                    |
+| `height`       | File                 | Chiều cao canvas Phaser                     |
+| `version`      | File                 | Phiên bản game (semver)                     |
 
 ## Env
 

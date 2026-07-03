@@ -1,25 +1,25 @@
-import {
-  LOG_LEVEL,
-  PRODUCT_CATEGORY,
-  PRODUCT_TYPE,
-  PURCHASES_ERROR_CODE,
-  Purchases,
-} from '@revenuecat/purchases-capacitor';
-import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
-import { logger } from '@platform/core/error';
-import { PRODUCTS, getAllProductIds, getProductById } from '../config/iap.config';
 import type {
+  ProductType,
   IAPProvider,
   ProviderProduct,
   ProviderPurchase,
-  ProductType,
 } from '../types/iap.types';
+import {
+  Purchases,
+  LOG_LEVEL,
+  PRODUCT_TYPE,
+  PRODUCT_CATEGORY,
+  PURCHASES_ERROR_CODE,
+} from '@revenuecat/purchases-capacitor';
+import { logger } from '@platform/core/error';
 import { IapError } from '../types/iap.types';
+import { PRODUCTS, getProductById, getAllProductIds } from '../config/iap.config';
+import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
 
 export interface RevenueCatAdapterConfig {
   apiKey: string;
-  appUserId?: string;
   debug?: boolean;
+  appUserId?: string;
 }
 
 const REGISTERED_ENTITLEMENTS = new Set<string>(
@@ -29,9 +29,9 @@ const REGISTERED_ENTITLEMENTS = new Set<string>(
 export class RevenueCatAdapter implements IAPProvider {
   readonly name = 'revenuecat';
 
+  private configured = false;
   private readonly config: RevenueCatAdapterConfig;
   private productCache = new Map<string, PurchasesStoreProduct>();
-  private configured = false;
 
   constructor(config: RevenueCatAdapterConfig) {
     this.config = config;

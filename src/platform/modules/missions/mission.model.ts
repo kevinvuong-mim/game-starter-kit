@@ -13,12 +13,12 @@ export interface MissionReward {
 
 export interface MissionDefinition {
   id: string;
-  type: MissionBehaviorType | string;
   target: number;
   titleKey: string;
+  reward: MissionReward;
   descriptionKey?: string;
   resetPolicy?: MissionResetPolicy;
-  reward: MissionReward;
+  type: MissionBehaviorType | string;
 }
 
 export interface MissionProgress {
@@ -26,10 +26,10 @@ export interface MissionProgress {
   type: string;
   target: number;
   progress: number;
-  status: MissionStatus;
+  claimedAt?: number;
   createdAt?: number;
   completedAt?: number;
-  claimedAt?: number;
+  status: MissionStatus;
   /** Local calendar day key (`YYYY-MM-DD`) of the last reset. */
   lastResetDayKey?: string | null;
 }
@@ -41,11 +41,11 @@ export interface MissionsState {
 export function createMissionProgress(def: MissionDefinition): MissionProgress {
   return {
     id: def.id,
-    type: def.type,
-    target: def.target,
     progress: 0,
-    status: 'active',
+    type: def.type,
     createdAt: now(),
+    status: 'active',
+    target: def.target,
     lastResetDayKey: getLocalDateKey(),
   };
 }

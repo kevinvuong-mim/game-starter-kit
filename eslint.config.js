@@ -61,7 +61,8 @@ export default tseslint.config(
             },
             {
               name: '@platform/core/analytics',
-              message: 'Use eventBus.emit("analytics", ...) with AnalyticsEvents from @platform/core/events',
+              message:
+                'Use eventBus.emit("analytics", ...) with AnalyticsEvents from @platform/core/events',
             },
           ],
         },

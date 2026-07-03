@@ -16,12 +16,12 @@ export interface PendingGameResult {
   gameId: string;
   guestId: string;
   localId: string;
-  clientResultId: string;
   synced: boolean;
   playedAt: string;
   createdAt: string;
   signature?: string;
   syncAttempts: number;
+  clientResultId: string;
   lastAttemptAt?: string;
   nextAttemptAt?: string;
   lastErrorCode?: string;
@@ -29,10 +29,10 @@ export interface PendingGameResult {
 }
 
 export interface GameResultPayload {
-  clientResultId: string;
   score: number;
   playedAt?: string;
   signature: string;
+  clientResultId: string;
   metadata?: Record<string, string | number | boolean | null>;
 }
 
@@ -42,17 +42,17 @@ export interface GameResultBatchRequest {
 }
 
 export interface SyncResponse {
+  message: string;
   success: boolean;
   insertedCount: number;
-  message: string;
 }
 
 export function buildReplayPayload(params: {
+  score: number;
   gameId: string;
   guestId: string;
-  clientResultId: string;
-  score: number;
   playedAt?: string;
+  clientResultId: string;
 }): string {
   return `${params.gameId}|${params.guestId}|${params.clientResultId}|${params.score}|${params.playedAt ?? ''}`;
 }
@@ -62,12 +62,12 @@ export function buildReplayPayload(params: {
  * Payload must match game-api exactly.
  */
 export async function computeReplaySignature(params: {
+  score: number;
   gameId: string;
   guestId: string;
-  clientResultId: string;
-  score: number;
   playedAt?: string;
   replaySecret: string;
+  clientResultId: string;
 }): Promise<string> {
   const payload = buildReplayPayload(params);
   const key = await crypto.subtle.importKey(

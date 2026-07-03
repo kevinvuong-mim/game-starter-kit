@@ -2,10 +2,10 @@ import {
   MAX_BATCH_SIZE,
   sanitizeMetadata,
   toNonNegativeInt,
-  computeReplaySignature,
   MAX_SYNC_ATTEMPTS,
-  type PendingGameResult,
   type SyncResponse,
+  computeReplaySignature,
+  type PendingGameResult,
 } from './game-sync.model';
 import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';

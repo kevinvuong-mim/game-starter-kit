@@ -4,8 +4,8 @@ Offline-first queue → batch upload `POST /api/results`.
 
 ## Storage
 
-| Key | Provider | Nội dung |
-|-----|----------|----------|
+| Key                 | Provider                           | Nội dung                |
+| ------------------- | ---------------------------------- | ----------------------- |
 | `game-sync:pending` | Durable storage (`StorageService`) | Queue kết quả chưa sync |
 
 Trên native Preferences, key được lưu với prefix `gsk:` (vật lý: `gsk:game-sync:pending`).

@@ -1,43 +1,36 @@
-export { iap, IapService } from './services/iap.service';
-export type { IapServiceDeps } from './services/iap.service';
-
-export {
-  PRODUCTS,
-  ENTITLEMENT_REMOVE_ADS,
-  getProductById,
-  getProductByKey,
-} from './config/iap.config';
-export type { ProductKey } from './config/iap.config';
-
-export { purchaseStorage, PurchaseStorage } from './storage/purchase.storage';
-
-export { IAP_EVENTS } from './events/iap.events';
-export type {
-  IapPurchaseSuccessPayload,
-  IapPurchaseFailedPayload,
-  IapRestoreSuccessPayload,
-  IapEntitlementChangedPayload,
-} from './events/iap.events';
-
-export { useEntitlement, onEntitlementsChanged } from './hooks/use-entitlement';
-export { bindIapController } from './iap.controller';
-
-export { createIapProvider, MockIapAdapter, RevenueCatAdapter } from './adapters';
 export type {
   IapProviderName,
   RevenueCatAdapterConfig,
   CreateIapProviderOptions,
 } from './adapters';
-
 export type {
-  ProductDefinition,
   ProductType,
-  ProviderProduct,
-  ProviderPurchase,
-  PurchaseResult,
-  RestoreResult,
   IAPProvider,
   IapInitState,
+  RestoreResult,
+  PurchaseResult,
+  ProviderProduct,
+  ProviderPurchase,
+  ProductDefinition,
 } from './types/iap.types';
-
+export {
+  PRODUCTS,
+  getProductById,
+  getProductByKey,
+  ENTITLEMENT_REMOVE_ADS,
+} from './config/iap.config';
+export type {
+  IapPurchaseFailedPayload,
+  IapRestoreSuccessPayload,
+  IapPurchaseSuccessPayload,
+  IapEntitlementChangedPayload,
+} from './events/iap.events';
 export { IapError } from './types/iap.types';
+export { IAP_EVENTS } from './events/iap.events';
+export { bindIapController } from './iap.controller';
+export type { ProductKey } from './config/iap.config';
+export { iap, IapService } from './services/iap.service';
+export type { IapServiceDeps } from './services/iap.service';
+export { purchaseStorage, PurchaseStorage } from './storage/purchase.storage';
+export { useEntitlement, onEntitlementsChanged } from './hooks/use-entitlement';
+export { MockIapAdapter, createIapProvider, RevenueCatAdapter } from './adapters';
