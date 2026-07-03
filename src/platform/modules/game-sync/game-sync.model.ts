@@ -1,7 +1,7 @@
 /**
  * Offline game-result sync model.
  *
- * Results are queued locally and batch-uploaded to `POST /games/:gameId/results`
+ * Results are queued locally and batch-uploaded to `POST /results`
  * with an HMAC `signature` per item.
  */
 
@@ -34,6 +34,11 @@ export interface GameResultPayload {
   playedAt?: string;
   signature: string;
   metadata?: Record<string, string | number | boolean | null>;
+}
+
+export interface GameResultBatchRequest {
+  gameId: string;
+  items: GameResultPayload[];
 }
 
 export interface SyncResponse {

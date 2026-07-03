@@ -5,6 +5,7 @@ import {
   type SyncResponse,
   PENDING_RESULTS_KEY,
   MAX_PENDING_RESULTS,
+  type GameResultBatchRequest,
   type GameResultPayload,
   type PendingGameResult,
 } from './game-sync.model';
@@ -47,9 +48,12 @@ export class GameSyncRepository {
   }
 
   async sync(gameId: string, items: GameResultPayload[]): Promise<SyncResponse> {
-    return apiClient.post<SyncResponse>(`/games/${encodeURIComponent(gameId)}/results`, {
+    const body: GameResultBatchRequest = {
+      gameId,
       items,
-    });
+    };
+
+    return apiClient.post<SyncResponse>('/results', body);
   }
 
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {

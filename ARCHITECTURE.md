@@ -195,18 +195,18 @@ Durable save   →  saveService (key: game-save)
 
 **Location:** `src/platform/modules/`
 
-| Module        | Key files                                                                      |
-| ------------- | ------------------------------------------------------------------------------ |
-| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                                 |
-| shop          | `shop/shop.service.ts` + `shop/catalog.json`                                   |
-| missions      | `missions/mission.service.ts` + `missions/missions.json`                       |
-| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`      |
-| settings      | `settings/settings.service.ts`                                                 |
-| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`     |
-| save          | `save/save.service.ts`                                                         |
-| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init`     |
-| game-sync     | Offline match queue → `POST /games/:gameId/results`; controller on `game:over` |
-| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`                 |
+| Module        | Key files                                                                  |
+| ------------- | -------------------------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                             |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`                               |
+| missions      | `missions/mission.service.ts` + `missions/missions.json`                   |
+| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`  |
+| settings      | `settings/settings.service.ts`                                             |
+| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts` |
+| save          | `save/save.service.ts`                                                     |
+| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init` |
+| game-sync     | Offline match queue → `POST /results`; controller on `game:over`           |
+| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`             |
 
 **Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
 

@@ -599,7 +599,7 @@ Hệ quả khi `guestStatus = 'pending'`:
 - Gameplay, HUD, shop (currency local), missions, daily-rewards vẫn chạy
   bình thường 100% offline (không phụ thuộc guestId).
 - game-sync: kết quả trận đấu vẫn được ghi vào local queue (game-sync)
-  như bình thường — CHỈ hoãn gọi POST /games/:gameId/results tới khi
+  như bình thường — CHỈ hoãn gọi POST /results tới khi
   guestStatus chuyển sang 'ready' (không mất dữ liệu, không lỗi giả).
 - leaderboard: hiển thị cache cục bộ (nếu có) hoặc trạng thái "chưa kết nối",
   không crash UI.
@@ -1216,9 +1216,9 @@ HMAC-SHA256(
 Endpoint:
 
 ```text
-POST /api/games/:gameId/results
+POST /api/results
   Header: Authorization: Bearer <secretToken>
-  Body: { items: [{ clientResultId, score, playedAt, metadata, signature }] }
+  Body: { gameId, items: [{ clientResultId, score, playedAt, metadata, signature }] }
   Response: { success, insertedCount, message }
 ```
 
@@ -1452,12 +1452,12 @@ Verify
 
 # 18. Backend integration summary
 
-| Feature      | Endpoint                        | Auth   |
-| ------------ | ------------------------------- | ------ |
-| Guest init   | POST /api/guest/init            | Không  |
-| Guest rename | PATCH /api/guest/name           | Bearer |
-| Game sync    | POST /api/games/:gameId/results | Bearer |
-| Leaderboard  | GET /api/leaderboards           | Không  |
+| Feature      | Endpoint              | Auth   |
+| ------------ | --------------------- | ------ |
+| Guest init   | POST /api/guest/init  | Không  |
+| Guest rename | PATCH /api/guest/name | Bearer |
+| Game sync    | POST /api/results     | Bearer |
+| Leaderboard  | GET /api/leaderboards | Không  |
 
 Lưu ý:
 

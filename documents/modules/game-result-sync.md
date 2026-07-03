@@ -1,14 +1,14 @@
 # Game result sync
 
-Offline-first queue → batch upload `POST /api/games/:gameId/results`.
+Offline-first queue → batch upload `POST /api/results`.
 
 ## Limits
 
-| Constant | Value |
-|----------|------:|
-| `MAX_BATCH_SIZE` | 50 |
-| `MAX_SYNC_ATTEMPTS` | 10 |
-| `MAX_PENDING_RESULTS` | 500 |
+| Constant              | Value |
+| --------------------- | ----: |
+| `MAX_BATCH_SIZE`      |    50 |
+| `MAX_SYNC_ATTEMPTS`   |    10 |
+| `MAX_PENDING_RESULTS` |   500 |
 
 ## HMAC signature
 
@@ -28,6 +28,7 @@ Header: `Authorization: Bearer <secretToken>`
 
 ```json
 {
+  "gameId": "FRULOOP",
   "items": [
     {
       "clientResultId": "result-001",

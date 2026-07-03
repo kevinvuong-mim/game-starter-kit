@@ -118,21 +118,21 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 
 ## Platform Modules
 
-| Module        | Description                                                                   |
-| ------------- | ----------------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                      |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                         |
-| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                            |
-| daily-rewards | 7-day streak calendar, local persistence                                      |
-| save          | Single `game-save` key — hydrates Zustand store on boot                       |
-| settings      | Language, sound, vibration, graphics — part of store state                    |
-| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)     |
-| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /games/:gameId/results`) |
-| ads (module)  | Static placement config, reward flow, controller wired to event bus           |
-| analytics     | Provider interface — Console + Firebase                                       |
-| advertising   | AdMob / mock providers, placement state machines                              |
-| IAP           | Provider interface — purchase, restore, client-side entitlement state         |
+| Module        | Description                                                               |
+| ------------- | ------------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON            |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                  |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                     |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                        |
+| daily-rewards | 7-day streak calendar, local persistence                                  |
+| save          | Single `game-save` key — hydrates Zustand store on boot                   |
+| settings      | Language, sound, vibration, graphics — part of store state                |
+| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`) |
+| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)           |
+| ads (module)  | Static placement config, reward flow, controller wired to event bus       |
+| analytics     | Provider interface — Console + Firebase                                   |
+| advertising   | AdMob / mock providers, placement state machines                          |
+| IAP           | Provider interface — purchase, restore, client-side entitlement state     |
 
 ## UI Framework
 
