@@ -84,7 +84,6 @@ export interface PlatformEventMap {
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'game:sync:dropped': { clientResultId: string; attempts: number };
-  'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };
   'ad:show:result': { placement: string; shown: boolean; error?: string };
 }
 

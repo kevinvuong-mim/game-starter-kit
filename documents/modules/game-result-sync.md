@@ -55,6 +55,7 @@ Header: `Authorization: Bearer <secretToken>`
 {
   "success": true,
   "insertedCount": 1,
+  "rejectedCount": 0,
   "message": "Results submitted"
 }
 ```

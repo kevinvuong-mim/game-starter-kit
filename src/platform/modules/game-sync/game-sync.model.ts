@@ -45,6 +45,8 @@ export interface SyncResponse {
   message: string;
   success: boolean;
   insertedCount: number;
+  rejectedCount?: number;
+  rejected?: Array<{ clientResultId: string; reason: string }>;
 }
 
 export function buildReplayPayload(params: {

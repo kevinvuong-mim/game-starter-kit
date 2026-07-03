@@ -1,3 +1,4 @@
+import { t } from '@platform/modules/i18n/i18n.service';
 import { ads, type AdsRemoteConfig, DEFAULT_REMOTE_CONFIG } from '@platform/core/advertising';
 
 export interface RewardRequestResult {
@@ -34,7 +35,7 @@ export class AdsModuleService {
         return { shown: result.shown, error: result.error };
       }
       default:
-        return { shown: false, error: 'Use requestReward for rewarded placements' };
+        return { shown: false, error: t('ads.useRequestReward') };
     }
   }
 
@@ -48,22 +49,28 @@ export class AdsModuleService {
     if (!ads.isOnline()) {
       return {
         success: false,
-        message: 'Kết nối mạng để nhận thưởng',
+        message: t('ads.rewardOffline'),
       };
     }
 
     if (!ads.canShowRewarded(placement)) {
-      return { success: false, message: 'Reward unavailable' };
+      return { success: false, message: t('ads.rewardUnavailable') };
     }
 
     const reward = this.runtimeConfig.rewards[placement];
     if (!reward) {
-      return { success: false, message: `No reward configured for placement ${placement}` };
+      return {
+        success: false,
+        message: t('ads.rewardNotConfigured', { placement }),
+      };
     }
 
     const adResult = await ads.showRewarded(placement);
     if (!adResult.shown || !adResult.rewarded) {
-      return { success: false, message: adResult.error ?? 'Quảng cáo chưa hoàn thành' };
+      return {
+        success: false,
+        message: adResult.error ?? t('ads.rewardIncomplete'),
+      };
     }
 
     return {

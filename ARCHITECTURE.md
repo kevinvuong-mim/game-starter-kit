@@ -329,7 +329,6 @@ Boot → Preload → Home
 - **Dev:** Console provider only (`analyticsEnabled: false` in `ENV_CONFIGS.dev`).
 - **Staging / production:** Console + `FirebaseAnalyticsProvider` when `VITE_FIREBASE_*` env vars are set.
 - **Game layer:** `eventBus.emit('analytics', { event: AnalyticsEvents.… })` or helpers in `@platform/core/analytics/events` from bootstrap/App handlers.
-- **Bootstrap** also forwards legacy `analytics:track` events.
 
 Firebase DebugView: run a staging build with analytics enabled and use the Firebase console.
 

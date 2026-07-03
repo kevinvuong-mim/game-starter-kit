@@ -92,6 +92,10 @@ export class GameSyncService {
     );
     if (pending.length === 0) return;
 
+    queue = queue.map((item) =>
+      !item.synced && item.gameId === gameId ? { ...item, guestId } : item
+    );
+
     const { replaySecret } = getConfig();
 
     for (let i = 0; i < pending.length; i += MAX_BATCH_SIZE) {
@@ -100,16 +104,14 @@ export class GameSyncService {
         batch.map(async (item) => ({
           ...item,
           guestId,
-          signature:
-            item.signature ??
-            (await computeReplaySignature({
-              gameId,
-              guestId,
-              clientResultId: item.clientResultId,
-              score: item.score,
-              playedAt: item.playedAt,
-              replaySecret,
-            })),
+          signature: await computeReplaySignature({
+            gameId,
+            guestId,
+            clientResultId: item.clientResultId,
+            score: item.score,
+            playedAt: item.playedAt,
+            replaySecret,
+          }),
         }))
       );
 

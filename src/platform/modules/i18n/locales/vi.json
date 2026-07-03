@@ -125,5 +125,12 @@
   "howToPlay": {
     "title": "Hướng dẫn chơi",
     "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: xem quảng cáo thưởng để nhận xu\n• Phần thưởng hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Bảng xếp hạng: so sánh điểm cao nhất với người chơi khác"
+  },
+  "ads": {
+    "rewardOffline": "Kết nối mạng để nhận thưởng",
+    "rewardUnavailable": "Phần thưởng không khả dụng",
+    "rewardNotConfigured": "Chưa cấu hình phần thưởng cho vị trí {{placement}}",
+    "rewardIncomplete": "Quảng cáo chưa hoàn thành",
+    "useRequestReward": "Dùng requestReward cho vị trí quảng cáo thưởng"
   }
 }

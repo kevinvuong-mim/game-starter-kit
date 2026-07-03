@@ -22,6 +22,7 @@ export class GameplayScene extends Phaser.Scene {
   private startTime = 0;
   private velocityY = 0;
   private gameActive = true;
+  private sessionEnded = false;
   private jumpsRemaining = 0;
   private readonly maxJumps = 5;
   private readonly gravity = 1500;
@@ -43,6 +44,7 @@ export class GameplayScene extends Phaser.Scene {
     this.jumps = 0;
     this.jumpsRemaining = this.maxJumps;
     this.gameActive = true;
+    this.sessionEnded = false;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x16213e);
     this.add.rectangle(width / 2, height - 40, width, 160, 0x0f3460);
@@ -102,7 +104,8 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private endSession(): void {
-    if (!this.gameActive) return;
+    if (this.sessionEnded) return;
+    this.sessionEnded = true;
     this.gameActive = false;
     this.spawnTimer?.destroy();
 

@@ -115,13 +115,8 @@ export class App {
       analytics.track(event, params);
     });
 
-    const forwardLegacyAnalytics = events.on('analytics:track', ({ event, params }) => {
-      analytics.track(event, params);
-    });
-
     this.unsubscribers.push(
       forwardAnalytics,
-      forwardLegacyAnalytics,
 
       events.on('app:ready', () => {
         logger.info('[App] Game shell ready');
