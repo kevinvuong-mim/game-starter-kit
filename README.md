@@ -16,7 +16,7 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 | Analytics   | Console (dev) + Firebase Analytics (staging/production)          |
 | Ads         | Mock (web/dev) + AdMob via `@capacitor-community/admob` (native) |
 
-IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `api-starter-kit` does not yet store or validate entitlements server-side. Add a backend entitlement module before treating premium state as tamper-resistant.
+IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `game-api` does not store or validate entitlements server-side.
 
 **Node.js:** `>= 20`
 
@@ -114,27 +114,25 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 ```
 
-ESLint enforces import boundaries for `src/game/**/*.ts`. See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
 **i18n:** import `t` from `@platform/ui` (or `@platform/ui/index`), not from `@platform/modules`.
 
 ## Platform Modules
 
-| Module        | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON              |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                    |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                       |
-| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                          |
-| daily-rewards | 7-day streak calendar, local persistence                                    |
-| save          | Single `game-save` key — hydrates Zustand store on boot                     |
-| settings      | Language, sound, vibration, graphics — part of store state                  |
-| guest         | Anonymous guest + `installId`/`installSecret` recovery (`POST /guest/init`) |
-| game-sync     | Offline queue → HMAC `replayHash` + per-item sync status from API           |
-| ads (module)  | Static placement config, reward flow, controller wired to event bus         |
-| analytics     | Provider interface — Console + Firebase                                     |
-| advertising   | AdMob / mock providers, placement state machines                            |
-| IAP           | Provider interface — purchase, restore, client-side entitlement state       |
+| Module        | Description                                                                   |
+| ------------- | ----------------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                      |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                         |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                            |
+| daily-rewards | 7-day streak calendar, local persistence                                      |
+| save          | Single `game-save` key — hydrates Zustand store on boot                       |
+| settings      | Language, sound, vibration, graphics — part of store state                    |
+| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)     |
+| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /games/:gameId/results`) |
+| ads (module)  | Static placement config, reward flow, controller wired to event bus           |
+| analytics     | Provider interface — Console + Firebase                                       |
+| advertising   | AdMob / mock providers, placement state machines                              |
+| IAP           | Provider interface — purchase, restore, client-side entitlement state         |
 
 ## UI Framework
 
@@ -157,15 +155,16 @@ Copy `.env.example` to `.env` and adjust per environment:
 
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production
-VITE_IAP_ENABLED=false
+VITE_GAME_ID=TUTUTHOI
+VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)
-VITE_ADMOB_TESTING=true       # true → Google test ad units
+VITE_ANALYTICS_PROVIDER=console # console | firebase
 
 # Native AdMob (build/release)
 VITE_ADMOB_ANDROID_APP_ID=
 VITE_ADMOB_IOS_APP_ID=
 
-# Production ad unit IDs (when VITE_ADMOB_TESTING=false)
+# Production ad unit IDs (when using real AdMob app IDs)
 # VITE_ADMOB_ANDROID_BANNER_ID= …
 # VITE_ADMOB_IOS_REWARDED_ID= …
 
@@ -177,34 +176,34 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-| Variable              | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| `VITE_APP_ENV`        | Runtime environment (`dev`, `staging`, `production`) |
-| `VITE_IAP_ENABLED`    | Enables IAP provider                                 |
-| `VITE_ADS_PROVIDER`   | `mock` or `admob`                                    |
-| `VITE_ADMOB_TESTING`  | Use Google sample ad units when `true`               |
-| `VITE_ADMOB_*_APP_ID` | Per-platform AdMob app IDs for native builds         |
-| `VITE_ADMOB_*_*_ID`   | Production ad unit IDs per format/platform           |
-| `VITE_API_URL`        | Optional API base URL override                       |
-| `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
+| Variable                  | Description                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`) |
+| `VITE_GAME_ID`            | Game id used by the frontend and backend             |
+| `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                               |
+| `VITE_ADS_PROVIDER`       | `mock` or `admob`                                    |
+| `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                              |
+| `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds         |
+| `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform           |
+| `VITE_FIREBASE_*`         | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. `VITE_API_URL` overrides the environment preset. At boot, `gameId`, `maxScore`, and `replaySecret` are set from `src/game/config.ts` — all must match a row in api-starter-kit `games` (e.g. `puzzle-quest`, `50000`, and `puzzle-quest-dev-secret`).
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — `VITE_GAME_ID` must match `GameId` on `game-api`, and `VITE_REPLAY_SECRET` must match `REPLAY_SECRET_<GAME_ID>` on the backend.
 
-Game identity (`id`, `name`, `maxScore`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
+Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
 
 ## Mobile Deployment
 
 ```bash
-npm run build:android    # build + assets + cap sync + native patches
+npm run build:android    # build + add platform if missing + assets + cap sync + native patches
 npm run cap:android    # open Android Studio
 
-npm run build:ios      # build + assets + cap sync + native patches
+npm run build:ios      # build + add platform if missing + assets + cap sync + native patches
 npm run cap:ios        # open Xcode
 ```
 
 ### Capacitor Setup
 
-`android/` and `ios/` are gitignored, so a fresh clone has no native projects. `build:android` / `build:ios` now **auto-add the platform when missing** (via `cap:add:android` / `cap:add:ios`), so no manual step is required. To add a platform explicitly:
+`android/` and `ios/` are gitignored, so a fresh clone has no native projects. `build:android` / `build:ios` now **auto-add the platform when missing** through `scripts/native-ops.mjs`, so no manual step is required. To add a platform explicitly:
 
 ```bash
 npm run cap:add:android   # idempotent — no-op if android/ exists
@@ -223,31 +222,29 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 
 ## Scripts
 
-| Command                   | Description                                                   |
-| ------------------------- | ------------------------------------------------------------- |
-| `npm run dev`             | Vite dev server (`:5173`)                                     |
-| `npm run build`           | Typecheck + production build → `dist/`                        |
-| `npm run preview`         | Preview production build                                      |
-| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`                             |
-| `npm run lint:fix`        | ESLint with auto-fix                                          |
-| `npm run format`          | Prettier write                                                |
-| `npm run format:check`    | Prettier check                                                |
-| `npm run cap:sync`        | `cap sync`                                                    |
-| `npm run cap:add:android` | Add Android platform if missing (idempotent)                  |
-| `npm run cap:add:ios`     | Add iOS platform if missing (idempotent)                      |
-| `npm run cap:android`     | Open Android Studio                                           |
-| `npm run cap:ios`         | Open Xcode                                                    |
-| `npm run assets:generate` | Generate app icons/splash from `assets/`                      |
-| `npm run build:android`   | Add platform + build + assets + sync Android + native patches |
-| `npm run build:ios`       | Add platform + build + assets + sync iOS + native patches     |
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+| Command                   | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| `npm run dev`             | Vite dev server (`:5173`)                                   |
+| `npm run build`           | Typecheck + production build → `dist/`                      |
+| `npm run preview`         | Preview production build                                    |
+| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`                           |
+| `npm run lint:fix`        | ESLint with auto-fix                                        |
+| `npm run format`          | Prettier write                                              |
+| `npm run format:check`    | Prettier check                                              |
+| `npm run cap:sync`        | `cap sync`                                                  |
+| `npm run cap:add:android` | Ensure Android platform exists (idempotent, via native-ops) |
+| `npm run cap:add:ios`     | Ensure iOS platform exists (idempotent, via native-ops)     |
+| `npm run cap:android`     | Open Android Studio                                         |
+| `npm run cap:ios`         | Open Xcode                                                  |
+| `npm run assets:generate` | Generate app icons/splash from `assets/`                    |
+| `npm run build:android`   | Full Android pipeline via `scripts/native-ops.mjs`          |
+| `npm run build:ios`       | Full iOS pipeline via `scripts/native-ops.mjs`              |
+| `npm run run:android`     | Build + compile APK + boot emulator + install + launch      |
+| `npm run run:ios`         | Build + xcodebuild simulator + install + launch             |
 
 ## Platform Updates
 
-For cloned games, keep game-specific code in `src/game` and treat `src/platform` as the shared platform layer. See [documents/platform-versioning.md](./documents/platform-versioning.md) for the dry-run update workflow.
+For cloned games, keep game-specific code in `src/game` and treat `src/platform` as the shared platform layer.
 
 ## License
 

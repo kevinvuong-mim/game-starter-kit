@@ -21,7 +21,7 @@ export class LeaderboardScene extends Phaser.Scene {
 
   init(data: LeaderboardSceneData = {}): void {
     this.returnTo = data.returnTo ?? 'Home';
-    this.returnData = data.returnData;
+    this.returnData = data.returnTo ? data.returnData : undefined;
   }
 
   create(): void {

@@ -1,5 +1,6 @@
 import { logger } from '@platform/core/error';
 import type { IEventBus } from '@platform/core/events';
+import { guest } from '@platform/modules/guest';
 import { gameSync, type GameSyncService } from './game-sync.service';
 import type { PluginListenerHandle } from '@capacitor/core';
 
@@ -43,10 +44,16 @@ export class GameSyncController {
 
     void this.bindNativeNetworkListener();
 
+    const guestReadyUnsub = guest.onReady(() => {
+      logger.info('[GameSync] Guest ready — flushing queue');
+      void this.service.flush().catch(() => undefined);
+    });
+
     // Attempt an initial flush in case results were queued in a previous session.
     void this.service.flush().catch(() => undefined);
 
     return () => {
+      guestReadyUnsub();
       for (const unsub of unsubs) unsub();
       if (this.onlineHandler && typeof window !== 'undefined') {
         window.removeEventListener('online', this.onlineHandler);

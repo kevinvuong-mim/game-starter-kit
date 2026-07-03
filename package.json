@@ -9,18 +9,17 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "cap:sync": "cap sync",
-    "cap:add:android": "[ -d android ] || cap add android",
-    "cap:add:ios": "[ -d ios ] || cap add ios",
+    "cap:add:android": "node scripts/native-ops.mjs ensure android",
+    "cap:add:ios": "node scripts/native-ops.mjs ensure ios",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios",
     "assets:generate": "capacitor-assets generate --android --ios",
-    "build:android": "npm run build && npm run cap:add:android && npm run assets:generate && cap sync android && node scripts/apply-android-native.mjs",
-    "build:ios": "npm run build && npm run cap:add:ios && npm run assets:generate && cap sync ios && node scripts/apply-ios-native.mjs",
+    "build:android": "node scripts/native-ops.mjs build android",
+    "build:ios": "node scripts/native-ops.mjs build ios",
+    "run:android": "bash scripts/run-android-emulator.sh",
+    "run:ios": "bash scripts/run-ios-simulator.sh",
     "lint": "tsc --noEmit && eslint src",
-    "test": "vitest run",
-    "test:watch": "vitest",
     "game:verify-config": "node scripts/verify-game-config.mjs",
-    "platform:update": "node scripts/update-platform.mjs",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{ts,json}\" \"*.{ts,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,json}\" \"*.{ts,json,md}\""
@@ -51,8 +50,7 @@
     "prettier": "^3.5.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.0",
-    "vite": "^6.1.0",
-    "vitest": "^4.1.9"
+    "vite": "^6.1.0"
   },
   "engines": {
     "node": ">=20.0.0"

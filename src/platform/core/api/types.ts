@@ -9,6 +9,7 @@ export interface RequestConfig {
   retryDelay?: number;
   headers?: Record<string, string>;
   retryOnStatuses?: number[];
+  _retried401?: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -27,6 +28,8 @@ export type ResponseInterceptor = <T>(
 ) => ApiResponse<T> | Promise<ApiResponse<T>>;
 
 export type ErrorInterceptor = (error: ApiError) => void | Promise<void>;
+
+export type AuthRecoveryHandler = () => Promise<boolean>;
 
 export class ApiError extends Error {
   constructor(

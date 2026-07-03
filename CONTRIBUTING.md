@@ -112,7 +112,7 @@ npm run preview   # local smoke test
 ### Android
 
 ```bash
-npm run build:android   # add platform (if missing) + build + icons/splash + cap sync + native/ patches
+npm run build:android   # wrapper: build + add platform if missing + icons/splash + cap sync + native/ patches
 npm run cap:android     # open Android Studio
 ```
 
@@ -125,15 +125,18 @@ npm run cap:ios
 
 `android/` and `ios/` are gitignored — each developer generates them locally. `build:android` / `build:ios` auto-run `cap:add:android` / `cap:add:ios`, which add the platform only when the folder is missing (idempotent), so no manual `cap add` is needed.
 
+Internally, the `cap:add:*` and `build:*` scripts are routed through `scripts/native-ops.mjs` to keep the native build flow in one place.
+
 ### Environment Variables (CI/CD)
 
 ```
 VITE_APP_ENV=production
-VITE_IAP_ENABLED=true
+VITE_GAME_ID=TUTUTHOI
+VITE_IAP_PROVIDER=revenuecat
 VITE_ADS_PROVIDER=admob
-VITE_ADMOB_TESTING=false
 VITE_ADMOB_ANDROID_APP_ID=ca-app-pub-…
 VITE_ADMOB_IOS_APP_ID=ca-app-pub-…
+VITE_ANALYTICS_PROVIDER=firebase
 VITE_ADMOB_ANDROID_REWARDED_ID=ca-app-pub-…/…
 VITE_ADMOB_IOS_REWARDED_ID=ca-app-pub-…/…
 VITE_FIREBASE_API_KEY=<from-secrets>
@@ -205,7 +208,7 @@ iap.setProvider(new RevenueCatAdapter());
 
 Register in `src/platform/bootstrap/iap.ts` (mirrors `bootstrap/ads.ts`). See [docs/IAP.md](./docs/IAP.md).
 
-Enable with `VITE_IAP_ENABLED=true`.
+Enable with `VITE_IAP_PROVIDER=revenuecat`.
 
 ## Questions
 

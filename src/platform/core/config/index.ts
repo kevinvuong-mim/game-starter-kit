@@ -1,6 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 
 export type Environment = 'dev' | 'staging' | 'production';
+export type AnalyticsProvider = 'console' | 'firebase';
+export type IapProvider = 'mock' | 'revenuecat';
 
 export interface FirebaseConfig {
   appId: string;
@@ -16,8 +18,8 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
-  maxScore: number;
   replaySecret: string;
+  analyticsProvider: AnalyticsProvider;
   adsEnabled: boolean;
   iapEnabled: boolean;
   firebase: FirebaseConfig;
@@ -25,7 +27,7 @@ export interface RuntimeConfig {
 }
 
 export interface IapConfig {
-  provider: 'mock' | 'revenuecat';
+  provider: IapProvider;
   revenueCat: {
     apiKey: string;
   };
@@ -47,18 +49,21 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
   dev: {
     debug: true,
     adsEnabled: true,
+    iapEnabled: true,
     analyticsEnabled: false,
     apiUrl: 'http://localhost:3000/api',
   },
   staging: {
     debug: true,
     adsEnabled: true,
+    iapEnabled: true,
     analyticsEnabled: true,
     apiUrl: 'https://staging-api.studio.games/api',
   },
   production: {
     debug: false,
     adsEnabled: true,
+    iapEnabled: true,
     analyticsEnabled: true,
     apiUrl: 'https://api.studio.games/api',
   },
@@ -68,6 +73,22 @@ function resolveEnvironment(): Environment {
   const env = import.meta.env.VITE_APP_ENV as Environment | undefined;
   if (env && env in ENV_CONFIGS) return env;
   return import.meta.env.PROD ? 'production' : 'dev';
+}
+
+function resolveAnalyticsProvider(): AnalyticsProvider {
+  const provider = import.meta.env.VITE_ANALYTICS_PROVIDER as AnalyticsProvider | undefined;
+  if (provider === 'console' || provider === 'firebase') {
+    return provider;
+  }
+  return 'console';
+}
+
+function resolveIapProvider(): IapProvider {
+  const provider = import.meta.env.VITE_IAP_PROVIDER as IapProvider | undefined;
+  if (provider === 'mock' || provider === 'revenuecat') {
+    return provider;
+  }
+  return 'mock';
 }
 
 function resolveFirebaseConfig(): FirebaseConfig {
@@ -80,11 +101,15 @@ function resolveFirebaseConfig(): FirebaseConfig {
   };
 }
 
+function resolveGameId(): string {
+  return import.meta.env.VITE_GAME_ID ?? '';
+}
+
 function resolveAdMobAppId(): string {
-  return pickPlatformEnv(
-    import.meta.env.VITE_ADMOB_ANDROID_APP_ID,
-    import.meta.env.VITE_ADMOB_IOS_APP_ID
-  );
+  const platform = Capacitor.getPlatform();
+  if (platform === 'ios') return import.meta.env.VITE_ADMOB_IOS_APP_ID ?? '';
+  if (platform === 'android') return import.meta.env.VITE_ADMOB_ANDROID_APP_ID ?? '';
+  return import.meta.env.VITE_ADMOB_ANDROID_APP_ID || import.meta.env.VITE_ADMOB_IOS_APP_ID || '';
 }
 
 /** Returns the iOS value on iOS, Android value on Android, else first non-empty (web/dev). */
@@ -116,7 +141,7 @@ const GOOGLE_TEST_AD_UNITS = {
 } as const;
 
 function resolveAdsConfig(): AdsConfig {
-  const testing = import.meta.env.VITE_ADMOB_TESTING === 'true';
+  const testing = resolveAdMobAppId().length === 0;
 
   // In testing mode use Google's sample ad units so ads reliably show in dev,
   // even before the real AdMob account/ad units are active.
@@ -162,12 +187,12 @@ function resolveAdsConfig(): AdsConfig {
     appId: resolveAdMobAppId(),
     testing,
     adUnits,
-    provider: (import.meta.env.VITE_ADS_PROVIDER as AdsConfig['provider']) ?? 'mock',
+    provider: import.meta.env.VITE_ADS_PROVIDER === 'admob' ? 'admob' : 'mock',
   };
 }
 
 function resolveIapConfig(): IapConfig {
-  const provider = (import.meta.env.VITE_IAP_PROVIDER as IapConfig['provider']) ?? 'mock';
+  const provider = resolveIapProvider();
   const apiKey = pickPlatformEnv(
     import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY,
     import.meta.env.VITE_REVENUECAT_IOS_API_KEY
@@ -182,19 +207,22 @@ function resolveIapConfig(): IapConfig {
 export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig {
   const env = resolveEnvironment();
   const base = ENV_CONFIGS[env];
+  const analyticsProvider = resolveAnalyticsProvider();
+  const iap = resolveIapConfig();
+  const ads = resolveAdsConfig();
 
   return {
-    ads: resolveAdsConfig(),
-    iap: resolveIapConfig(),
-    apiUrl: import.meta.env.VITE_API_URL ?? base.apiUrl ?? '',
+    ads,
+    iap,
+    apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
-    gameId: 'puzzle-quest',
-    maxScore: 50000,
-    replaySecret: 'puzzle-quest-dev-secret',
+    gameId: resolveGameId(),
+    replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
     firebase: resolveFirebaseConfig(),
     adsEnabled: base.adsEnabled ?? false,
+    analyticsProvider,
     analyticsEnabled: base.analyticsEnabled ?? false,
-    iapEnabled: import.meta.env.VITE_IAP_ENABLED === 'true',
+    iapEnabled: base.iapEnabled ?? false,
     ...overrides,
   };
 }

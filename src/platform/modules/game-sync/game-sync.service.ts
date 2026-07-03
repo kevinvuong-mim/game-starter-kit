@@ -2,20 +2,16 @@ import {
   MAX_BATCH_SIZE,
   sanitizeMetadata,
   toNonNegativeInt,
-  computeReplayHash,
+  computeReplaySignature,
   MAX_SYNC_ATTEMPTS,
-  generateRunSeed,
   type PendingGameResult,
   type SyncResponse,
-  PERMANENT_SYNC_REJECTIONS,
-  type SyncRejectionReason,
 } from './game-sync.model';
 import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { generateId } from '@platform/core/utils';
 import { getConfig } from '@platform/core/config';
-import { usePlatformStore } from '@platform/core/state';
 import { guest, type GuestService } from '@platform/modules/guest';
 import { gameSyncRepository, type GameSyncRepository } from './game-sync.repository';
 
@@ -24,17 +20,12 @@ const MAX_SYNC_BACKOFF_MS = 30 * 60 * 1000;
 
 export interface RecordResultParams {
   score: number;
-  runSeed?: string;
   playedAt?: string;
   metadata?: Record<string, unknown>;
 }
 
 /**
  * Offline-first match-result sync.
- *
- * Results are always persisted locally first, then batch-uploaded to
- * `POST /games/:gameId/results` when possible. A single in-flight lock prevents duplicate
- * uploads; idempotency is guaranteed server-side by `replayHash`.
  */
 export class GameSyncService {
   private flushing = false;
@@ -44,41 +35,20 @@ export class GameSyncService {
     private readonly guestService: GuestService = guest
   ) {}
 
-  /** Persists a finished match to the local queue (always succeeds offline). */
   async recordResult(params: RecordResultParams): Promise<void> {
-    const { gameId, maxScore, replaySecret } = getConfig();
+    const { gameId } = getConfig();
+    const guestId = this.guestService.getGuestId() ?? '';
     const score = toNonNegativeInt(params.score);
-    const runSeed = params.runSeed ?? generateRunSeed();
     const playedAt = params.playedAt ?? new Date().toISOString();
-
-    const replayHash = await computeReplayHash({
-      gameId,
-      score,
-      runSeed,
-      replaySecret,
-    });
-
-    if (score > maxScore) {
-      logger.warn('[GameSync] Result rejected locally: score exceeds maxScore', {
-        score,
-        maxScore,
-        gameId,
-      });
-      eventBus.emit('game:sync:rejected', {
-        gameId,
-        items: [{ score, replayHash, reason: 'SCORE_EXCEEDS_MAX' }],
-      });
-      return;
-    }
+    const clientResultId = generateId('result');
 
     const result: PendingGameResult = {
-      localId: generateId('result'),
+      localId: clientResultId,
+      clientResultId,
       gameId,
-      guestId: this.guestService.getGuestId() ?? '',
+      guestId,
       score,
-      runSeed,
       playedAt,
-      replayHash,
       metadata: params.metadata,
       synced: false,
       syncAttempts: 0,
@@ -88,37 +58,29 @@ export class GameSyncService {
     const queue = await this.repository.loadQueue();
     queue.push(result);
     await this.repository.saveQueue(queue);
-    logger.debug('[GameSync] Result queued', { localId: result.localId, score });
+    logger.debug('[GameSync] Result queued', { clientResultId, score });
   }
 
-  /**
-   * Uploads all unsynced results for the current game. Safe to call repeatedly;
-   * no-ops when offline, already running, or the queue is empty.
-   */
   async flush(): Promise<void> {
     if (this.flushing) return;
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
 
     const gameId = getConfig().gameId;
-    const guestId = await this.guestService.ensureGuestId();
-    if (!guestId) {
-      logger.debug('[GameSync] Flush skipped — no guest credentials (offline)');
+    const guestId = this.guestService.getGuestId();
+    if (!guestId || this.guestService.getStatus() !== 'ready') {
+      logger.debug('[GameSync] Flush skipped — guest not ready');
       return;
     }
 
     this.flushing = true;
     try {
-      await this.flushForGuest(gameId, guestId, true);
+      await this.flushForGuest(gameId, guestId);
     } finally {
       this.flushing = false;
     }
   }
 
-  private async flushForGuest(
-    gameId: string,
-    guestId: string,
-    allowAuthRetry: boolean
-  ): Promise<void> {
+  private async flushForGuest(gameId: string, guestId: string): Promise<void> {
     let queue = await this.repository.loadQueue();
     const now = Date.now();
     const pending = queue.filter(
@@ -130,83 +92,61 @@ export class GameSyncService {
     );
     if (pending.length === 0) return;
 
-    const permanentlyRejected: Array<{
-      score: number;
-      replayHash: string;
-      reason: SyncRejectionReason;
-    }> = [];
+    const { replaySecret } = getConfig();
 
     for (let i = 0; i < pending.length; i += MAX_BATCH_SIZE) {
       const batch = pending.slice(i, i + MAX_BATCH_SIZE);
+      const signedBatch = await Promise.all(
+        batch.map(async (item) => ({
+          ...item,
+          guestId,
+          signature:
+            item.signature ??
+            (await computeReplaySignature({
+              gameId,
+              guestId,
+              clientResultId: item.clientResultId,
+              score: item.score,
+              playedAt: item.playedAt,
+              replaySecret,
+            })),
+        }))
+      );
 
       try {
         const response = await this.repository.sync(
           gameId,
-          batch.map(({ score, replayHash, playedAt, runSeed, metadata }) => ({
+          signedBatch.map(({ clientResultId, score, playedAt, signature, metadata }) => ({
+            clientResultId,
             score,
-            replayHash,
             playedAt,
-            metadata: sanitizeMetadata(metadata, runSeed),
+            signature,
+            metadata: sanitizeMetadata(metadata),
           }))
         );
 
-        const { queue: updatedQueue, rejected } = this.applyBatchSyncResults(
-          queue,
-          batch,
-          response,
-          gameId,
-          guestId
-        );
-        queue = this.pruneQueue(updatedQueue);
-        permanentlyRejected.push(...rejected);
+        queue = this.applyBatchSyncResults(queue, batch, response, gameId, guestId);
+        queue = this.pruneQueue(queue);
         await this.repository.saveQueue(queue);
-
-        if (response.bestScore > 0) {
-          usePlatformStore.getState().setHighScore(response.bestScore);
-        }
-
         eventBus.emit('game:synced', response);
-
-        if (response.rejected > 0) {
-          logger.warn(`[GameSync] ${response.rejected} result(s) rejected for ${gameId}`, {
-            reasons: response.results
-              .filter((item) => item.status === 'rejected')
-              .map((item) => item.reason),
-          });
-        }
       } catch (error) {
-        if (allowAuthRetry && (await this.handleGuestAuthError(error))) {
-          const newGuestId = await this.guestService.ensureGuestId();
-          if (newGuestId) {
-            await this.flushForGuest(gameId, newGuestId, false);
-          }
-          return;
-        }
-
+        this.logExpectedApiErrors(error);
         queue = this.incrementAttempts(queue, batch, gameId, error);
+        queue = this.pruneQueue(queue);
         await this.repository.saveQueue(queue);
         logger.warn('[GameSync] Batch sync failed, will retry later', error);
         throw error;
       }
     }
-
-    if (permanentlyRejected.length > 0) {
-      eventBus.emit('game:sync:rejected', { gameId, items: permanentlyRejected });
-    }
   }
 
-  private async handleGuestAuthError(error: unknown): Promise<boolean> {
-    if (error instanceof ApiError && error.status === 401) {
-      logger.warn('[GameSync] Guest auth failed — reinitializing identity');
-      await this.guestService.reinit();
-      return true;
-    }
-
+  private logExpectedApiErrors(error: unknown): void {
     if (error instanceof ApiError && error.status === 404) {
       logger.error('[GameSync] Game not found on backend — check gameId config', error);
     }
-
-    return false;
+    if (error instanceof ApiError && error.status === 401) {
+      logger.error('[GameSync] Guest auth failed — credentials may be invalid', error);
+    }
   }
 
   private applyBatchSyncResults(
@@ -215,57 +155,39 @@ export class GameSyncService {
     response: SyncResponse,
     gameId: string,
     guestId: string
-  ): {
-    queue: PendingGameResult[];
-    rejected: Array<{ score: number; replayHash: string; reason: SyncRejectionReason }>;
-  } {
-    const statusByHash = new Map(response.results.map((item) => [item.replayHash, item]));
-    const batchHashes = new Set(batch.map((item) => item.replayHash));
-    const rejected: Array<{ score: number; replayHash: string; reason: SyncRejectionReason }> = [];
+  ): PendingGameResult[] {
+    if (!response.success) {
+      return queue;
+    }
 
-    const updatedQueue = queue.map((item) => {
-      if (!batchHashes.has(item.replayHash) || item.gameId !== gameId) {
-        return item;
-      }
-
-      const resultItem = statusByHash.get(item.replayHash);
-      if (!resultItem) {
-        return { ...item, syncAttempts: item.syncAttempts + 1 };
-      }
-
-      if (resultItem.status === 'accepted') {
-        return { ...item, synced: true, guestId };
-      }
-
-      if (resultItem.reason && PERMANENT_SYNC_REJECTIONS.has(resultItem.reason)) {
-        logger.warn('[GameSync] Result permanently rejected', {
-          replayHash: item.replayHash,
-          reason: resultItem.reason,
-        });
-        rejected.push({
-          score: item.score,
-          replayHash: item.replayHash,
-          reason: resultItem.reason,
-        });
-        return { ...item, synced: true, syncAttempts: MAX_SYNC_ATTEMPTS, guestId };
-      }
-
-      return { ...item, syncAttempts: item.syncAttempts + 1 };
-    });
-
-    return { queue: updatedQueue, rejected };
+    const batchIds = new Set(batch.map((item) => item.localId));
+    return queue.map((item) =>
+      batchIds.has(item.localId) && item.gameId === gameId
+        ? { ...item, synced: true, guestId }
+        : item
+    );
   }
 
-  /** Drops synced items and exhausted retries to keep the queue bounded. */
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {
-    const pruned = queue.filter((item) => !item.synced && item.syncAttempts < MAX_SYNC_ATTEMPTS);
-    if (pruned.length < queue.length) {
-      logger.debug('[GameSync] Pruned queue', {
-        removed: queue.length - pruned.length,
-        remaining: pruned.length,
-      });
+    const kept: PendingGameResult[] = [];
+
+    for (const item of queue) {
+      if (item.synced) {
+        continue;
+      }
+
+      if (item.syncAttempts >= MAX_SYNC_ATTEMPTS) {
+        eventBus.emit('game:sync:dropped', {
+          clientResultId: item.clientResultId,
+          attempts: item.syncAttempts,
+        });
+        continue;
+      }
+
+      kept.push(item);
     }
-    return pruned;
+
+    return kept;
   }
 
   private incrementAttempts(

@@ -1,183 +1,125 @@
-import { logger } from '@platform/core/error';
-import { ApiError } from '@platform/core/api';
 import { apiClient } from '@platform/core/api';
+import { logger } from '@platform/core/error';
+import { getConfig } from '@platform/core/config';
 import { guestRepository, type GuestRepository } from './guest.repository';
 
-/**
- * Manages the anonymous guest identity and session authentication.
- *
- * - Credentials are loaded from storage on boot (offline-safe, no network).
- * - Created lazily via `POST /guest/init` the first time they are needed.
- * - `installId` + `installSecret` survive reinit so the backend can re-link securely.
- * - `sessionToken` is applied to `apiClient` for protected endpoints.
- */
-/** Refresh the session when it expires within this window (ms). */
-const SESSION_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+export type GuestStatus = 'ready' | 'pending';
 
+type GuestReadyListener = (guestId: string) => void;
+
+/**
+ * Manages the anonymous guest identity.
+ *
+ * `init()` loads stored credentials or creates a new guest once per install.
+ */
 export class GuestService {
-  private initialized = false;
+  private guestStatus: GuestStatus = 'pending';
   private guestId: string | null = null;
-  private sessionToken: string | null = null;
-  private sessionTokenExpiresAt: number | null = null;
-  private inflight: Promise<string | null> | null = null;
+  private networkListenerRegistered = false;
+  private readonly readyListeners = new Set<GuestReadyListener>();
 
   constructor(private readonly repository: GuestRepository = guestRepository) {}
 
-  /** Load persisted credentials into memory. Never hits the network. */
   async init(): Promise<void> {
-    if (this.initialized) return;
+    try {
+      const stored = await this.repository.loadCredentials();
+      if (stored) {
+        apiClient.setAuthToken(stored.secretToken);
+        this.markReady(stored.guestId);
+        logger.info('[Guest] Loaded credentials from storage');
+        return;
+      }
 
-    this.guestId = await this.repository.loadGuestId();
-    this.sessionToken = await this.repository.loadSessionToken();
-    this.sessionTokenExpiresAt = await this.repository.loadSessionTokenExpiresAt();
+      const { gameId } = getConfig();
+      const payload = await this.repository.initGuest();
 
-    if (this.guestId && !this.sessionToken) {
-      logger.warn('[Guest] Legacy guestId without sessionToken — clearing credentials');
+      if (payload.gameId !== gameId) {
+        logger.warn('[Guest] Backend gameId mismatch', {
+          expected: gameId,
+          received: payload.gameId,
+        });
+      }
+
+      await this.repository.saveCredentials({
+        guestId: payload.guestId,
+        secretToken: payload.secretToken,
+      });
+      apiClient.setAuthToken(payload.secretToken);
+      this.markReady(payload.guestId);
+      logger.info('[Guest] Created new guest identity');
+    } catch (error) {
+      this.guestStatus = 'pending';
       this.guestId = null;
-      this.sessionTokenExpiresAt = null;
-      await this.repository.clearCredentials();
+      apiClient.setAuthToken(null);
+      logger.warn('[Guest] Failed to create guest identity (offline?)', error);
+      void this.registerNetworkRetry();
     }
+  }
 
-    if (this.sessionToken && this.isSessionExpired()) {
-      logger.warn('[Guest] Persisted session token expired — clearing credentials');
-      this.guestId = null;
-      this.sessionToken = null;
-      this.sessionTokenExpiresAt = null;
-      await this.repository.clearCredentials();
-    }
-
-    this.applySessionToken();
-    this.initialized = true;
-
-    logger.info('[Guest] Initialized', {
-      hasGuestId: this.guestId !== null,
-      hasSessionToken: this.sessionToken !== null,
-      sessionExpiresAt: this.sessionTokenExpiresAt,
-      hasInstallId: (await this.repository.loadInstallId()) !== null,
-      hasInstallSecret: (await this.repository.loadInstallSecret()) !== null,
-    });
+  async recoverFromUnauthorized(): Promise<boolean> {
+    await this.repository.clearCredentials();
+    apiClient.setAuthToken(null);
+    this.guestStatus = 'pending';
+    this.guestId = null;
+    await this.init();
+    return this.getStatus() === 'ready';
   }
 
   getGuestId(): string | null {
     return this.guestId;
   }
 
-  getSessionToken(): string | null {
-    return this.sessionToken;
+  getStatus(): GuestStatus {
+    return this.guestStatus;
   }
 
-  /**
-   * Returns the guest id, creating credentials via `/guest/init` if needed.
-   * Returns `null` (does not throw) when creation fails, e.g. offline.
-   */
-  async ensureGuestId(): Promise<string | null> {
-    if (this.guestId && this.sessionToken) {
-      if (this.isSessionExpired()) {
-        logger.info('[Guest] Session expired or near expiry — refreshing');
-        return this.reinit();
-      }
-
-      this.applySessionToken();
-      return this.guestId;
+  onReady(listener: GuestReadyListener): () => void {
+    if (this.guestStatus === 'ready' && this.guestId) {
+      listener(this.guestId);
     }
 
-    if (this.inflight) return this.inflight;
-
-    this.inflight = this.createGuest().finally(() => {
-      this.inflight = null;
-    });
-
-    return this.inflight;
-  }
-
-  /**
-   * Discards session credentials and re-initializes via installId + installSecret.
-   * Used to recover from expired/invalid session tokens.
-   */
-  async reinit(): Promise<string | null> {
-    this.guestId = null;
-    this.sessionToken = null;
-    this.sessionTokenExpiresAt = null;
-    apiClient.setAuthToken(null);
-    await this.repository.clearCredentials();
-    return this.ensureGuestId();
+    this.readyListeners.add(listener);
+    return () => {
+      this.readyListeners.delete(listener);
+    };
   }
 
   async updateName(name: string): Promise<void> {
-    await this.ensureGuestId();
+    if (!this.guestId) return;
     await this.repository.updateName(name);
   }
 
-  private async createGuest(): Promise<string | null> {
+  private markReady(guestId: string): void {
+    this.guestId = guestId;
+    this.guestStatus = 'ready';
+
+    for (const listener of this.readyListeners) {
+      listener(guestId);
+    }
+  }
+
+  private async registerNetworkRetry(): Promise<void> {
+    if (this.networkListenerRegistered) return;
+    this.networkListenerRegistered = true;
+
     try {
-      return await this.createGuestWithRecovery();
-    } catch (error) {
-      logger.warn('[Guest] Failed to create guest identity (offline?)', error);
-      return null;
+      const { Network } = await import('@capacitor/network');
+      await Network.addListener('networkStatusChange', ({ connected }) => {
+        if (!connected || this.guestStatus === 'ready') return;
+        logger.info('[Guest] Network connected — retrying guest init');
+        void this.init();
+      });
+    } catch {
+      if (typeof window === 'undefined') return;
+
+      const retry = () => {
+        if (this.guestStatus === 'ready') return;
+        logger.info('[Guest] Browser online — retrying guest init');
+        void this.init();
+      };
+
+      window.addEventListener('online', retry);
     }
-  }
-
-  private async createGuestWithRecovery(): Promise<string | null> {
-    const installId = await this.repository.ensureInstallId();
-    const installSecret = await this.repository.loadInstallSecret();
-
-    try {
-      return await this.persistCredentials(
-        await this.repository.initGuest(installId, installSecret ?? undefined)
-      );
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 409 && installSecret) {
-        logger.warn('[Guest] installId conflict — retrying relink once');
-        await this.delay(250);
-        return await this.persistCredentials(
-          await this.repository.initGuest(installId, installSecret)
-        );
-      }
-
-      if (error instanceof ApiError && error.status === 401 && installSecret === null) {
-        logger.warn(
-          '[Guest] installSecret missing for existing installId — resetting install recovery'
-        );
-        await this.repository.clearInstallRecovery();
-        const freshInstallId = await this.repository.ensureInstallId();
-        return await this.persistCredentials(await this.repository.initGuest(freshInstallId));
-      }
-
-      throw error;
-    }
-  }
-
-  private async persistCredentials(
-    credentials: Awaited<ReturnType<GuestRepository['initGuest']>>
-  ): Promise<string> {
-    if (credentials.installSecret) {
-      await this.repository.saveInstallSecret(credentials.installSecret);
-    }
-
-    await this.repository.saveGuestId(credentials.guestId);
-    await this.repository.saveSessionToken(credentials.sessionToken);
-    await this.repository.saveSessionTokenExpiresAt(credentials.sessionTokenExpiresAt);
-
-    this.guestId = credentials.guestId;
-    this.sessionToken = credentials.sessionToken;
-    this.sessionTokenExpiresAt = new Date(credentials.sessionTokenExpiresAt).getTime();
-    this.applySessionToken();
-
-    logger.info('[Guest] Guest identity ready', { relinked: credentials.relinked });
-    return credentials.guestId;
-  }
-
-  private isSessionExpired(now = Date.now()): boolean {
-    if (!this.sessionTokenExpiresAt) return false;
-    return now >= this.sessionTokenExpiresAt - SESSION_REFRESH_BUFFER_MS;
-  }
-
-  private applySessionToken(): void {
-    apiClient.setAuthToken(this.sessionToken);
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

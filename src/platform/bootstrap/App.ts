@@ -9,6 +9,7 @@ import {
 } from '@platform/core/analytics/events';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
+import { apiClient } from '@platform/core/api';
 import { guest } from '@platform/modules/guest';
 import { generateId } from '@platform/core/utils';
 import { services } from '@platform/core/services';
@@ -53,13 +54,26 @@ export class App {
     registerAnalyticsProviders();
     registerAdsProvider();
 
-    await Promise.all([
+    apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized());
+
+    const parallelInits = await Promise.allSettled([
       i18n.init(),
       ads.init(),
       guest.init(),
       analytics.init(),
       leaderboard.init(),
     ]);
+
+    for (const [index, result] of parallelInits.entries()) {
+      if (result.status === 'rejected') {
+        const labels = ['i18n', 'ads', 'guest', 'analytics', 'leaderboard'];
+        logger.error(`[App] ${labels[index]} init failed`, result.reason);
+      }
+    }
+
+    guest.onReady((guestId) => {
+      analytics.setUserId(guestId);
+    });
 
     const fallbackUserId = usePlatformStore.getState().user.id || undefined;
     const analyticsUserId = guest.getGuestId() ?? fallbackUserId;
@@ -75,14 +89,6 @@ export class App {
       analytics.setUserId(analyticsUserId);
     }
     analytics.setUserProperty('game_id', config().gameId);
-    void guest
-      .ensureGuestId()
-      .then((guestId) => {
-        if (guestId) {
-          analytics.setUserId(guestId);
-        }
-      })
-      .catch((error) => logger.warn('[App] Background guest init failed', error));
 
     await saveService.loadLocal();
     await dailyRewards.init();

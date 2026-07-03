@@ -292,7 +292,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     nameText.setOrigin(0, 0.5);
     container.add(nameText);
 
-    const scoreText = this.scene.add.text(285, 0, String(entry.score), {
+    const scoreText = this.scene.add.text(285, 0, String(entry.bestScore), {
       fontSize: '18px',
       color: '#4a90d9',
       fontStyle: 'bold',

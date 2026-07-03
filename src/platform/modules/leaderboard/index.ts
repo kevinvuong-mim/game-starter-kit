@@ -9,7 +9,7 @@ export type {
   LeaderboardData,
   LeaderboardEntry,
   LeaderboardStatus,
-  LeaderboardPagination,
+  LeaderboardSelf,
 } from './leaderboard.model';
 export type { FetchOptions } from './leaderboard.service';
 export { leaderboard, LeaderboardService } from './leaderboard.service';

@@ -2,16 +2,15 @@
  * Game identity & display settings.
  * Update this file when starting a new game (after cloning this repo).
  *
- * `id` and `replaySecret` must match a row in the api-starter-kit `games` table.
+ * `id` comes from `VITE_GAME_ID` and must match a `GameId` enum value on game-api.
+ * `replaySecret` is injected via `VITE_REPLAY_SECRET` — never hardcode the real value.
  */
 export interface GameConfig {
   id: string;
   name: string;
-  maxScore: number;
   width: number;
   height: number;
   version: string;
-  /** Per-game HMAC secret — must match `games.config.replaySecret` on the backend. */
   replaySecret: string;
 }
 
@@ -19,8 +18,7 @@ export const gameConfig: GameConfig = {
   width: 720,
   height: 1280,
   version: '1.0.0',
-  id: 'puzzle-quest',
+  id: import.meta.env.VITE_GAME_ID ?? '',
   name: 'Game Starter Kit',
-  maxScore: 50000,
-  replaySecret: 'puzzle-quest-dev-secret',
+  replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
 };

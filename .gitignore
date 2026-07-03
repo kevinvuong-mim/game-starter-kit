@@ -1,11 +1,12 @@
 .env
-ios/
+/ios
 dist/
 *.log
 .env.*
 .vite/
 *.local
-android/
+/android
+.derived-data/
 .DS_Store
 coverage/
 node_modules/

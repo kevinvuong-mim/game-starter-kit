@@ -335,7 +335,7 @@ Firebase DebugView: run a staging build with analytics enabled and use the Fireb
 
 - **Web / dev:** `MockAdsProvider` (or AdMob mock path via `VITE_ADS_PROVIDER=mock`).
 - **Native + `VITE_ADS_PROVIDER=admob`:** `AdMobAdsProvider` via `@capacitor-community/admob`.
-- **`VITE_ADMOB_TESTING=true`:** Google's official test ad unit IDs (no real account needed).
+- **Missing `VITE_ADMOB_*_APP_ID` on a platform:** that platform uses Google's official test ad unit IDs (no real account needed).
 - **Placements:** `ad:show:request`, `ad:reward:request` — handled by `AdsService` + `ads` module controller.
 - **Ad placement config:** `adsModule` applies the bundled placement and reward rules. Add a backend config endpoint before treating ad rules as remotely managed.
 
@@ -380,4 +380,3 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 ## Related docs
 
 - [README.md](./README.md) — quick start, env vars, deployment, scripts
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — code style, module checklist, provider swapping
