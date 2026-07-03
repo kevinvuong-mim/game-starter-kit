@@ -4,6 +4,7 @@ import { gameConfig } from '@game/config';
 import { gameScenes } from '@game/scenes';
 import { app } from '@platform/bootstrap/App';
 import { toast } from '@platform/ui/toast/ToastManager';
+import { loadGameFonts } from '@platform/bootstrap/fonts';
 import { refreshServicesFromConfig } from '@platform/core/services';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
@@ -27,11 +28,7 @@ export class GameEngine {
     try {
       await app.init();
       await initCapacitorPlugins();
-      await Promise.all([
-        document.fonts.load('16px "Fredoka"'),
-        document.fonts.load('16px "Nunito Sans"'),
-      ]);
-      await document.fonts.ready;
+      await loadGameFonts();
     } catch (error) {
       errorBoundary.capture(error, 'app.init');
       throw error;
