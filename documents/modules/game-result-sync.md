@@ -2,6 +2,14 @@
 
 Offline-first queue → batch upload `POST /api/results`.
 
+## Storage
+
+| Key | Provider | Nội dung |
+|-----|----------|----------|
+| `game-sync:pending` | Durable storage (`StorageService`) | Queue kết quả chưa sync |
+
+Trên native Preferences, key được lưu với prefix `gsk:` (vật lý: `gsk:game-sync:pending`).
+
 ## Limits
 
 | Constant              | Value |
@@ -59,6 +67,6 @@ Header: `Authorization: Bearer <secretToken>`
 ## Flow
 
 1. `game:over` → queue local.
-2. `flush()` khi online / `app:resume`.
+2. `flush()` khi online / `app:resume` / guest ready / native network reconnect.
 3. Batch tối đa 50 items, Bearer auth.
 4. Đánh dấu batch synced khi HTTP success.

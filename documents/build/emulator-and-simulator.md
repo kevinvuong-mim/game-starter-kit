@@ -102,8 +102,8 @@ VITE_ADMOB_ANDROID_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 VITE_ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 ```
 
-- Thiếu `VITE_ADMOB_ANDROID_APP_ID` hoặc `VITE_ADMOB_IOS_APP_ID` trên platform tương ứng → dùng Google sample App ID (phù hợp dev).
-- `VITE_ADS_PROVIDER=admob` → script native **bắt buộc** inject AdMob App ID vào manifest/Info.plist; thiếu ID sẽ fail build script.
+- Thiếu `VITE_ADMOB_ANDROID_APP_ID` hoặc `VITE_ADMOB_IOS_APP_ID` trên platform tương ứng → runtime dùng Google sample ad units; native build script inject Google sample App ID khi `VITE_ADS_PROVIDER=admob`.
+- `VITE_ADS_PROVIDER=admob` → script native inject AdMob App ID vào manifest/Info.plist (dùng App ID thật nếu có, không thì sample ID của Google).
 
 Chi tiết biến môi trường: [Environment Variables](../setup/environment-variables.md).
 
@@ -159,10 +159,10 @@ npm run build:ios
 
 Thứ tự thực thi:
 
-1. `npm run build`
+1. `npm run build` — typecheck + Vite build → `dist/`
 2. `cap add ios` (nếu chưa có `ios/`)
-3. **`node scripts/apply-ios-native.mjs pre-sync`** — pin `GoogleUserMessagingPlatform ~> 2.3` trong Podfile **trước** `pod install`
-4. `capacitor-assets generate`
+3. `capacitor-assets generate` — icon/splash
+4. **`node scripts/apply-ios-native.mjs pre-sync`** — pin `GoogleUserMessagingPlatform ~> 2.3` trong Podfile **trước** `pod install`
 5. `cap sync ios` — chạy `pod install`
 6. `node scripts/apply-ios-native.mjs` — copy storyboard/Swift template, inject `GADApplicationIdentifier`
 

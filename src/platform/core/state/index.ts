@@ -2,12 +2,12 @@ export type {
   UserState,
   CurrencyState,
   MissionsState,
+  MissionStatus,
   PlatformState,
   ProgressState,
   SettingsState,
   InventoryState,
   MissionProgress,
-  MissionStatus,
   DailyRewardState,
 } from './types';
 export { DEFAULT_STATE } from './types';

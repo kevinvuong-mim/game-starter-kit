@@ -1,6 +1,15 @@
 # Leaderboard
 
-Đọc all-time leaderboard từ `game-api`, cache theo page, expose view qua event bus.
+Đọc all-time leaderboard từ `game-api`, cache theo page (TTL 60s, limit 20/page), expose view qua event bus.
+
+## Events
+
+| Event | Mô tả |
+| ----- | ----- |
+| `leaderboard:request` | Load cache-aware (mặc định page 1) |
+| `leaderboard:refresh` | Bỏ cache, fetch lại từ network |
+| `leaderboard:page` | Load page cụ thể |
+| `leaderboard:update` | UI nhận view model sau khi load |
 
 ## Endpoint
 

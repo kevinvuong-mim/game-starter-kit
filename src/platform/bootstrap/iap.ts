@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
+import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
 import { iap, createIapProvider } from '@platform/modules/iap';
-import { logger } from '@platform/core/error';
 
 /**
  * Registers the IAP provider based on runtime config and platform.

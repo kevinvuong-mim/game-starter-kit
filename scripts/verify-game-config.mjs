@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/;
 

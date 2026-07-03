@@ -3,18 +3,24 @@
 File: `src/game/config.ts`
 
 ```ts
-export const gameConfig = {
-  id: import.meta.env.VITE_GAME_ID ?? '',
+export const gameConfig: GameConfig = {
+  width: 720,
+  height: 1280,
+  version: '1.0.0',
   name: 'Game Starter Kit',
+  id: import.meta.env.VITE_GAME_ID ?? '',
   replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
-  // ...
 };
 ```
 
-| Field          | Mô tả                                                                |
-| -------------- | -------------------------------------------------------------------- |
-| `id`           | Đọc từ `VITE_GAME_ID` và phải khớp `GameId` enum trên `game-api`     |
-| `replaySecret` | Đọc từ `VITE_REPLAY_SECRET` — khớp `REPLAY_SECRET_<GAME_ID>` backend |
+| Field          | Nguồn              | Mô tả                                                                |
+| -------------- | ------------------ | -------------------------------------------------------------------- |
+| `id`           | `VITE_GAME_ID`     | Phải khớp `GameId` enum trên `game-api`                              |
+| `replaySecret` | `VITE_REPLAY_SECRET` | Khớp `REPLAY_SECRET_<GAME_ID>` trên backend                        |
+| `name`         | File               | Tên hiển thị của game                                                |
+| `width`        | File               | Chiều rộng canvas Phaser                                             |
+| `height`       | File               | Chiều cao canvas Phaser                                              |
+| `version`      | File               | Phiên bản game (semver)                                              |
 
 ## Env
 

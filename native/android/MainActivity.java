@@ -2,9 +2,9 @@ package com.studio.gamestarterkit;
 
 import android.os.Bundle;
 import androidx.core.view.WindowCompat;
+import com.getcapacitor.BridgeActivity;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override

@@ -1,8 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 
-export type Environment = 'dev' | 'staging' | 'production';
-export type AnalyticsProvider = 'console' | 'firebase';
 export type IapProvider = 'mock' | 'revenuecat';
+export type AnalyticsProvider = 'console' | 'firebase';
+export type Environment = 'dev' | 'staging' | 'production';
 
 export interface FirebaseConfig {
   appId: string;
@@ -18,19 +18,19 @@ export interface RuntimeConfig {
   apiUrl: string;
   debug: boolean;
   gameId: string;
-  replaySecret: string;
-  analyticsProvider: AnalyticsProvider;
   adsEnabled: boolean;
   iapEnabled: boolean;
+  replaySecret: string;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
+  analyticsProvider: AnalyticsProvider;
 }
 
 export interface IapConfig {
-  provider: IapProvider;
   revenueCat: {
     apiKey: string;
   };
+  provider: IapProvider;
 }
 
 export interface AdsConfig {

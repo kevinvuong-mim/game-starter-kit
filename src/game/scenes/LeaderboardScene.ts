@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
-import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { t, FREDOKA_FONT, LeaderboardPanel } from '@platform/ui/index';
+import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 interface LeaderboardSceneData {
   returnTo?: string;
@@ -10,10 +10,10 @@ interface LeaderboardSceneData {
 }
 
 export class LeaderboardScene extends Phaser.Scene {
-  private unsubscribers: Array<() => void> = [];
   private returnTo = 'Home';
-  private returnData?: Record<string, unknown>;
   private panel?: LeaderboardPanel;
+  private returnData?: Record<string, unknown>;
+  private unsubscribers: Array<() => void> = [];
 
   constructor() {
     super({ key: 'Leaderboard' });

@@ -19,7 +19,7 @@
 
 Node.js: `>= 20`
 
-Backend companion: `game-api` — `gameId` trong `src/game/config.ts` phải khớp với `GameId enum` trên backend, và `replaySecret` phải được inject qua biến môi trường `VITE_REPLAY_SECRET`.
+Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts`) phải khớp với `GameId enum` trên backend, và `VITE_REPLAY_SECRET` phải khớp `REPLAY_SECRET_<GAME_ID>` trên backend.
 
 ---
 
@@ -74,6 +74,7 @@ game-starter-kit/
 ├── capacitor.config.ts
 ├── documents/
 │   ├── architecture/runtime-architecture.md
+│   ├── build/emulator-and-simulator.md
 │   ├── modules/
 │   │   ├── game-result-sync.md
 │   │   ├── guest-identity.md
@@ -140,6 +141,8 @@ cap:ios
 assets:generate
 build:android    # via scripts/native-ops.mjs build android
 build:ios        # via scripts/native-ops.mjs build ios
+run:android      # build + emulator install + launch
+run:ios          # build + simulator install + launch
 lint
 game:verify-config
 lint:fix
@@ -553,6 +556,8 @@ registerAnalyticsProviders()
 
 registerAdsProvider()
 
+apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized())
+
 Promise.allSettled([
   i18n.init(),
   ads.init(),
@@ -564,6 +569,10 @@ Promise.allSettled([
 // offline lúc mở app lần đầu) không được phép chặn các service độc lập
 // khác (i18n, ads, analytics, leaderboard) — giữ đúng nguyên tắc Offline-first.
 // Log riêng từng promise bị reject ra error/logger, không throw tiếp.
+
+guest.onReady((guestId) => {
+  analytics.setUserId(guestId);
+});
 
 analyticsUserId =
 guest.getGuestId() ?? store.user.id
@@ -705,17 +714,18 @@ export const gameConfig: GameConfig = {
   width: 720,
   height: 1280,
   version: '1.0.0',
-  id: 'FRULOOP', // phải khớp với GameId enum trên backend
   name: 'Game Starter Kit',
+  id: import.meta.env.VITE_GAME_ID ?? '',
   replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
 };
 ```
 
 > **Lưu ý quan trọng khi clone cho game mới:**
 >
-> 1. Đổi `id` thành đúng `GameId` trên backend (ví dụ: `'FRULOOP'`).
+> 1. Đặt `VITE_GAME_ID` trong `.env` khớp `GameId` trên backend (ví dụ: `TUTUTHOI`).
 > 2. Lấy `VITE_REPLAY_SECRET` từ backend team, điền vào file `.env` local và CI/CD secrets.
 > 3. Không bao giờ commit giá trị thật của `VITE_REPLAY_SECRET`.
+> 4. Chỉnh `name`, `width`, `height`, `version` trực tiếp trong `src/game/config.ts`.
 
 ---
 
@@ -1311,12 +1321,15 @@ gold
 ```text
 apply-android-native.mjs
 apply-ios-native.mjs
+native-ops.mjs
+run-android-emulator.sh
+run-ios-simulator.sh
 verify-game-config.mjs
+  — kiểm tra VITE_GAME_ID không rỗng (đọc từ .env)
   — kiểm tra VITE_REPLAY_SECRET không rỗng
   — kiểm tra VITE_REPLAY_SECRET đúng định dạng SHA256 hex
     (64 ký tự, lowercase a-f0-9) — khớp với validation
     replaySecret ở backend Startup Guard (game-api Section 3/11)
-  — đọc gameId từ src/game/config.ts
   — live API probe: GET /leaderboards?gameId=...&page=1&limit=1
     (bỏ qua khi SKIP_API_CHECK=true)
   — sai định dạng hoặc rỗng → exit code khác 0, chặn build production
@@ -1360,17 +1373,27 @@ howToPlay.*
 ```ts
 interface ImportMetaEnv {
   readonly VITE_APP_ENV: 'dev' | 'staging' | 'production';
-  readonly VITE_GAME_ID?: string;
+  readonly VITE_GAME_ID: string;
   readonly VITE_REPLAY_SECRET: string;
-  readonly VITE_IAP_PROVIDER?: 'mock' | 'revenuecat';
+  readonly VITE_IAP_PROVIDER: 'mock' | 'revenuecat';
   readonly VITE_REVENUECAT_ANDROID_API_KEY?: string;
   readonly VITE_REVENUECAT_IOS_API_KEY?: string;
-  readonly VITE_ADS_PROVIDER?: 'mock' | 'admob';
-  readonly VITE_ANALYTICS_PROVIDER?: 'console' | 'firebase';
-  readonly VITE_FIREBASE_API_KEY?: string;
-  readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
-  readonly VITE_FIREBASE_PROJECT_ID?: string;
+  readonly VITE_ADS_PROVIDER: 'mock' | 'admob';
+  readonly VITE_ADMOB_IOS_APP_ID?: string;
+  readonly VITE_ADMOB_IOS_BANNER_ID?: string;
+  readonly VITE_ADMOB_IOS_APP_OPEN_ID?: string;
+  readonly VITE_ADMOB_IOS_REWARDED_ID?: string;
+  readonly VITE_ADMOB_IOS_INTERSTITIAL_ID?: string;
+  readonly VITE_ADMOB_ANDROID_APP_ID?: string;
+  readonly VITE_ADMOB_ANDROID_BANNER_ID?: string;
+  readonly VITE_ADMOB_ANDROID_APP_OPEN_ID?: string;
+  readonly VITE_ADMOB_ANDROID_REWARDED_ID?: string;
+  readonly VITE_ADMOB_ANDROID_INTERSTITIAL_ID?: string;
+  readonly VITE_ANALYTICS_PROVIDER: 'console' | 'firebase';
   readonly VITE_FIREBASE_APP_ID?: string;
+  readonly VITE_FIREBASE_API_KEY?: string;
+  readonly VITE_FIREBASE_PROJECT_ID?: string;
+  readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
   readonly VITE_FIREBASE_MEASUREMENT_ID?: string;
 }
 
@@ -1404,6 +1427,7 @@ ARCHITECTURE.md
 documents/setup/*
 documents/modules/*
 documents/architecture/*
+documents/build/*
 ```
 
 ---
@@ -1463,8 +1487,9 @@ Lưu ý:
 
 ```text
 gameId
+→ đọc từ VITE_GAME_ID trong .env (inject vào gameConfig.id)
 → phải khớp GameId enum trên backend
-→ ví dụ: 'FRULOOP'
+→ ví dụ: 'TUTUTHOI'
 
 replaySecret
 → inject qua VITE_REPLAY_SECRET (env var)

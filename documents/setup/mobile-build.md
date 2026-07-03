@@ -48,24 +48,26 @@ Khi tạo game mới, đổi ít nhất:
 
 ## Native Patch Flow
 
-`build:android` hiện được triển khai bởi `scripts/native-ops.mjs build android`:
+`build:android` và `build:ios` được triển khai bởi `scripts/native-ops.mjs`.
+
+### Android (`build:android`)
 
 ```bash
 npm run build
-VITE_GAME_ID=TUTUTHOI
-VITE_IAP_PROVIDER=revenuecat
+# cap add android (nếu chưa có android/)
 npm run assets:generate
+npx cap sync android
 node scripts/apply-android-native.mjs
 ```
 
-`build:ios` hiện được triển khai bởi `scripts/native-ops.mjs build ios`:
+### iOS (`build:ios`)
 
 ```bash
 npm run build
-npm run cap:add:ios
-node scripts/apply-ios-native.mjs pre-sync   # pin UMP trước pod install
+# cap add ios (nếu chưa có ios/)
 npm run assets:generate
-cap sync ios
+node scripts/apply-ios-native.mjs pre-sync   # pin UMP trước pod install
+npx cap sync ios
 node scripts/apply-ios-native.mjs            # post-sync: templates + AdMob plist
 ```
 
@@ -84,7 +86,7 @@ Các event/lifecycle chính:
 - `app:ready` → hide splash screen.
 - Native app state change → emit `app:pause` / `app:resume`.
 - Back button native → emit `app:back`.
-- `app:resume` cũng kích hoạt game sync flush và mission reset checks qua controllers.
+- `app:resume` cũng kích hoạt game sync flush, mission reset checks, và daily reward checks qua controllers.
 
 ---
 
@@ -93,7 +95,7 @@ Các event/lifecycle chính:
 - Bật AdMob thật bằng `VITE_ADS_PROVIDER=admob` và App ID theo platform.
 - Bật RevenueCat bằng `VITE_IAP_PROVIDER=revenuecat`, và API key theo platform.
 - Chọn API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`.
-- Đảm bảo backend có row `games` khớp `src/game/config.ts`.
+- Đảm bảo backend có row `games` khớp `VITE_GAME_ID` / `src/game/config.ts`.
 
 ---
 
