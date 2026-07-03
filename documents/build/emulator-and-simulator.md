@@ -94,7 +94,7 @@ Các biến quan trọng khi chạy native với AdMob:
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 
 VITE_ADS_PROVIDER=admob
 

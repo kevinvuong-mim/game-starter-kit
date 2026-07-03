@@ -19,7 +19,7 @@
 
 Node.js: `>= 20`
 
-Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts`) phải khớp với `GameId enum` trên backend, và `VITE_REPLAY_SECRET` phải khớp `REPLAY_SECRET_<GAME_ID>` trên backend.
+Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts`) phải khớp với `GameId enum` trên backend, và `VITE_REPLAY_SECRET` phải khớp `GAME_CONFIG[gameId].replaySecret` trên backend.
 
 ---
 
@@ -439,7 +439,7 @@ Entry:
 ```bash
 # App
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 
 # Game — phải khớp với GameId enum và GAME_CONFIG trên backend
 # VITE_GAME_ID được đọc trong src/game/config.ts
@@ -722,7 +722,7 @@ export const gameConfig: GameConfig = {
 
 > **Lưu ý quan trọng khi clone cho game mới:**
 >
-> 1. Đặt `VITE_GAME_ID` trong `.env` khớp `GameId` trên backend (ví dụ: `TUTUTHOI`).
+> 1. Đặt `VITE_GAME_ID` trong `.env` khớp `GameId` trên backend (ví dụ: `FRULOOP`).
 > 2. Lấy `VITE_REPLAY_SECRET` từ backend team, điền vào file `.env` local và CI/CD secrets.
 > 3. Không bao giờ commit giá trị thật của `VITE_REPLAY_SECRET`.
 > 4. Chỉnh `name`, `width`, `height`, `version` trực tiếp trong `src/game/config.ts`.
@@ -1489,7 +1489,7 @@ Lưu ý:
 gameId
 → đọc từ VITE_GAME_ID trong .env (inject vào gameConfig.id)
 → phải khớp GameId enum trên backend
-→ ví dụ: 'TUTUTHOI'
+→ ví dụ: 'FRULOOP'
 
 replaySecret
 → inject qua VITE_REPLAY_SECRET (env var)

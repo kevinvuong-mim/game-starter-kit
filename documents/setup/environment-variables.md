@@ -12,7 +12,7 @@ Tài liệu này mô tả các biến môi trường runtime của `game-starter
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 ```
 
@@ -108,7 +108,7 @@ Analytics service chỉ được enable khi `ENV_CONFIGS[env].analyticsEnabled` 
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 
 VITE_IAP_PROVIDER=mock

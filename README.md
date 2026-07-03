@@ -157,7 +157,7 @@ Copy `.env.example` to `.env` and adjust per environment:
 
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)

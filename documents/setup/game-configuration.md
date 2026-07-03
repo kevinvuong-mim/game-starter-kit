@@ -26,7 +26,7 @@ export const gameConfig: GameConfig = {
 
 ```bash
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 ```
 
 Chạy `npm run game:verify-config` trước build production.
