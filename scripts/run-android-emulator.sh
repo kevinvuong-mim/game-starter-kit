@@ -24,7 +24,7 @@ APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
 BOOT_TIMEOUT_SEC="${BOOT_TIMEOUT_SEC:-300}"
 
 log() {
-  printf '[run:android] %s\n' "$*"
+  printf '[run:android] %s\n' "$*" >&2
 }
 
 fail() {
@@ -131,6 +131,8 @@ else
 fi
 
 if [[ "${SKIP_GRADLE:-}" != "1" ]]; then
+  log 'Applying Android native templates...'
+  node scripts/apply-android-native.mjs
   log 'Compiling debug APK (./gradlew assembleDebug)...'
   (cd android && ./gradlew assembleDebug --no-daemon)
 else

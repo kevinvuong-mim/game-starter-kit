@@ -94,26 +94,22 @@ Các biến quan trọng khi chạy native với AdMob:
 
 ```env
 VITE_APP_ENV=dev
-VITE_API_URL=http://localhost:3000/api
+VITE_GAME_ID=TUTUTHOI
 
 VITE_ADS_PROVIDER=admob
-VITE_ADMOB_TESTING=true
 
 VITE_ADMOB_ANDROID_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 VITE_ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 ```
 
-- `VITE_ADMOB_TESTING=true` → dùng Google sample App ID nếu chưa có ID riêng (phù hợp dev).
+- Thiếu `VITE_ADMOB_ANDROID_APP_ID` hoặc `VITE_ADMOB_IOS_APP_ID` trên platform tương ứng → dùng Google sample App ID (phù hợp dev).
 - `VITE_ADS_PROVIDER=admob` → script native **bắt buộc** inject AdMob App ID vào manifest/Info.plist; thiếu ID sẽ fail build script.
 
 Chi tiết biến môi trường: [Environment Variables](../setup/environment-variables.md).
 
 ### 3. Backend API (tuỳ chọn nhưng khuyến nghị)
 
-App gọi guest init, leaderboard, game sync qua `VITE_API_URL`. Khi test trên emulator/simulator:
-
-- **Android Emulator:** dùng `http://10.0.2.2:3000/api` thay vì `localhost` nếu API chạy trên máy host.
-- **iOS Simulator:** `http://localhost:3000/api` hoạt động bình thường.
+App gọi guest init, leaderboard, game sync qua API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`. Khi test trên emulator/simulator, dùng `http://localhost:3000/api`.
 
 Chạy `game-api` trước khi test các flow online:
 
@@ -442,8 +438,10 @@ xcrun simctl launch booted com.studio.gamestarterkit
 | iOS `pod install` conflict UMP 3.x               | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
 | `No connected devices!` (Gradle)                 | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
 | Emulator không hiện trong `adb devices`          | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
-| API guest/leaderboard fail trên Android emulator | Đổi `VITE_API_URL` thành `http://10.0.2.2:3000/api` rồi `npm run build:android` lại                                      |
-| Ads không load trên emulator                     | Bình thường; dùng device thật hoặc `VITE_ADMOB_TESTING=true`                                                             |
+| API guest/leaderboard fail trên Android emulator | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
+| Ads không load trên emulator                     | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
+| `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                            |
+| Android vẫn thấy navigation bar (3 nút dưới)     | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                              |
 | `android/` hoặc `ios/` mất sau clone             | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
 
 ---

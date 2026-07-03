@@ -15,23 +15,38 @@ function loadEnvFile() {
     if (eq === -1) continue;
 
     const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) {
       process.env[key] = value;
     }
   }
 }
 
-function readGameIdFromConfig() {
-  const configPath = resolve(process.cwd(), 'src/game/config.ts');
-  const source = readFileSync(configPath, 'utf8');
-  const match = /id:\s*['"]([^'"]+)['"]/.exec(source);
+const API_URLS_BY_ENV = {
+  dev: 'http://localhost:3000/api',
+  staging: 'https://staging-api.studio.games/api',
+  production: 'https://api.studio.games/api',
+};
 
-  if (!match?.[1]) {
-    throw new Error('src/game/config.ts must define id.');
+function readGameIdFromEnv() {
+  const gameId = process.env.VITE_GAME_ID?.trim();
+  if (!gameId) {
+    throw new Error('VITE_GAME_ID is required. Set it in .env before building.');
   }
 
-  return match[1];
+  return gameId;
+}
+
+function resolveApiUrl() {
+  const appEnv = process.env.VITE_APP_ENV ?? 'dev';
+  if (appEnv === 'staging' || appEnv === 'production') {
+    return API_URLS_BY_ENV[appEnv];
+  }
+
+  return API_URLS_BY_ENV.dev;
 }
 
 async function verifyApiGame(apiUrl, gameId) {
@@ -52,9 +67,9 @@ async function verifyApiGame(apiUrl, gameId) {
 
 async function main() {
   loadEnvFile();
-  const gameId = readGameIdFromConfig();
+  const gameId = readGameIdFromEnv();
   const replaySecret = process.env.VITE_REPLAY_SECRET ?? '';
-  const apiUrl = process.env.VITE_API_URL ?? 'http://localhost:3000/api';
+  const apiUrl = resolveApiUrl();
   const appEnv = process.env.VITE_APP_ENV ?? 'dev';
   const isProductionBuild = process.env.NODE_ENV === 'production' || appEnv === 'production';
 

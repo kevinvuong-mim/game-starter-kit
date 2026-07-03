@@ -23,7 +23,7 @@ APP_BUNDLE="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/App.app"
 IOS_WORKSPACE="ios/App/App.xcworkspace"
 
 log() {
-  printf '[run:ios] %s\n' "$*"
+  printf '[run:ios] %s\n' "$*" >&2
 }
 
 fail() {
@@ -57,6 +57,12 @@ simulator_udid() {
   printf '%s' "$first_iphone"
 }
 
+focus_simulator() {
+  local udid="$1"
+  defaults write com.apple.iphonesimulator CurrentDeviceUDID "$udid" 2>/dev/null || true
+  open -a Simulator >/dev/null 2>&1 || true
+}
+
 ensure_simulator() {
   local udid="$1"
   local state
@@ -67,8 +73,8 @@ ensure_simulator() {
     xcrun simctl boot "$udid" 2>/dev/null || true
   fi
 
-  open -a Simulator >/dev/null 2>&1 || true
-  xcrun simctl bootstatus "$udid" -b
+  focus_simulator "$udid"
+  xcrun simctl bootstatus "$udid" -b >/dev/null
   printf '%s' "$udid"
 }
 
@@ -92,6 +98,8 @@ UDID="$(ensure_simulator "$UDID")"
 log "Using simulator: $UDID"
 
 if [[ "${SKIP_XCODEBUILD:-}" != "1" ]]; then
+  log 'Applying iOS native templates...'
+  node scripts/apply-ios-native.mjs
   log 'Compiling for iOS Simulator (xcodebuild)...'
   xcodebuild \
     -workspace "$IOS_WORKSPACE" \
@@ -106,12 +114,17 @@ fi
 
 [[ -d "$APP_BUNDLE" ]] || fail "App bundle not found at $APP_BUNDLE"
 
+focus_simulator "$UDID"
+
 log "Installing $APP_BUNDLE"
 xcrun simctl install "$UDID" "$APP_BUNDLE"
 
 log "Launching $APP_ID"
-PID="$(xcrun simctl launch "$UDID" "$APP_ID")"
+PID="$(xcrun simctl launch --terminate-running-process "$UDID" "$APP_ID")"
 log "Launched with pid: $PID"
+
+sleep 1
+focus_simulator "$UDID"
 
 log 'Done — app should be open in iOS Simulator'
 

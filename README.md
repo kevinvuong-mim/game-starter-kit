@@ -155,15 +155,16 @@ Copy `.env.example` to `.env` and adjust per environment:
 
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production
-VITE_IAP_ENABLED=false
+VITE_GAME_ID=TUTUTHOI
+VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)
-VITE_ADMOB_TESTING=true       # true → Google test ad units
+VITE_ANALYTICS_PROVIDER=console # console | firebase
 
 # Native AdMob (build/release)
 VITE_ADMOB_ANDROID_APP_ID=
 VITE_ADMOB_IOS_APP_ID=
 
-# Production ad unit IDs (when VITE_ADMOB_TESTING=false)
+# Production ad unit IDs (when using real AdMob app IDs)
 # VITE_ADMOB_ANDROID_BANNER_ID= …
 # VITE_ADMOB_IOS_REWARDED_ID= …
 
@@ -175,18 +176,18 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-| Variable              | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| `VITE_APP_ENV`        | Runtime environment (`dev`, `staging`, `production`) |
-| `VITE_IAP_ENABLED`    | Enables IAP provider                                 |
-| `VITE_ADS_PROVIDER`   | `mock` or `admob`                                    |
-| `VITE_ADMOB_TESTING`  | Use Google sample ad units when `true`               |
-| `VITE_ADMOB_*_APP_ID` | Per-platform AdMob app IDs for native builds         |
-| `VITE_ADMOB_*_*_ID`   | Production ad unit IDs per format/platform           |
-| `VITE_API_URL`        | Optional API base URL override                       |
-| `VITE_FIREBASE_*`     | Firebase web config for Analytics                    |
+| Variable                  | Description                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`) |
+| `VITE_GAME_ID`            | Game id used by the frontend and backend             |
+| `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                               |
+| `VITE_ADS_PROVIDER`       | `mock` or `admob`                                    |
+| `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                              |
+| `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds         |
+| `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform           |
+| `VITE_FIREBASE_*`         | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. `VITE_API_URL` overrides the environment preset. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — `id` must match `GameId` on `game-api`, and `VITE_REPLAY_SECRET` must match `REPLAY_SECRET_<GAME_ID>` on the backend.
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — `VITE_GAME_ID` must match `GameId` on `game-api`, and `VITE_REPLAY_SECRET` must match `REPLAY_SECRET_<GAME_ID>` on the backend.
 
 Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
 

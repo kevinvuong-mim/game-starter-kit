@@ -436,7 +436,7 @@ Entry:
 ```bash
 # App
 VITE_APP_ENV=dev
-VITE_API_URL=http://localhost:3000/api
+VITE_GAME_ID=TUTUTHOI
 
 # Game — phải khớp với GameId enum và GAME_CONFIG trên backend
 # VITE_GAME_ID được đọc trong src/game/config.ts
@@ -444,14 +444,15 @@ VITE_API_URL=http://localhost:3000/api
 VITE_REPLAY_SECRET=
 
 # IAP
-VITE_IAP_ENABLED=false
 VITE_IAP_PROVIDER=mock
 VITE_REVENUECAT_ANDROID_API_KEY=
 VITE_REVENUECAT_IOS_API_KEY=
 
 # Ads
 VITE_ADS_PROVIDER=mock
-VITE_ADMOB_TESTING=true
+
+# Analytics
+VITE_ANALYTICS_PROVIDER=console
 
 # Firebase
 VITE_FIREBASE_API_KEY=
@@ -1359,14 +1360,13 @@ howToPlay.*
 ```ts
 interface ImportMetaEnv {
   readonly VITE_APP_ENV: 'dev' | 'staging' | 'production';
-  readonly VITE_API_URL?: string;
+  readonly VITE_GAME_ID?: string;
   readonly VITE_REPLAY_SECRET: string;
-  readonly VITE_IAP_ENABLED?: string;
   readonly VITE_IAP_PROVIDER?: 'mock' | 'revenuecat';
   readonly VITE_REVENUECAT_ANDROID_API_KEY?: string;
   readonly VITE_REVENUECAT_IOS_API_KEY?: string;
   readonly VITE_ADS_PROVIDER?: 'mock' | 'admob';
-  readonly VITE_ADMOB_TESTING?: string;
+  readonly VITE_ANALYTICS_PROVIDER?: 'console' | 'firebase';
   readonly VITE_FIREBASE_API_KEY?: string;
   readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
   readonly VITE_FIREBASE_PROJECT_ID?: string;

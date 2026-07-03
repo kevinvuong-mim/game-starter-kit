@@ -131,11 +131,12 @@ Internally, the `cap:add:*` and `build:*` scripts are routed through `scripts/na
 
 ```
 VITE_APP_ENV=production
-VITE_IAP_ENABLED=true
+VITE_GAME_ID=TUTUTHOI
+VITE_IAP_PROVIDER=revenuecat
 VITE_ADS_PROVIDER=admob
-VITE_ADMOB_TESTING=false
 VITE_ADMOB_ANDROID_APP_ID=ca-app-pub-…
 VITE_ADMOB_IOS_APP_ID=ca-app-pub-…
+VITE_ANALYTICS_PROVIDER=firebase
 VITE_ADMOB_ANDROID_REWARDED_ID=ca-app-pub-…/…
 VITE_ADMOB_IOS_REWARDED_ID=ca-app-pub-…/…
 VITE_FIREBASE_API_KEY=<from-secrets>
@@ -207,7 +208,7 @@ iap.setProvider(new RevenueCatAdapter());
 
 Register in `src/platform/bootstrap/iap.ts` (mirrors `bootstrap/ads.ts`). See [docs/IAP.md](./docs/IAP.md).
 
-Enable with `VITE_IAP_ENABLED=true`.
+Enable with `VITE_IAP_PROVIDER=revenuecat`.
 
 ## Questions
 

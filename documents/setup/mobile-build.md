@@ -52,9 +52,9 @@ Khi tạo game mới, đổi ít nhất:
 
 ```bash
 npm run build
-npm run cap:add:android
+VITE_GAME_ID=TUTUTHOI
+VITE_IAP_PROVIDER=revenuecat
 npm run assets:generate
-cap sync android
 node scripts/apply-android-native.mjs
 ```
 
@@ -90,9 +90,9 @@ Các event/lifecycle chính:
 
 ## Release Notes
 
-- Bật AdMob thật bằng `VITE_ADS_PROVIDER=admob` và `VITE_ADMOB_TESTING=false`.
-- Bật RevenueCat bằng `VITE_IAP_ENABLED=true`, `VITE_IAP_PROVIDER=revenuecat`, và API key theo platform.
-- Kiểm tra `VITE_API_URL` trỏ về HTTPS API production/staging.
+- Bật AdMob thật bằng `VITE_ADS_PROVIDER=admob` và App ID theo platform.
+- Bật RevenueCat bằng `VITE_IAP_PROVIDER=revenuecat`, và API key theo platform.
+- Chọn API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`.
 - Đảm bảo backend có row `games` khớp `src/game/config.ts`.
 
 ---

@@ -16,7 +16,10 @@ function loadEnvFile(name) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) process.env[key] = value;
   }
 }
@@ -24,7 +27,7 @@ function loadEnvFile(name) {
 function resolveAdMobAppId() {
   const configured = process.env.VITE_ADMOB_ANDROID_APP_ID?.trim();
   if (configured) return configured;
-  if (process.env.VITE_ADMOB_TESTING === 'true') return GOOGLE_SAMPLE_ANDROID_APP_ID;
+  if (process.env.VITE_ADS_PROVIDER === 'admob') return GOOGLE_SAMPLE_ANDROID_APP_ID;
   return '';
 }
 
@@ -35,9 +38,9 @@ function injectAdMobManifest(manifestPath, appId) {
     const updated = manifest.replace(
       new RegExp(
         `<meta-data\\s+android:name="${ADMOB_META_NAME}"\\s+android:value="[^"]*"\\s*/>`,
-        's',
+        's'
       ),
-      `<meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />`,
+      `<meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />`
     );
 
     if (updated !== manifest) {
@@ -50,7 +53,7 @@ function injectAdMobManifest(manifestPath, appId) {
 
   manifest = manifest.replace(
     '</application>',
-    `        <meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />\n    </application>`,
+    `        <meta-data android:name="${ADMOB_META_NAME}" android:value="${appId}" />\n    </application>`
   );
   writeFileSync(manifestPath, manifest);
   return 'injected';
@@ -60,10 +63,7 @@ loadEnvFile('.env');
 
 const template = join(root, 'native/android/MainActivity.java');
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
-const target = join(
-  root,
-  'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java',
-);
+const target = join(root, 'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java');
 
 if (existsSync(template) && existsSync(target)) {
   copyFileSync(template, target);
@@ -82,9 +82,7 @@ if (adsProvider === 'admob') {
   }
 
   if (!admobAppId) {
-    console.error(
-      '[android-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_ANDROID_APP_ID (or VITE_ADMOB_TESTING=true)',
-    );
+    console.error('[android-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_ANDROID_APP_ID');
     process.exit(1);
   }
 

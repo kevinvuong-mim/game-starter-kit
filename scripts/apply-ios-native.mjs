@@ -18,7 +18,10 @@ function loadEnvFile(name) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) process.env[key] = value;
   }
 }
@@ -26,7 +29,7 @@ function loadEnvFile(name) {
 function resolveAdMobAppId() {
   const configured = process.env.VITE_ADMOB_IOS_APP_ID?.trim();
   if (configured) return configured;
-  if (process.env.VITE_ADMOB_TESTING === 'true') return GOOGLE_SAMPLE_IOS_APP_ID;
+  if (process.env.VITE_ADS_PROVIDER === 'admob') return GOOGLE_SAMPLE_IOS_APP_ID;
   return '';
 }
 
@@ -37,7 +40,7 @@ function patchPodfile(podfilePath) {
 
   content = content.replace(
     /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
-    `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`,
+    `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`
   );
   writeFileSync(podfilePath, content);
   console.log('[ios-native] Pinned GoogleUserMessagingPlatform ~> 2.3 in Podfile');
@@ -50,7 +53,7 @@ function patchInfoPlist(plistPath) {
   if (!content.includes('UIStatusBarHidden')) {
     content = content.replace(
       '</dict>\n</plist>',
-      '\t<key>UIStatusBarHidden</key>\n\t<true/>\n\t<key>UIStatusBarStyle</key>\n\t<string>UIStatusBarStyleLightContent</string>\n</dict>\n</plist>',
+      '\t<key>UIStatusBarHidden</key>\n\t<true/>\n\t<key>UIStatusBarStyle</key>\n\t<string>UIStatusBarStyleLightContent</string>\n</dict>\n</plist>'
     );
     writeFileSync(plistPath, content);
     console.log('[ios-native] Applied status bar Info.plist keys');
@@ -63,7 +66,7 @@ function patchAdMobPlist(plistPath, appId) {
   if (content.includes('GADApplicationIdentifier')) {
     const updated = content.replace(
       /<key>GADApplicationIdentifier<\/key>\s*<string>[^<]*<\/string>/,
-      `<key>GADApplicationIdentifier</key>\n\t<string>${appId}</string>`,
+      `<key>GADApplicationIdentifier</key>\n\t<string>${appId}</string>`
     );
     if (updated !== content) {
       writeFileSync(plistPath, updated);
@@ -92,25 +95,25 @@ function patchPbxproj(projectPath) {
   content = content.replace(
     '504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };',
     `504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
-\t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */ = {isa = PBXBuildFile; fileRef = ${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */; };`,
+\t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */ = {isa = PBXBuildFile; fileRef = ${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */; };`
   );
 
   content = content.replace(
     '504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };',
     `504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-\t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ${SWIFT_FILE}; sourceTree = "<group>"; };`,
+\t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ${SWIFT_FILE}; sourceTree = "<group>"; };`
   );
 
   content = content.replace(
     '504EC3071FED79650016851F /* AppDelegate.swift */,',
     `504EC3071FED79650016851F /* AppDelegate.swift */,
-\t\t\t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */,`,
+\t\t\t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */,`
   );
 
   content = content.replace(
     '504EC3081FED79650016851F /* AppDelegate.swift in Sources */,',
     `504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
-\t\t\t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */,`,
+\t\t\t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */,`
   );
 
   writeFileSync(projectPath, content);
@@ -166,9 +169,7 @@ const admobAppId = resolveAdMobAppId();
 
 if (adsProvider === 'admob') {
   if (!admobAppId) {
-    console.error(
-      '[ios-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_IOS_APP_ID (or VITE_ADMOB_TESTING=true)',
-    );
+    console.error('[ios-native] VITE_ADS_PROVIDER=admob requires VITE_ADMOB_IOS_APP_ID');
     process.exit(1);
   }
 
