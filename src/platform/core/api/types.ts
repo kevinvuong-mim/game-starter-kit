@@ -7,9 +7,9 @@ export interface RequestConfig {
   timeout?: number;
   method?: HttpMethod;
   retryDelay?: number;
-  headers?: Record<string, string>;
-  retryOnStatuses?: number[];
   _retried401?: boolean;
+  retryOnStatuses?: number[];
+  headers?: Record<string, string>;
 }
 
 export interface ApiResponse<T> {

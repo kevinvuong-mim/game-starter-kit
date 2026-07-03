@@ -1,5 +1,5 @@
-import { apiClient } from '@platform/core/api';
 import { logger } from '@platform/core/error';
+import { apiClient } from '@platform/core/api';
 import { getConfig } from '@platform/core/config';
 import { guestRepository, type GuestRepository } from './guest.repository';
 

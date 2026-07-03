@@ -1,6 +1,6 @@
 import { MockIapAdapter } from './mock.adapter';
-import { RevenueCatAdapter, type RevenueCatAdapterConfig } from './revenuecat.adapter';
 import type { IAPProvider } from '../types/iap.types';
+import { RevenueCatAdapter, type RevenueCatAdapterConfig } from './revenuecat.adapter';
 
 export type IapProviderName = 'mock' | 'revenuecat';
 

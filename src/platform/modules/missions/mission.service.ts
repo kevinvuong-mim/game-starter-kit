@@ -1,15 +1,15 @@
+import {
+  type MissionProgress,
+  createMissionProgress,
+  type MissionDefinition,
+  type MissionResetPolicy,
+} from './mission.model';
 import missionsData from './missions.json';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
-import { getLocalDateKey } from '@platform/core/utils/time';
 import { usePlatformStore } from '@platform/core/state';
+import { getLocalDateKey } from '@platform/core/utils/time';
 import { saveService } from '@platform/modules/save/save.service';
-import {
-  createMissionProgress,
-  type MissionDefinition,
-  type MissionProgress,
-  type MissionResetPolicy,
-} from './mission.model';
 
 export class MissionService {
   private definitions: MissionDefinition[] = missionsData as MissionDefinition[];

@@ -33,7 +33,7 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 src/
 ├── main.ts
 ├── game/                        # Customize per project
-│   ├── config.ts                # id, name, version, screen size
+│   ├── config.ts                # name, version, screen size; id/replaySecret from .env
 │   ├── utils/
 │   │   └── ObjectPool.ts
 │   └── scenes/
@@ -195,18 +195,18 @@ Durable save   →  saveService (key: game-save)
 
 **Location:** `src/platform/modules/`
 
-| Module        | Key files                                                                      |
-| ------------- | ------------------------------------------------------------------------------ |
-| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                                 |
-| shop          | `shop/shop.service.ts` + `shop/catalog.json`                                   |
-| missions      | `missions/mission.service.ts` + `missions/missions.json`                       |
-| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`      |
-| settings      | `settings/settings.service.ts`                                                 |
-| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`     |
-| save          | `save/save.service.ts`                                                         |
-| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init`     |
-| game-sync     | Offline match queue → `POST /games/:gameId/results`; controller on `game:over` |
-| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`                 |
+| Module        | Key files                                                                  |
+| ------------- | -------------------------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                             |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`                               |
+| missions      | `missions/mission.service.ts` + `missions/missions.json`                   |
+| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`  |
+| settings      | `settings/settings.service.ts`                                             |
+| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts` |
+| save          | `save/save.service.ts`                                                     |
+| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init` |
+| game-sync     | Offline match queue → `POST /results`; controller on `game:over`           |
+| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`             |
 
 **Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
 
@@ -238,13 +238,13 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                  |
-| --------------- | --------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle              |
-| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game |
-| `analytics.ts`  | Registers Console + Firebase analytics providers                      |
-| `ads.ts`        | Registers Mock or AdMob provider based on platform + env              |
-| `capacitor.ts`  | Status bar, back button, `appStateChange`, splash hide on `app:ready` |
+| File            | Role                                                                   |
+| --------------- | ---------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle               |
+| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game  |
+| `analytics.ts`  | Registers Console + Firebase analytics providers                       |
+| `ads.ts`        | Registers Mock or AdMob provider based on platform + env               |
+| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume` |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
@@ -254,22 +254,24 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 1. Ensure user id in store (generateId if missing)
 2. registerAnalyticsProviders()
 3. registerAdsProvider()
-4. Parallel: i18n, ads, iap, guest, analytics, leaderboard init
-5. adsModule.init() (static ad placement config)
-6. analytics.setUserId() + setUserProperty('game_id')
-7. saveService.loadLocal()        ← hydrate store
-8. dailyRewards.init()
-9. settings.init()
-10. missions.init()
-11. bindPlatformEvents()
-12. dailyRewardController.bind(events)
-13. leaderboardController, gameSyncController, bindAdsController bind(events)
-14. bindLifecycle() (web visibility)
+4. apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized())
+5. Parallel (Promise.allSettled): i18n, ads, guest, analytics, leaderboard init
+6. guest.onReady → analytics.setUserId when guest becomes ready
+7. registerIapProvider(analyticsUserId) + iap.initialize()
+8. adsModule.init() (static ad placement config)
+9. analytics.setUserId() + setUserProperty('game_id')
+10. saveService.loadLocal()        ← hydrate store
+11. dailyRewards.init()
+12. settings.init()
+13. missions.init()
+14. bindPlatformEvents()
+15. Bind controllers: dailyReward, leaderboard, gameSync, ads, IAP, missions
+16. bindLifecycle() (web visibility)
 ```
 
-`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. `toast.init(game)` runs after the game instance exists.
+`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. `toast.init(game)` runs after the game instance exists.
 
-`BootScene` emits `app:ready` → hides native splash and requests APP_START/HOME ads.
+`BootScene` emits `app:ready` → `App.ts` hides native splash and requests APP_START/HOME ads.
 
 ## Data Flow
 
@@ -290,9 +292,9 @@ HUD subscribes to store → UI updates
 ```
 eventBus.emit('game:over', { score, duration })
     ↓
-App.ts → trackGameOver + saveLocal + ad placement
-gameSyncController → recordResult (local queue) → flush when online
-leaderboardController listens for game:synced → refresh board
+App.ts → trackGameOver + saveLocal + GAME_OVER ad placement
+gameSyncController → recordResult (local queue) → flush when online/guest ready
+gameSyncService → emit game:synced on successful batch upload
 ```
 
 ### Settings → persistence
@@ -344,11 +346,12 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 ## Starting a New Game
 
 1. Clone this repo: `git clone <url> my-new-game`
-2. Update `src/game/config.ts` (id, name, version, width, height)
-3. Update `capacitor.config.ts` (appId, appName)
-4. Implement gameplay in `src/game/scenes/GameplayScene.ts`
-5. Load assets in `PreloadScene.ts`; place files under `public/assets/`
-6. Copy `.env.example` → `.env` and configure AdMob/Firebase for native release builds
+2. Copy `.env.example` → `.env`; set `VITE_GAME_ID` and `VITE_REPLAY_SECRET`
+3. Update `src/game/config.ts` (`name`, `version`, `width`, `height`)
+4. Update `capacitor.config.ts` (appId, appName)
+5. Implement gameplay in `src/game/scenes/GameplayScene.ts`
+6. Load assets in `PreloadScene.ts`; place files under `public/assets/`
+7. Configure AdMob/Firebase env vars for native release builds
 
 ## Adding a New Platform Module
 

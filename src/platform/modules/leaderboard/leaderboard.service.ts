@@ -17,8 +17,8 @@ export interface FetchOptions {
 }
 
 export class LeaderboardService {
-  private view: LeaderboardView = createInitialView();
   private currentPage = 1;
+  private view: LeaderboardView = createInitialView();
   private inflight: Promise<LeaderboardView> | null = null;
 
   constructor(

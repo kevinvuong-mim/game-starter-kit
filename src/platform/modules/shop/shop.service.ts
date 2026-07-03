@@ -2,8 +2,8 @@ import catalog from './catalog.json';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
-import { iap, getProductByKey } from '@platform/modules/iap';
 import type { ProductKey } from '@platform/modules/iap';
+import { iap, getProductByKey } from '@platform/modules/iap';
 
 export type ShopItemType = 'skin' | 'boost' | 'entitlement';
 

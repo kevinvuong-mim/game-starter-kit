@@ -9,8 +9,8 @@ import {
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
-import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
 import { saveService } from '@platform/modules/save/save.service';
+import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
 import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 
 const BACKWARD_CLOCK_TOLERANCE_MS = 60_000;
@@ -30,7 +30,7 @@ export class DailyRewardService {
     const fromRepository = await this.repository.load();
     const hasPrefs = await this.repository.hasPersistedModel();
 
-    // Preferences is the durable source of truth; game-save is used only for legacy migration.
+    // Preferences is the durable source of truth; game-save is a fallback when Preferences is empty.
     this.model = hasPrefs ? fromRepository : (migratedFromStore ?? fromRepository);
 
     if (this.detectTimeManipulation()) {

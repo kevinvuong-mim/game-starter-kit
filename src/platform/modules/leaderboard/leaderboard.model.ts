@@ -1,18 +1,17 @@
 /**
  * Leaderboard model — matches `GET /leaderboards` response shape from game-api.
  */
-
 export type LeaderboardStatus = 'idle' | 'loading' | 'refreshing' | 'ready' | 'error';
 
-export const LEADERBOARD_CACHE_TTL_MS = 60_000;
 export const LEADERBOARD_LIMIT = 20;
+export const LEADERBOARD_CACHE_TTL_MS = 60_000;
 export const LEADERBOARD_CACHE_PREFIX = 'leaderboard:cache:';
 
 export interface LeaderboardEntry {
-  guestId: string;
-  name: string | null;
-  bestScore: number;
   rank: number;
+  guestId: string;
+  bestScore: number;
+  name: string | null;
 }
 
 export interface LeaderboardSelf {
@@ -21,36 +20,36 @@ export interface LeaderboardSelf {
 }
 
 export interface LeaderboardData {
-  gameId: string;
-  total: number;
   page: number;
   limit: number;
+  total: number;
+  gameId: string;
   items: LeaderboardEntry[];
   self: LeaderboardSelf | null;
 }
 
 export interface LeaderboardCache {
   page: number;
-  data: LeaderboardData;
   updatedAt: number;
+  data: LeaderboardData;
 }
 
 export interface LeaderboardView {
-  status: LeaderboardStatus;
-  entries: LeaderboardEntry[];
-  myRank: number | null;
-  myBestScore: number | null;
-  myGuestId: string | null;
+  isEmpty: boolean;
+  fromCache: boolean;
+  error: string | null;
   pagination: {
     page: number;
     limit: number;
     total: number;
     totalPages: number;
   };
-  isEmpty: boolean;
-  fromCache: boolean;
+  myRank: number | null;
+  myGuestId: string | null;
+  status: LeaderboardStatus;
+  myBestScore: number | null;
   lastUpdated: number | null;
-  error: string | null;
+  entries: LeaderboardEntry[];
 }
 
 export function createInitialPagination(page = 1) {
@@ -59,16 +58,16 @@ export function createInitialPagination(page = 1) {
 
 export function createInitialView(): LeaderboardView {
   return {
-    status: 'idle',
     entries: [],
-    myRank: null,
-    myBestScore: null,
-    myGuestId: null,
-    pagination: createInitialPagination(),
-    isEmpty: false,
-    fromCache: false,
-    lastUpdated: null,
     error: null,
+    myRank: null,
+    isEmpty: false,
+    status: 'idle',
+    myGuestId: null,
+    fromCache: false,
+    myBestScore: null,
+    lastUpdated: null,
+    pagination: createInitialPagination(),
   };
 }
 

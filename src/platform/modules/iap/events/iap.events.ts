@@ -1,8 +1,8 @@
 /** IAP event names — subscribe via eventBus in Phaser scenes / UI. */
 export const IAP_EVENTS = {
-  PURCHASE_SUCCESS: 'iap:purchase:success',
   PURCHASE_FAILED: 'iap:purchase:failed',
   PURCHASE_RESTORED: 'iap:restore:success',
+  PURCHASE_SUCCESS: 'iap:purchase:success',
   ENTITLEMENT_CHANGED: 'iap:entitlement:changed',
 } as const;
 
@@ -14,9 +14,9 @@ export interface IapPurchaseSuccessPayload {
 }
 
 export interface IapPurchaseFailedPayload {
+  error?: string;
   productId: string;
   cancelled: boolean;
-  error?: string;
 }
 
 export interface IapRestoreSuccessPayload {
@@ -24,7 +24,7 @@ export interface IapRestoreSuccessPayload {
 }
 
 export interface IapEntitlementChangedPayload {
-  entitlement: string;
   active: boolean;
+  entitlement: string;
   entitlements: string[];
 }

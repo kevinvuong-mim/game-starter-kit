@@ -59,15 +59,15 @@ export interface IAdsProvider {
 export interface AdsRemoteConfig {
   bannerEnabled: boolean;
   rewardEnabled: boolean;
-  appOpenEnabled: boolean;
   cooldowns: {
     app_open: number;
     rewarded: number;
     interstitial: number;
   };
+  appOpenEnabled: boolean;
   interstitialEnabled: boolean;
-  placements: Record<string, AdFormat>;
   rewards: Record<string, AdReward>;
+  placements: Record<string, AdFormat>;
 }
 
 export const DEFAULT_REMOTE_CONFIG: AdsRemoteConfig = {

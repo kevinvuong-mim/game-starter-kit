@@ -43,12 +43,13 @@ cp .env.example .env
 
 Then customize:
 
-1. **`src/game/config.ts`** — set `id`, `name`, `version`, screen size
-2. **`capacitor.config.ts`** — set `appId` and `appName`
-3. **`src/game/scenes/GameplayScene.ts`** — implement your game mechanics
-4. **`src/game/scenes/PreloadScene.ts`** — load your assets
-5. Add art/audio under **`public/assets/`** (served at `/assets/…` in dev/build)
-6. Run `npm run dev`
+1. **`.env`** — set `VITE_GAME_ID` and `VITE_REPLAY_SECRET` (must match `game-api`)
+2. **`src/game/config.ts`** — set `name`, `version`, screen size (`width` / `height`)
+3. **`capacitor.config.ts`** — set `appId` and `appName`
+4. **`src/game/scenes/GameplayScene.ts`** — implement your game mechanics
+5. **`src/game/scenes/PreloadScene.ts`** — load your assets
+6. Add art/audio under **`public/assets/`** (served at `/assets/…` in dev/build)
+7. Run `npm run dev`
 
 ## Project Structure
 
@@ -60,7 +61,7 @@ game-starter-kit/
 │   │   ├── core/              # events, state, storage, api, analytics, advertising, iap, error
 │   │   ├── modules/           # i18n, shop, missions, leaderboard, save, settings, guest, game-sync, ads
 │   │   ├── ui/                # Phaser UI: panels, HUD, toast, screen stack, buttons
-│   │   └── bootstrap/         # App, GameEngine, analytics, ads, capacitor
+│   │   └── bootstrap/         # App, GameEngine, analytics, ads, iap, capacitor
 │   └── game/                  # YOUR game — customize per project
 │       ├── config.ts          # Game identity & screen size
 │       ├── utils/             # e.g. ObjectPool
@@ -106,8 +107,9 @@ Games communicate with the platform via the **Event Bus** — no direct API, sto
 
 ```typescript
 import { eventBus, AnalyticsEvents } from '@platform/core/events';
+import { gameConfig } from '@game/config';
 
-eventBus.emit('game:start', { gameId: 'my-game' });
+eventBus.emit('game:start', { gameId: gameConfig.id });
 eventBus.emit('score:update', { score: 100 });
 eventBus.emit('coin:add', { amount: 5, source: 'gameplay' });
 eventBus.emit('game:over', { score: 100, duration: 30000 });
@@ -118,21 +120,21 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 
 ## Platform Modules
 
-| Module        | Description                                                                   |
-| ------------- | ----------------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                      |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                         |
-| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                            |
-| daily-rewards | 7-day streak calendar, local persistence                                      |
-| save          | Single `game-save` key — hydrates Zustand store on boot                       |
-| settings      | Language, sound, vibration, graphics — part of store state                    |
-| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)     |
-| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /games/:gameId/results`) |
-| ads (module)  | Static placement config, reward flow, controller wired to event bus           |
-| analytics     | Provider interface — Console + Firebase                                       |
-| advertising   | AdMob / mock providers, placement state machines                              |
-| IAP           | Provider interface — purchase, restore, client-side entitlement state         |
+| Module        | Description                                                               |
+| ------------- | ------------------------------------------------------------------------- |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON            |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                  |
+| missions      | Daily / weekly / permanent missions (`missions.json`)                     |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                        |
+| daily-rewards | 7-day streak calendar, local persistence                                  |
+| save          | Single `game-save` key — hydrates Zustand store on boot                   |
+| settings      | Language, sound, vibration, graphics — part of store state                |
+| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`) |
+| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)           |
+| ads (module)  | Static placement config, reward flow, controller wired to event bus       |
+| analytics     | Provider interface — Console + Firebase                                   |
+| advertising   | AdMob / mock providers, placement state machines                          |
+| IAP           | Provider interface — purchase, restore, client-side entitlement state     |
 
 ## UI Framework
 
@@ -155,7 +157,8 @@ Copy `.env.example` to `.env` and adjust per environment:
 
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
+VITE_REPLAY_SECRET=<64-char-sha256-hex>
 VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)
 VITE_ANALYTICS_PROVIDER=console # console | firebase
@@ -180,6 +183,7 @@ VITE_ADMOB_IOS_APP_ID=
 | ------------------------- | ---------------------------------------------------- |
 | `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`) |
 | `VITE_GAME_ID`            | Game id used by the frontend and backend             |
+| `VITE_REPLAY_SECRET`      | HMAC replay secret — must match backend per game id  |
 | `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                               |
 | `VITE_ADS_PROVIDER`       | `mock` or `admob`                                    |
 | `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                              |
@@ -187,9 +191,7 @@ VITE_ADMOB_IOS_APP_ID=
 | `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform           |
 | `VITE_FIREBASE_*`         | Firebase web config for Analytics                    |
 
-API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `gameId` and `replaySecret` are set from `src/game/config.ts` — `VITE_GAME_ID` must match `GameId` on `game-api`, and `VITE_REPLAY_SECRET` must match `REPLAY_SECRET_<GAME_ID>` on the backend.
-
-Game identity (`id`, `name`, `replaySecret`) is configured in `src/game/config.ts`, not via env vars.
+API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `GameEngine` passes `gameConfig.id` and `gameConfig.replaySecret` (from `VITE_GAME_ID` / `VITE_REPLAY_SECRET`) into runtime config. `name`, `width`, `height`, and `version` are edited directly in `src/game/config.ts`.
 
 ## Mobile Deployment
 
@@ -222,25 +224,26 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 
 ## Scripts
 
-| Command                   | Description                                                 |
-| ------------------------- | ----------------------------------------------------------- |
-| `npm run dev`             | Vite dev server (`:5173`)                                   |
-| `npm run build`           | Typecheck + production build → `dist/`                      |
-| `npm run preview`         | Preview production build                                    |
-| `npm run lint`            | `tsc --noEmit` + ESLint on `src/`                           |
-| `npm run lint:fix`        | ESLint with auto-fix                                        |
-| `npm run format`          | Prettier write                                              |
-| `npm run format:check`    | Prettier check                                              |
-| `npm run cap:sync`        | `cap sync`                                                  |
-| `npm run cap:add:android` | Ensure Android platform exists (idempotent, via native-ops) |
-| `npm run cap:add:ios`     | Ensure iOS platform exists (idempotent, via native-ops)     |
-| `npm run cap:android`     | Open Android Studio                                         |
-| `npm run cap:ios`         | Open Xcode                                                  |
-| `npm run assets:generate` | Generate app icons/splash from `assets/`                    |
-| `npm run build:android`   | Full Android pipeline via `scripts/native-ops.mjs`          |
-| `npm run build:ios`       | Full iOS pipeline via `scripts/native-ops.mjs`              |
-| `npm run run:android`     | Build + compile APK + boot emulator + install + launch      |
-| `npm run run:ios`         | Build + xcodebuild simulator + install + launch             |
+| Command                      | Description                                                 |
+| ---------------------------- | ----------------------------------------------------------- |
+| `npm run dev`                | Vite dev server (`:5173`)                                   |
+| `npm run build`              | Typecheck + production build → `dist/`                      |
+| `npm run preview`            | Preview production build                                    |
+| `npm run lint`               | `tsc --noEmit` + ESLint on `src/`                           |
+| `npm run game:verify-config` | Validate `VITE_GAME_ID` / `VITE_REPLAY_SECRET` + API probe  |
+| `npm run lint:fix`           | ESLint with auto-fix                                        |
+| `npm run format`             | Prettier write                                              |
+| `npm run format:check`       | Prettier check                                              |
+| `npm run cap:sync`           | `cap sync`                                                  |
+| `npm run cap:add:android`    | Ensure Android platform exists (idempotent, via native-ops) |
+| `npm run cap:add:ios`        | Ensure iOS platform exists (idempotent, via native-ops)     |
+| `npm run cap:android`        | Open Android Studio                                         |
+| `npm run cap:ios`            | Open Xcode                                                  |
+| `npm run assets:generate`    | Generate app icons/splash from `resources/`                 |
+| `npm run build:android`      | Full Android pipeline via `scripts/native-ops.mjs`          |
+| `npm run build:ios`          | Full iOS pipeline via `scripts/native-ops.mjs`              |
+| `npm run run:android`        | Build + compile APK + boot emulator + install + launch      |
+| `npm run run:ios`            | Build + xcodebuild simulator + install + launch             |
 
 ## Platform Updates
 

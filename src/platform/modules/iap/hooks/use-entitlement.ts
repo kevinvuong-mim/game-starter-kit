@@ -1,5 +1,5 @@
-import { eventBus } from '@platform/core/events';
 import { iap } from '../services/iap.service';
+import { eventBus } from '@platform/core/events';
 import { IAP_EVENTS } from '../events/iap.events';
 
 /**

@@ -11,8 +11,8 @@ import type { ApiEnvelope } from '@platform/core/api';
 export interface FetchLeaderboardParams {
   page?: number;
   gameId: string;
-  guestId?: string | null;
   limit?: number;
+  guestId?: string | null;
 }
 
 export class LeaderboardRepository {

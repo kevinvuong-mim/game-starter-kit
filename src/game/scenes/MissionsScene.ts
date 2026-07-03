@@ -11,9 +11,9 @@ interface MissionsSceneData {
 }
 
 export class MissionsScene extends Phaser.Scene {
-  private unsubscribers: Array<() => void> = [];
   private returnTo = 'Home';
   private returnData?: Record<string, unknown>;
+  private unsubscribers: Array<() => void> = [];
 
   constructor() {
     super({ key: 'Missions' });

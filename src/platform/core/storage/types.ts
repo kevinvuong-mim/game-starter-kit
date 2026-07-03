@@ -1,5 +1,3 @@
-export type StorageProviderType = 'memory' | 'indexedDB' | 'preferences' | 'localStorage';
-
 export interface StorageProvider {
   clear(): Promise<void>;
   keys(): Promise<string[]>;
@@ -8,3 +6,5 @@ export interface StorageProvider {
   load<T>(key: string): Promise<T | null>;
   save<T>(key: string, value: T): Promise<void>;
 }
+
+export type StorageProviderType = 'memory' | 'indexedDB' | 'preferences' | 'localStorage';

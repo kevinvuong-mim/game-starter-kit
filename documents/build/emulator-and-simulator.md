@@ -94,7 +94,7 @@ Các biến quan trọng khi chạy native với AdMob:
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 
 VITE_ADS_PROVIDER=admob
 
@@ -102,8 +102,8 @@ VITE_ADMOB_ANDROID_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 VITE_ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxx~xxxxxxxx
 ```
 
-- Thiếu `VITE_ADMOB_ANDROID_APP_ID` hoặc `VITE_ADMOB_IOS_APP_ID` trên platform tương ứng → dùng Google sample App ID (phù hợp dev).
-- `VITE_ADS_PROVIDER=admob` → script native **bắt buộc** inject AdMob App ID vào manifest/Info.plist; thiếu ID sẽ fail build script.
+- Thiếu `VITE_ADMOB_ANDROID_APP_ID` hoặc `VITE_ADMOB_IOS_APP_ID` trên platform tương ứng → runtime dùng Google sample ad units; native build script inject Google sample App ID khi `VITE_ADS_PROVIDER=admob`.
+- `VITE_ADS_PROVIDER=admob` → script native inject AdMob App ID vào manifest/Info.plist (dùng App ID thật nếu có, không thì sample ID của Google).
 
 Chi tiết biến môi trường: [Environment Variables](../setup/environment-variables.md).
 
@@ -159,10 +159,10 @@ npm run build:ios
 
 Thứ tự thực thi:
 
-1. `npm run build`
+1. `npm run build` — typecheck + Vite build → `dist/`
 2. `cap add ios` (nếu chưa có `ios/`)
-3. **`node scripts/apply-ios-native.mjs pre-sync`** — pin `GoogleUserMessagingPlatform ~> 2.3` trong Podfile **trước** `pod install`
-4. `capacitor-assets generate`
+3. `capacitor-assets generate` — icon/splash
+4. **`node scripts/apply-ios-native.mjs pre-sync`** — pin `GoogleUserMessagingPlatform ~> 2.3` trong Podfile **trước** `pod install`
 5. `cap sync ios` — chạy `pod install`
 6. `node scripts/apply-ios-native.mjs` — copy storyboard/Swift template, inject `GADApplicationIdentifier`
 
@@ -431,18 +431,18 @@ xcrun simctl launch booted com.studio.gamestarterkit
 
 ## Troubleshooting
 
-| Triệu chứng                                      | Nguyên nhân / Cách xử lý                                                                                                 |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Android crash ngay khi mở, log AdMob SDK         | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
-| iOS crash AdMob lúc launch                       | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios`                                                          |
-| iOS `pod install` conflict UMP 3.x               | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
-| `No connected devices!` (Gradle)                 | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
-| Emulator không hiện trong `adb devices`          | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
-| API guest/leaderboard fail trên Android emulator | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
-| Ads không load trên emulator                     | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
-| `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                            |
-| Android vẫn thấy navigation bar (3 nút dưới)     | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                              |
-| `android/` hoặc `ios/` mất sau clone             | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
+| Triệu chứng                                       | Nguyên nhân / Cách xử lý                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Android crash ngay khi mở, log AdMob SDK          | Thiếu `com.google.android.gms.ads.APPLICATION_ID` → chạy lại `npm run build:android` (script `apply-android-native.mjs`) |
+| iOS crash AdMob lúc launch                        | Thiếu `GADApplicationIdentifier` → chạy lại `npm run build:ios`                                                          |
+| iOS `pod install` conflict UMP 3.x                | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
+| `No connected devices!` (Gradle)                  | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
+| Emulator không hiện trong `adb devices`           | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
+| API guest/leaderboard fail trên Android emulator  | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
+| Ads không load trên emulator                      | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
+| `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                           |
+| Android vẫn thấy navigation bar (3 nút dưới)      | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                             |
+| `android/` hoặc `ios/` mất sau clone              | Chạy `npm run build:android` / `npm run build:ios` — tự tạo lại platform                                                 |
 
 ---
 

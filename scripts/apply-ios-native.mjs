@@ -1,13 +1,13 @@
-import { copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { join, dirname } from 'node:path';
+import { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const GOOGLE_SAMPLE_IOS_APP_ID = 'ca-app-pub-3940256099942544~1458002511';
-const SWIFT_FILE = 'FullscreenBridgeViewController.swift';
 const SWIFT_FILE_REF_ID = 'F5LL5CRN1FED79650016851F';
 const SWIFT_BUILD_FILE_ID = 'F5LL5CRN2FED79650016851F';
+const SWIFT_FILE = 'FullscreenBridgeViewController.swift';
+const GOOGLE_SAMPLE_IOS_APP_ID = 'ca-app-pub-3940256099942544~1458002511';
 
 function loadEnvFile(name) {
   const envPath = join(root, name);

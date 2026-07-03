@@ -4,7 +4,7 @@
 
 Tài liệu này mô tả các biến môi trường runtime của `game-starter-kit`. Vì project dùng Vite, các biến đọc trong client phải có prefix `VITE_`.
 
-Game identity (`gameId`, `replaySecret`, size, version) nằm trong `src/game/config.ts`, không lấy từ `.env`.
+`src/game/config.ts` là nơi khai báo game identity: `id` và `replaySecret` đọc từ `.env` (`VITE_GAME_ID`, `VITE_REPLAY_SECRET`); `name`, `width`, `height`, `version` chỉnh trực tiếp trong file.
 
 ---
 
@@ -12,7 +12,7 @@ Game identity (`gameId`, `replaySecret`, size, version) nằm trong `src/game/co
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 ```
 
@@ -108,7 +108,7 @@ Analytics service chỉ được enable khi `ENV_CONFIGS[env].analyticsEnabled` 
 
 ```env
 VITE_APP_ENV=dev
-VITE_GAME_ID=TUTUTHOI
+VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 
 VITE_IAP_PROVIDER=mock
@@ -127,4 +127,4 @@ VITE_ADMOB_IOS_APP_ID=
 
 - [Game Configuration](./game-configuration.md)
 - [Mobile Build](./mobile-build.md)
-- [Ads and IAP](../integrations/ads-and-iap.md)
+- [Mobile Build](./mobile-build.md)

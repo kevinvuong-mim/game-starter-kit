@@ -39,14 +39,14 @@ export type MissionStatus = 'active' | 'claimed' | 'completed';
 
 export interface MissionProgress {
   id: string;
+  type: string;
   target: number;
   progress: number;
-  type: string;
+  claimedAt?: number;
   createdAt?: number;
   completedAt?: number;
-  claimedAt?: number;
-  lastResetDayKey?: string | null;
   status: MissionStatus;
+  lastResetDayKey?: string | null;
 }
 
 export interface MissionsState {
@@ -56,16 +56,10 @@ export interface MissionsState {
 export interface DailyRewardState {
   version: number;
   currentDay: number;
-  lastClaimDate: string | null;
-  lastClaimWallClock: number;
-  lastSessionTimestamp: number;
   timeManipulated: boolean;
-  /** @deprecated Legacy field — used only for save migration. */
-  streak?: number;
-  /** @deprecated Legacy field — used only for save migration. */
-  lastClaimAt?: number;
-  /** @deprecated Legacy field — used only for save migration. */
-  claimedDays?: number[];
+  lastClaimWallClock: number;
+  lastClaimDate: string | null;
+  lastSessionTimestamp: number;
 }
 
 export interface PlatformState {
@@ -79,14 +73,6 @@ export interface PlatformState {
 }
 
 export const DEFAULT_STATE: PlatformState = {
-  dailyRewards: {
-    version: 2,
-    currentDay: 1,
-    lastClaimDate: null,
-    lastClaimWallClock: 0,
-    lastSessionTimestamp: 0,
-    timeManipulated: false,
-  },
   missions: {
     missions: {},
   },
@@ -96,12 +82,21 @@ export const DEFAULT_STATE: PlatformState = {
     totalGamesPlayed: 0,
     unlockedFeatures: [],
   },
+  currency: { coins: 0 },
   inventory: { items: {} },
   user: {
     id: '',
     displayName: 'Player',
     createdAt: Date.now(),
     lastLoginAt: Date.now(),
+  },
+  dailyRewards: {
+    version: 2,
+    currentDay: 1,
+    lastClaimDate: null,
+    lastClaimWallClock: 0,
+    timeManipulated: false,
+    lastSessionTimestamp: 0,
   },
   settings: {
     language: 'en',
@@ -110,5 +105,4 @@ export const DEFAULT_STATE: PlatformState = {
     vibrationEnabled: true,
     graphicsQuality: 'medium',
   },
-  currency: { coins: 0 },
 };

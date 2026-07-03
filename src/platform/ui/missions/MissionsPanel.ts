@@ -4,9 +4,9 @@ import { toast } from '../toast/ToastManager';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/index';
 import { t } from '@platform/modules/i18n/i18n.service';
+import type { MissionProgress } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
-import type { MissionProgress } from '@platform/core/state';
 
 const ROW_GAP = 8;
 const ROW_HEIGHT = 76;

@@ -30,12 +30,12 @@
     },
     {
       "price": 4.99,
-      "type": "entitlement",
       "currency": "iap",
       "id": "remove_ads",
-      "productKey": "REMOVE_ADS",
       "name": "Remove Ads",
       "icon": "remove_ads",
+      "type": "entitlement",
+      "productKey": "REMOVE_ADS",
       "description": "Remove banner and interstitial ads permanently"
     }
   ]

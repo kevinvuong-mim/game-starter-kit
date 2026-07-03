@@ -43,16 +43,17 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 1. Ensure local user id trong Zustand store.
 2. Register analytics providers.
 3. Register ads provider.
-4. Parallel init: `i18n`, ads core, guest, analytics, leaderboard cache.
-5. Ensure guest id để dùng cho analytics/IAP user id.
-6. Register IAP provider và initialize IAP.
-7. Init ads module placement config.
-8. Set analytics user id và `game_id`.
-9. Load local save.
-10. Init daily rewards, settings, missions.
-11. Bind platform event handlers.
-12. Bind controllers: daily reward, leaderboard, game sync, ads, IAP, missions.
-13. Bind lifecycle events.
+4. Đăng ký `apiClient.setAuthRecoveryHandler` → `guest.recoverFromUnauthorized()`.
+5. Parallel init (`Promise.allSettled`): `i18n`, ads core, `guest`, analytics, leaderboard cache.
+6. `guest.onReady` → set analytics user id khi guest sẵn sàng.
+7. Register IAP provider (dùng `guestId` hoặc fallback local user id) và initialize IAP.
+8. Init ads module placement config (`adsModule.init()`).
+9. Set analytics user id và user property `game_id`.
+10. Load local save.
+11. Init daily rewards, settings, missions.
+12. Bind platform event handlers.
+13. Bind controllers: daily reward, leaderboard, game sync, ads, IAP, missions.
+14. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`).
 
 ---
 
@@ -71,14 +72,14 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event | Handler |
-| ----- | ------- |
-| `game:over` | Save local, show game-over ad, record + flush game result |
-| `app:resume` | Flush pending results, reset daily missions if needed |
-| `leaderboard:request` | Load leaderboard cache/network |
-| `ad:reward:request` | Show rewarded ad and grant reward |
-| `settings:change` | Save local |
-| `shop:purchase` | Track purchase and save local |
+| Event                 | Handler                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `game:over`           | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result |
+| `app:resume`          | Flush pending results; reset daily missions; daily reward checks                          |
+| `leaderboard:request` | Load leaderboard cache/network                                                            |
+| `ad:reward:request`   | Show rewarded ad and grant reward                                                         |
+| `settings:change`     | Save local                                                                                |
+| `shop:purchase`       | Track purchase and save local                                                             |
 
 ---
 
@@ -86,19 +87,19 @@ Platform controllers sẽ nhận event:
 
 Zustand store là runtime state in-memory. Durable persistence do services quản lý:
 
-| Data | Owner | Storage |
-| ---- | ----- | ------- |
-| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService` | `game-save` via durable provider |
-| Guest identity/session | `GuestRepository` | Capacitor Preferences keys |
-| Pending game results | `GameSyncRepository` | `game_pending_results` in Capacitor Preferences |
-| Leaderboard page cache | `LeaderboardRepository` | `leaderboard:cache:{gameId}:p{page}` via `StorageService` |
-| IAP entitlements | `PurchaseStorage` | `iap-entitlements` via durable provider |
-| Daily reward model | `DailyRewardRepository` | Preferences-backed model |
+| Data                                                                                             | Owner                   | Storage key                                                                  |
+| ------------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------------------------------------------------------- |
+| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`           | `game-save`                                                                  |
+| Guest identity/session                                                                           | `GuestRepository`       | `guest` → `gsk:guest` trên Preferences/localStorage                          |
+| Pending game results                                                                             | `GameSyncRepository`    | `game-sync:pending`                                                          |
+| Leaderboard page cache                                                                           | `LeaderboardRepository` | `leaderboard:cache:{gameId}:p{page}`                                         |
+| IAP entitlements                                                                                 | `PurchaseStorage`       | `iap-entitlements`                                                           |
+| Daily reward model                                                                               | `DailyRewardRepository` | `daily-reward-v2` (Capacitor Preferences trực tiếp, không qua `gsk:` prefix) |
 
-Durable provider:
+Durable provider (`StorageService`):
 
-- Native: Capacitor Preferences.
-- Web: IndexedDB.
+- Native: Capacitor Preferences (keys có prefix `gsk:`).
+- Web: IndexedDB (keys không có prefix).
 
 ---
 
@@ -115,17 +116,20 @@ Game layer nên dùng:
 
 Game layer không nên import trực tiếp:
 
+- `@platform/modules/*` (dùng `@platform/ui` hoặc event bus)
 - `@platform/core/api`
 - `@platform/core/storage`
 - `@platform/core/state`
-- `@platform/modules/*`
-- `@platform/core/analytics`
+- `@platform/core/config` (dùng `@game/config`)
+- `@platform/core/utils` (dùng `@game/utils`)
+- `@platform/core/error` (dùng `eventBus.emit('error:report', …)`)
+- `@platform/core/analytics` (dùng `eventBus.emit('analytics', …)`)
 - `@platform/core/advertising`
 
 ---
 
 ## Related Documentation
 
-- [Platform Events](../modules/platform-events.md)
-- [Save and Local State](../modules/save-and-local-state.md)
 - [Game Result Sync](../modules/game-result-sync.md)
+- [Guest Identity](../modules/guest-identity.md)
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) — chi tiết kiến trúc đầy đủ

@@ -2,16 +2,16 @@
  * Platform event map. Games emit gameplay events only.
  * App modules subscribe and react.
  */
+import type {
+  IapPurchaseFailedPayload,
+  IapRestoreSuccessPayload,
+  IapPurchaseSuccessPayload,
+  IapEntitlementChangedPayload,
+} from '@platform/modules/iap/events/iap.events';
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
-import type {
-  IapEntitlementChangedPayload,
-  IapPurchaseFailedPayload,
-  IapPurchaseSuccessPayload,
-  IapRestoreSuccessPayload,
-} from '@platform/modules/iap/events/iap.events';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -45,7 +45,6 @@ export interface PlatformEventMap {
   'ad:banner:hide': void;
   'daily:claim:request': void;
   'game:synced': SyncResponse;
-  'game:sync:dropped': { clientResultId: string; attempts: number };
   'daily:status:request': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
@@ -59,10 +58,6 @@ export interface PlatformEventMap {
   };
   'leaderboard:page': { page: number };
   'leaderboard:update': LeaderboardView;
-  'iap:purchase:success': IapPurchaseSuccessPayload;
-  'iap:purchase:failed': IapPurchaseFailedPayload;
-  'iap:restore:success': IapRestoreSuccessPayload;
-  'iap:entitlement:changed': IapEntitlementChangedPayload;
   'ad:show:request': { placement: string };
   'ad:context:change': { context: string };
   'mission:complete': { missionId: string };
@@ -74,16 +69,21 @@ export interface PlatformEventMap {
     reward?: { type: string; amount: number };
   };
   'daily:claim': { day: number; streak: number };
+  'iap:purchase:failed': IapPurchaseFailedPayload;
+  'iap:restore:success': IapRestoreSuccessPayload;
+  'iap:purchase:success': IapPurchaseSuccessPayload;
   'error:report': { error: Error; context?: string };
   'settings:change': { key: string; value: unknown };
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
-  'leaderboard:request': { page?: number } | undefined;
   'leaderboard:refresh': { page?: number } | undefined;
+  'leaderboard:request': { page?: number } | undefined;
+  'iap:entitlement:changed': IapEntitlementChangedPayload;
   'auth:sign-in:request': { provider: 'google' | 'apple' };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
+  'game:sync:dropped': { clientResultId: string; attempts: number };
   'analytics:track': { event: AnalyticsEvent; params?: AnalyticsParams };
   'ad:show:result': { placement: string; shown: boolean; error?: string };
 }

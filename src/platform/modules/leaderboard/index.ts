@@ -5,11 +5,11 @@ export {
   getLeaderboardDisplayName,
 } from './leaderboard.model';
 export type {
-  LeaderboardView,
   LeaderboardData,
+  LeaderboardSelf,
+  LeaderboardView,
   LeaderboardEntry,
   LeaderboardStatus,
-  LeaderboardSelf,
 } from './leaderboard.model';
 export type { FetchOptions } from './leaderboard.service';
 export { leaderboard, LeaderboardService } from './leaderboard.service';
