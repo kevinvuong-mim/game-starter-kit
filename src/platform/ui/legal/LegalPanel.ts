@@ -2,17 +2,18 @@ import Phaser from 'phaser';
 
 import { FREDOKA_FONT } from '@platform/ui/index';
 import { t } from '@platform/modules/i18n/i18n.service';
+import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 
 type LegalTab = 'terms' | 'privacy';
 
-const TAB_WIDTH = 200;
-const TAB_HEIGHT = 44;
+const TAB_HEIGHT = 40;
 
 /**
  * Terms & Privacy tabbed content — lives in platform/ui so game scenes stay event-driven.
  */
 export class LegalPanel extends Phaser.GameObjects.Container {
   private scrollY = 0;
+  private tabWidth = 0;
   private maxScroll = 0;
   private contentBaseY = 0;
   private readonly contentWidth: number;
@@ -33,9 +34,11 @@ export class LegalPanel extends Phaser.GameObjects.Container {
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
-    const { width, height } = scene.cameras.main;
-    this.contentWidth = width * 0.84;
-    this.contentHeight = height * 0.58;
+    const { height } = scene.cameras.main;
+    const metrics = getPanelLayoutMetrics(scene.cameras.main);
+    this.tabWidth = Math.min(168, (metrics.innerWidth - 8) / 2);
+    this.contentWidth = metrics.innerWidth;
+    this.contentHeight = height * 0.52;
     this.contentCenterY = height * 0.54;
     this.wheelHandler = (_pointer, _gameObjects, _deltaX, deltaY) => {
       if (!this.contentHitArea?.getBounds().contains(_pointer.x, _pointer.y)) return;
@@ -52,17 +55,18 @@ export class LegalPanel extends Phaser.GameObjects.Container {
   }
 
   private build(): void {
-    const { width, height } = this.scene.cameras.main;
+    const { height } = this.scene.cameras.main;
+    const metrics = getPanelLayoutMetrics(this.scene.cameras.main);
     const tabY = height * 0.2;
     const tabGap = 8;
-    const halfSpan = TAB_WIDTH / 2 + tabGap / 2;
-    const termsX = width / 2 - halfSpan;
-    const privacyX = width / 2 + halfSpan;
+    const halfSpan = this.tabWidth / 2 + tabGap / 2;
+    const termsX = metrics.centerX - halfSpan;
+    const privacyX = metrics.centerX + halfSpan;
 
     const panel = this.scene.add.rectangle(
-      width / 2,
+      metrics.centerX,
       height / 2,
-      width * 0.92,
+      metrics.panelWidth,
       height * 0.72,
       0x2a2a4a,
       1
@@ -70,26 +74,32 @@ export class LegalPanel extends Phaser.GameObjects.Container {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    this.termsTabBg = this.scene.add.rectangle(termsX, tabY, TAB_WIDTH, TAB_HEIGHT, 0x4a90d9);
+    this.termsTabBg = this.scene.add.rectangle(termsX, tabY, this.tabWidth, TAB_HEIGHT, 0x4a90d9);
     this.termsTabBg.setStrokeStyle(2, 0xffffff);
     this.termsTabBg.setInteractive({ useHandCursor: true });
     this.add(this.termsTabBg);
 
     this.termsTabLabel = this.scene.add.text(termsX, tabY, t('legal.tabTerms'), {
-      fontSize: '18px',
+      fontSize: '16px',
       color: '#ffffff',
       fontFamily: FREDOKA_FONT,
     });
     this.termsTabLabel.setOrigin(0.5);
     this.add(this.termsTabLabel);
 
-    this.privacyTabBg = this.scene.add.rectangle(privacyX, tabY, TAB_WIDTH, TAB_HEIGHT, 0x4a90d9);
+    this.privacyTabBg = this.scene.add.rectangle(
+      privacyX,
+      tabY,
+      this.tabWidth,
+      TAB_HEIGHT,
+      0x4a90d9
+    );
     this.privacyTabBg.setStrokeStyle(2, 0xffffff);
     this.privacyTabBg.setInteractive({ useHandCursor: true });
     this.add(this.privacyTabBg);
 
     this.privacyTabLabel = this.scene.add.text(privacyX, tabY, t('legal.tabPrivacy'), {
-      fontSize: '18px',
+      fontSize: '16px',
       color: '#ffffff',
       fontFamily: FREDOKA_FONT,
     });
@@ -102,7 +112,7 @@ export class LegalPanel extends Phaser.GameObjects.Container {
     const maskShape = this.scene.make.graphics({}, false);
     maskShape.fillStyle(0xffffff);
     maskShape.fillRect(
-      width / 2 - this.contentWidth / 2,
+      metrics.centerX - this.contentWidth / 2,
       this.contentCenterY - this.contentHeight / 2,
       this.contentWidth,
       this.contentHeight
@@ -111,11 +121,11 @@ export class LegalPanel extends Phaser.GameObjects.Container {
 
     this.contentBaseY = this.contentCenterY - this.contentHeight / 2 + 16;
     this.contentText = this.scene.add
-      .text(width / 2 - this.contentWidth / 2 + 20, this.contentBaseY, '', {
-        fontSize: '16px',
+      .text(metrics.centerX - this.contentWidth / 2 + 16, this.contentBaseY, '', {
+        fontSize: '15px',
         color: '#dddddd',
         fontFamily: FREDOKA_FONT,
-        wordWrap: { width: this.contentWidth - 40 },
+        wordWrap: { width: this.contentWidth - 32 },
         lineSpacing: 6,
       })
       .setOrigin(0, 0);
@@ -123,7 +133,7 @@ export class LegalPanel extends Phaser.GameObjects.Container {
     this.add(this.contentText);
 
     this.contentHitArea = this.scene.add.rectangle(
-      width / 2,
+      metrics.centerX,
       this.contentCenterY,
       this.contentWidth,
       this.contentHeight,

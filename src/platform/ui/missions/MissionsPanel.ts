@@ -7,20 +7,23 @@ import { t } from '@platform/modules/i18n/i18n.service';
 import type { MissionProgress } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
 import { missions } from '@platform/modules/missions/mission.service';
+import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 
 const ROW_GAP = 8;
-const ROW_HEIGHT = 76;
-const ROW_WIDTH = 620;
+const ROW_HEIGHT = 72;
 
 /**
  * Missions list UI — lives in platform/ui so game scenes stay event-driven.
  */
 export class MissionsPanel extends Phaser.GameObjects.Container {
+  private readonly rowWidth: number;
+
   private listContainer?: Phaser.GameObjects.Container;
   private unsubscribers: Array<() => void> = [];
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
+    this.rowWidth = getPanelLayoutMetrics(scene.cameras.main).innerWidth;
     scene.add.existing(this);
     this.build();
     if (missions.applyResets()) {
@@ -44,12 +47,13 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
   }
 
   private build(): void {
-    const { width, height } = this.scene.cameras.main;
+    const { height } = this.scene.cameras.main;
+    const metrics = getPanelLayoutMetrics(this.scene.cameras.main);
 
     const panel = this.scene.add.rectangle(
-      width / 2,
+      metrics.centerX,
       height / 2,
-      width * 0.92,
+      metrics.panelWidth,
       height * 0.72,
       0x2a2a4a,
       1
@@ -57,7 +61,7 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     panel.setStrokeStyle(2, 0x4a90d9);
     this.add(panel);
 
-    this.listContainer = this.scene.add.container(width / 2, height * 0.2);
+    this.listContainer = this.scene.add.container(metrics.centerX, height * 0.2);
     this.add(this.listContainer);
   }
 
@@ -81,32 +85,34 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     const coins = def?.reward.type === 'coins' ? def.reward.amount : 0;
     const progress = Math.min(mission.progress, mission.target);
     const ratio = mission.target > 0 ? progress / mission.target : 0;
+    const rowHalf = this.rowWidth / 2;
+    const titleWrapWidth = Math.max(140, this.rowWidth * 0.52);
+    const barWidth = Math.max(160, this.rowWidth * 0.42);
 
-    const bg = this.scene.add.rectangle(0, ROW_HEIGHT / 2, ROW_WIDTH, ROW_HEIGHT, 0x1a1a2e, 1);
+    const bg = this.scene.add.rectangle(0, ROW_HEIGHT / 2, this.rowWidth, ROW_HEIGHT, 0x1a1a2e, 1);
     bg.setStrokeStyle(1, 0x4a90d9);
     container.add(bg);
 
-    const titleText = this.scene.add.text(-ROW_WIDTH / 2 + 16, 10, title, {
-      fontSize: '17px',
+    const titleText = this.scene.add.text(-rowHalf + 14, 10, title, {
+      fontSize: '16px',
       color: '#ffffff',
       fontStyle: 'bold',
       fontFamily: FREDOKA_FONT,
-      wordWrap: { width: 360 },
+      wordWrap: { width: titleWrapWidth },
     });
     container.add(titleText);
 
     if (def?.resetPolicy === 'daily') {
-      const dailyLabel = this.scene.add.text(-ROW_WIDTH / 2 + 16, 30, t('missions.dailyMission'), {
-        fontSize: '12px',
+      const dailyLabel = this.scene.add.text(-rowHalf + 14, 28, t('missions.dailyMission'), {
+        fontSize: '11px',
         color: '#888888',
         fontFamily: FREDOKA_FONT,
       });
       container.add(dailyLabel);
     }
 
-    const barX = -ROW_WIDTH / 2 + 16;
-    const barY = 38;
-    const barWidth = 280;
+    const barX = -rowHalf + 14;
+    const barY = 36;
     const barHeight = 10;
 
     const barBg = this.scene.add.rectangle(
@@ -131,11 +137,11 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     }
 
     const progressText = this.scene.add.text(
-      barX + barWidth + 12,
+      barX + barWidth + 10,
       barY,
       t('missions.progress', { current: progress, target: mission.target }),
       {
-        fontSize: '14px',
+        fontSize: '13px',
         color: '#aaaaaa',
         fontFamily: FREDOKA_FONT,
       }
@@ -144,11 +150,11 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     container.add(progressText);
 
     const rewardText = this.scene.add.text(
-      ROW_WIDTH / 2 - 16,
+      rowHalf - 14,
       14,
       t('missions.reward', { coins }),
       {
-        fontSize: '14px',
+        fontSize: '13px',
         color: '#ffd700',
         fontFamily: FREDOKA_FONT,
       }
@@ -157,12 +163,12 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     container.add(rewardText);
 
     if (mission.status === 'completed') {
-      const claimBtn = this.scene.add.rectangle(ROW_WIDTH / 2 - 56, 48, 96, 32, 0x4a90d9);
+      const claimBtn = this.scene.add.rectangle(rowHalf - 52, 46, 88, 30, 0x4a90d9);
       claimBtn.setStrokeStyle(1, 0xffffff);
       claimBtn.setInteractive({ useHandCursor: true });
 
-      const claimLabel = this.scene.add.text(ROW_WIDTH / 2 - 56, 48, t('missions.claim'), {
-        fontSize: '14px',
+      const claimLabel = this.scene.add.text(rowHalf - 52, 46, t('missions.claim'), {
+        fontSize: '13px',
         color: '#ffffff',
         fontFamily: FREDOKA_FONT,
       });
@@ -174,8 +180,8 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
 
       container.add([claimBtn, claimLabel]);
     } else if (mission.status === 'claimed') {
-      const claimedText = this.scene.add.text(ROW_WIDTH / 2 - 16, 48, t('missions.claimed'), {
-        fontSize: '14px',
+      const claimedText = this.scene.add.text(rowHalf - 14, 46, t('missions.claimed'), {
+        fontSize: '13px',
         color: '#4caf50',
         fontFamily: FREDOKA_FONT,
       });

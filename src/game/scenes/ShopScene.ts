@@ -30,7 +30,7 @@ export class ShopScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
 
     this.add
-      .text(width / 2, height * 0.12, t('shop.title'), {
+      .text(width / 2, height * 0.1, t('shop.title'), {
         fontSize: '28px',
         color: '#ffffff',
         fontStyle: 'bold',

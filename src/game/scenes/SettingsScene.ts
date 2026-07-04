@@ -5,6 +5,7 @@ import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
+import { HelpAndLegalSettingsPanel } from '@platform/ui/settings/HelpAndLegalSettingsPanel';
 
 export class SettingsScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -27,32 +28,9 @@ export class SettingsScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    new LanguageSettingsPanel(this, 0, height * 0.15);
-    new SoundSettingsPanel(this, 0, height * 0.25);
-
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.72 },
-      size: { width: 260, height: 48 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
-        content: t('settings.howToPlay'),
-        style: { fontSize: 20 },
-      },
-      onClick: () => this.scene.start('HowToPlay'),
-    });
-
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.77 },
-      size: { width: 260, height: 48 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
-        content: t('settings.termsPrivacy'),
-        style: { fontSize: 20 },
-      },
-      onClick: () => this.scene.start('Legal'),
-    });
+    new LanguageSettingsPanel(this, 0, height * 0.12);
+    new SoundSettingsPanel(this, 0, height * 0.22);
+    new HelpAndLegalSettingsPanel(this, 0, height * 0.32);
 
     createUIButton({
       scene: this,

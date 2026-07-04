@@ -8,13 +8,15 @@ import type {
   RewardProgress,
   RewardDayProgress,
 } from '@platform/modules/daily-rewards/daily-reward.model';
+import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
-const CELL_GAP = 12;
-const CELL_WIDTH = 140;
-const CELL_HEIGHT = 88;
+const CELL_GAP = 10;
 
 export class DailyRewardPopup extends Phaser.GameObjects.Container {
+  private readonly cellWidth: number;
+  private readonly cellHeight: number;
+
   private panel?: Phaser.GameObjects.Rectangle;
   private statusText?: Phaser.GameObjects.Text;
   private rewardBurst?: Phaser.GameObjects.Text;
@@ -24,6 +26,9 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
+    const metrics = getPanelLayoutMetrics(scene.cameras.main);
+    this.cellWidth = Math.floor((metrics.innerWidth - CELL_GAP * 3) / 4);
+    this.cellHeight = Math.round(this.cellWidth * 0.64);
     scene.add.existing(this);
     this.build();
     this.playOpenAnimation();
@@ -58,12 +63,13 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
   }
 
   private build(): void {
-    const { width, height } = this.scene.cameras.main;
+    const { height } = this.scene.cameras.main;
+    const metrics = getPanelLayoutMetrics(this.scene.cameras.main);
 
     this.panel = this.scene.add.rectangle(
-      width / 2,
+      metrics.centerX,
       height / 2,
-      width * 0.92,
+      metrics.panelWidth,
       height * 0.72,
       0x2a2a4a,
       1
@@ -71,12 +77,12 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
     this.panel.setStrokeStyle(2, 0x6c5ce7);
     this.add(this.panel);
 
-    this.calendarContainer = this.scene.add.container(width / 2, height * 0.38);
+    this.calendarContainer = this.scene.add.container(metrics.centerX, height * 0.38);
     this.add(this.calendarContainer);
 
     this.statusText = this.scene.add
-      .text(width / 2, height * 0.62, '', {
-        fontSize: '18px',
+      .text(metrics.centerX, height * 0.62, '', {
+        fontSize: '16px',
         color: '#aaaaaa',
         fontFamily: FREDOKA_FONT,
       })
@@ -84,8 +90,8 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
     this.add(this.statusText);
 
     this.rewardBurst = this.scene.add
-      .text(width / 2, height * 0.5, '', {
-        fontSize: '32px',
+      .text(metrics.centerX, height * 0.5, '', {
+        fontSize: '28px',
         color: '#ffd700',
         fontStyle: 'bold',
         fontFamily: FREDOKA_FONT,
@@ -97,12 +103,12 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
 
     this.claimButton = createUIButton({
       scene: this.scene,
-      position: { x: width / 2, y: height * 0.72 },
-      size: { width: 220, height: 56 },
+      position: { x: metrics.centerX, y: height * 0.72 },
+      size: { width: 200, height: 50 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
         content: t('dailyReward.claim'),
-        style: { fontSize: 22, fontStyle: 'bold' },
+        style: { fontSize: 20, fontStyle: 'bold' },
       },
       sound: 'coin-drop',
       onClick: () => {
@@ -134,14 +140,15 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
     if (!this.calendarContainer) return;
     this.calendarContainer.removeAll(true);
 
-    const row1 = this.scene.add.container(-(CELL_WIDTH + CELL_GAP) * 1.5, 0);
-    const row2 = this.scene.add.container(-(CELL_WIDTH + CELL_GAP), CELL_HEIGHT + CELL_GAP);
+    const cellSpan = this.cellWidth + CELL_GAP;
+    const row1 = this.scene.add.container(-cellSpan * 1.5, 0);
+    const row2 = this.scene.add.container(-cellSpan, this.cellHeight + CELL_GAP);
 
     days.forEach((entry, index) => {
       const row = index < 4 ? row1 : row2;
       const col = index < 4 ? index : index - 4;
       const cell = this.createDayCell(entry, canClaim);
-      cell.setPosition(col * (CELL_WIDTH + CELL_GAP), 0);
+      cell.setPosition(col * cellSpan, 0);
       row.add(cell);
     });
 
@@ -167,12 +174,12 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
       stroke = 0x6c5ce7;
     }
 
-    const bg = this.scene.add.rectangle(0, 0, CELL_WIDTH, CELL_HEIGHT, fill, 1);
+    const bg = this.scene.add.rectangle(0, 0, this.cellWidth, this.cellHeight, fill, 1);
     bg.setStrokeStyle(2, stroke);
     container.add(bg);
 
-    const dayLabel = this.scene.add.text(0, -22, t('dailyReward.day', { day: entry.day }), {
-      fontSize: '16px',
+    const dayLabel = this.scene.add.text(0, -this.cellHeight * 0.25, t('dailyReward.day', { day: entry.day }), {
+      fontSize: '14px',
       color: '#ffffff',
       fontStyle: 'bold',
       fontFamily: FREDOKA_FONT,
@@ -182,12 +189,14 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
 
     const rewardLabel = this.scene.add.text(
       0,
-      8,
+      this.cellHeight * 0.1,
       isClaimed ? t('dailyReward.claimed') : this.getRewardLabel(entry),
       {
-        fontSize: isClaimed ? '14px' : '18px',
+        fontSize: isClaimed ? '12px' : '15px',
         color: isClaimed ? '#4caf50' : '#ffd700',
         fontFamily: FREDOKA_FONT,
+        wordWrap: { width: this.cellWidth - 12 },
+        align: 'center',
       }
     );
     rewardLabel.setOrigin(0.5);

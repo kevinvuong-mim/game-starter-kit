@@ -42,7 +42,7 @@ export class LeaderboardScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.9 },
+      position: { x: width / 2, y: height * 0.94 },
       size: { width: 200, height: 48 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {

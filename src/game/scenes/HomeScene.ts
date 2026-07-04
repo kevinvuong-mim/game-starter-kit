@@ -101,20 +101,22 @@ export class HomeScene extends Phaser.Scene {
       onClick: () => this.openScreen('DailyReward'),
     });
 
-    // createUIButton({
-    //   scene: this,
-    //   position: { x: width / 2, y: height * 0.85 },
-    //   size: { width: 256, height: 78 },
-    //   background: { key: UIButtonBackgroundKey.Rounded },
-    //   text: {
-    //     content: t('home.modal'),
-    //     style: { fontSize: 36, fontStyle: 'bold' },
-    //   },
-    //   onClick: () =>
-    //     screenManager.open('modal', {
-    //       message: t('home.modalMessage'),
-    //     }),
-    // });
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.92 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.modal'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () =>
+        screenManager.open('modal', {
+          height: height / 2,
+          width: 2 * width / 3,
+          message: t('home.modalMessage'),
+        }),
+    });
   }
 
   shutdown(): void {
