@@ -10,6 +10,7 @@ import { LEADERBOARD_LIMIT, getLeaderboardDisplayName } from '@platform/modules/
 
 const ROW_HEIGHT = 58;
 const SKELETON_ROWS = 5;
+const LIST_Y_RATIO = 0.26;
 const FOOTER_PAGE_Y_RATIO = 0.86;
 const FOOTER_RANK_Y_RATIO = 0.78;
 const FOOTER_UPDATED_Y_RATIO = 0.82;
@@ -73,10 +74,10 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.buildRefresh();
     this.buildPagination();
 
-    this.listContainer = this.scene.add.container(this.centerX, height * 0.3);
+    this.listContainer = this.scene.add.container(this.centerX, height * LIST_Y_RATIO);
     this.add(this.listContainer);
 
-    this.skeletonContainer = this.scene.add.container(this.centerX, height * 0.3);
+    this.skeletonContainer = this.scene.add.container(this.centerX, height * LIST_Y_RATIO);
     this.skeletonContainer.setVisible(false);
     this.add(this.skeletonContainer);
     this.buildSkeleton();
