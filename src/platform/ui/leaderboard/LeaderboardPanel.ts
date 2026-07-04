@@ -4,13 +4,15 @@ import { eventBus } from '@platform/core/events';
 import type { UIButton } from '@platform/ui/types';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
-import { getLeaderboardDisplayName } from '@platform/modules/leaderboard';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import type { LeaderboardEntry, LeaderboardView } from '@platform/modules/leaderboard';
+import { LEADERBOARD_LIMIT, getLeaderboardDisplayName } from '@platform/modules/leaderboard';
 
-const MAX_ROWS = 7;
 const ROW_HEIGHT = 58;
 const SKELETON_ROWS = 5;
+const FOOTER_PAGE_Y_RATIO = 0.86;
+const FOOTER_RANK_Y_RATIO = 0.78;
+const FOOTER_UPDATED_Y_RATIO = 0.82;
 
 /**
  * Leaderboard UI. Fully event-driven: it emits `leaderboard:refresh` on open
@@ -91,7 +93,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.add(this.statusText);
 
     this.rankText = this.scene.add
-      .text(this.centerX, height * 0.82, '', {
+      .text(this.centerX, height * FOOTER_RANK_Y_RATIO, '', {
         fontSize: '16px',
         color: '#ffd700',
         fontFamily: FREDOKA_FONT,
@@ -100,7 +102,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.add(this.rankText);
 
     this.updatedText = this.scene.add
-      .text(this.centerX, height * 0.86, '', {
+      .text(this.centerX, height * FOOTER_UPDATED_Y_RATIO, '', {
         fontSize: '12px',
         color: '#8a8fb5',
         fontFamily: FREDOKA_FONT,
@@ -109,7 +111,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.add(this.updatedText);
 
     this.pageText = this.scene.add
-      .text(this.centerX, height * 0.9, '', {
+      .text(this.centerX, height * FOOTER_PAGE_Y_RATIO, '', {
         fontSize: '13px',
         color: '#cfd3ff',
         fontFamily: FREDOKA_FONT,
@@ -122,7 +124,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
 
   private buildPagination(): void {
     const { height } = this.layout;
-    const pageY = height * 0.9;
+    const pageY = height * FOOTER_PAGE_Y_RATIO;
     const pageButtonX = this.panelWidth * 0.34;
 
     this.prevPageButton = createUIButton({
@@ -247,7 +249,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
   private renderEntries(view: LeaderboardView): void {
     this.listContainer.removeAll(true);
 
-    view.entries.slice(0, MAX_ROWS).forEach((entry, index) => {
+    view.entries.slice(0, LEADERBOARD_LIMIT).forEach((entry, index) => {
       const isMe = !!view.myGuestId && entry.guestId === view.myGuestId;
       this.listContainer.add(this.createEntryRow(entry, index * ROW_HEIGHT, isMe));
     });

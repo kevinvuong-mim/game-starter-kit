@@ -3,7 +3,7 @@
  */
 export type LeaderboardStatus = 'idle' | 'loading' | 'refreshing' | 'ready' | 'error';
 
-export const LEADERBOARD_LIMIT = 20;
+export const LEADERBOARD_LIMIT = 10;
 export const LEADERBOARD_CACHE_TTL_MS = 60_000;
 export const LEADERBOARD_CACHE_PREFIX = 'leaderboard:cache:';
 
