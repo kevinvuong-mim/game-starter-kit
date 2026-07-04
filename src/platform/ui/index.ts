@@ -10,6 +10,7 @@ export { UIButtonBackgroundKey } from './button/UIButton';
 export { toast, ToastManager } from './toast/ToastManager';
 export { HowToPlayPanel } from './how-to-play/HowToPlayPanel';
 export { t, i18n } from '@platform/modules/i18n/i18n.service';
+export { NameSettingsPanel } from './settings/NameSettingsPanel';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { DailyRewardPopup } from './daily-reward/DailyRewardPopup';
 export { SoundSettingsPanel } from './settings/SoundSettingsPanel';

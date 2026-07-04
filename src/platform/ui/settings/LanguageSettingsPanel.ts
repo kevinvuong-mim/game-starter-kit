@@ -17,16 +17,16 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
     scene.add.existing(this);
-    this.build(y);
+    this.build();
   }
 
-  private build(startY: number): void {
+  private build(): void {
     const currentLang = i18n.getCurrentLanguage();
     const { width } = this.scene.cameras.main;
     const centerX = width / 2 - this.x;
 
     const title = this.scene.add
-      .text(centerX, startY, t('settings.language'), {
+      .text(centerX, 0, t('settings.language'), {
         color: '#aaaaaa',
         fontSize: '20px',
         fontFamily: FREDOKA_FONT,
@@ -35,7 +35,7 @@ export class LanguageSettingsPanel extends Phaser.GameObjects.Container {
     this.add(title);
 
     LANGUAGES.forEach((lang, index) => {
-      const rowY = startY + 60 + index * 56;
+      const rowY = 60 + index * 56;
       const active = currentLang === lang.code;
       this.createLanguageButton(centerX, rowY, t(lang.labelKey), lang.code, active);
     });

@@ -45,6 +45,9 @@ export class GameEngine {
         pixelArt: false,
         roundPixels: true,
       },
+      dom: {
+        createContainer: true,
+      },
       banner: config.debug,
       type: PhaserLib.AUTO,
       width: gameConfig.width,

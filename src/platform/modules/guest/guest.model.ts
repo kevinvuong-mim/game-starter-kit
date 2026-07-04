@@ -11,6 +11,7 @@ export const GUEST_STORAGE_KEY = 'guest';
 export interface GuestCredentials {
   guestId: string;
   secretToken: string;
+  name?: string | null;
 }
 
 /** Shape of the `POST /guest/init` response payload (inside the envelope). */

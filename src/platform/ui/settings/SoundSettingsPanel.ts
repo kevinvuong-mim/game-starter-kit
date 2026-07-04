@@ -13,16 +13,16 @@ export class SoundSettingsPanel extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
     scene.add.existing(this);
-    this.build(y);
+    this.build();
   }
 
-  private build(startY: number): void {
+  private build(): void {
     const soundEnabled = settings.getSettings().soundEnabled;
     const { width } = this.scene.cameras.main;
     const centerX = width / 2 - this.x;
 
     const title = this.scene.add
-      .text(centerX, startY, t('settings.sound'), {
+      .text(centerX, 0, t('settings.sound'), {
         color: '#aaaaaa',
         fontSize: '20px',
         fontFamily: FREDOKA_FONT,
@@ -31,7 +31,7 @@ export class SoundSettingsPanel extends Phaser.GameObjects.Container {
     this.add(title);
 
     SOUND_OPTIONS.forEach((option, index) => {
-      const rowY = startY + 60 + index * 56;
+      const rowY = 60 + index * 56;
       const active = soundEnabled === option.enabled;
       this.createSoundButton(centerX, rowY, t(option.labelKey), option.enabled, active);
     });

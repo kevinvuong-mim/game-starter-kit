@@ -2,10 +2,15 @@ import Phaser from 'phaser';
 
 import { eventBus } from '@platform/core/events';
 import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { NameSettingsPanel } from '@platform/ui/settings/NameSettingsPanel';
 import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { HelpAndLegalSettingsPanel } from '@platform/ui/settings/HelpAndLegalSettingsPanel';
+
+const SETTINGS_PANEL_GAP = 80;
+const NAME_SECTION_HEIGHT = 134;
+const TWO_ROW_SECTION_HEIGHT = 140;
 
 export class SettingsScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -28,9 +33,18 @@ export class SettingsScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    new LanguageSettingsPanel(this, 0, height * 0.12);
-    new SoundSettingsPanel(this, 0, height * 0.22);
-    new HelpAndLegalSettingsPanel(this, 0, height * 0.32);
+    let sectionY = height * 0.16;
+
+    new LanguageSettingsPanel(this, 0, sectionY);
+    sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
+
+    new NameSettingsPanel(this, 0, sectionY);
+    sectionY += NAME_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
+
+    new SoundSettingsPanel(this, 0, sectionY);
+    sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
+
+    new HelpAndLegalSettingsPanel(this, 0, sectionY);
 
     createUIButton({
       scene: this,

@@ -73,7 +73,14 @@
     "termsPrivacy": "Terms & Privacy",
     "helpAndLegal": "Help & Legal",
     "howToPlay": "How to Play",
-    "back": "Back"
+    "back": "Back",
+    "playerName": "Display Name",
+    "playerNamePlaceholder": "Enter your name",
+    "playerNameSave": "Save",
+    "playerNameRequired": "Please enter a name",
+    "playerNameUpdated": "Name updated",
+    "playerNameFailed": "Could not update name",
+    "playerNameOffline": "Connect to the internet to update your name"
   },
   "missions": {
     "title": "Missions",

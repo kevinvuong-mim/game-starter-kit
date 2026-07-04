@@ -15,6 +15,7 @@ type GuestReadyListener = (guestId: string) => void;
 export class GuestService {
   private guestStatus: GuestStatus = 'pending';
   private guestId: string | null = null;
+  private playerName: string | null = null;
   private networkListenerRegistered = false;
   private readonly readyListeners = new Set<GuestReadyListener>();
 
@@ -25,6 +26,7 @@ export class GuestService {
       const stored = await this.repository.loadCredentials();
       if (stored) {
         apiClient.setAuthToken(stored.secretToken);
+        this.playerName = stored.name ?? null;
         this.markReady(stored.guestId);
         logger.info('[Guest] Loaded credentials from storage');
         return;
@@ -50,6 +52,7 @@ export class GuestService {
     } catch (error) {
       this.guestStatus = 'pending';
       this.guestId = null;
+      this.playerName = null;
       apiClient.setAuthToken(null);
       logger.warn('[Guest] Failed to create guest identity (offline?)', error);
       void this.registerNetworkRetry();
@@ -61,12 +64,17 @@ export class GuestService {
     apiClient.setAuthToken(null);
     this.guestStatus = 'pending';
     this.guestId = null;
+    this.playerName = null;
     await this.init();
     return this.getStatus() === 'ready';
   }
 
   getGuestId(): string | null {
     return this.guestId;
+  }
+
+  getName(): string | null {
+    return this.playerName;
   }
 
   getStatus(): GuestStatus {
@@ -85,8 +93,17 @@ export class GuestService {
   }
 
   async updateName(name: string): Promise<void> {
-    if (!this.guestId) return;
-    await this.repository.updateName(name);
+    if (!this.guestId) {
+      throw new Error('[Guest] Cannot update name before guest is ready');
+    }
+
+    const payload = await this.repository.updateName(name);
+    this.playerName = payload.name;
+
+    const stored = await this.repository.loadCredentials();
+    if (stored) {
+      await this.repository.saveCredentials({ ...stored, name: payload.name });
+    }
   }
 
   private markReady(guestId: string): void {

@@ -152,7 +152,7 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     const { height } = this.layout;
     this.refreshButton = createUIButton({
       scene: this.scene,
-      position: { x: this.centerX + this.panelWidth / 2 - 58, y: height * 0.15 },
+      position: { x: this.centerX + this.panelWidth / 2 - 72, y: height * 0.12 },
       size: { width: 100, height: 42 },
       background: { key: UIButtonBackgroundKey.Rounded },
       text: { content: t('leaderboard.refresh'), style: { fontSize: 14 } },
