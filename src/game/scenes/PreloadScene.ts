@@ -3,6 +3,8 @@ import Phaser from 'phaser';
 import { eventBus, resolveBootNavigation } from '@platform/core/events';
 import { SOUND_POP_KEY, SOUND_COIN_DROP_KEY } from '@platform/ui/audio/SoundManager';
 
+const PRELOAD_EXTRA_DELAY_MS = 10_000;
+
 export class PreloadScene extends Phaser.Scene {
   constructor() {
     super({ key: 'Preload' });
@@ -36,10 +38,12 @@ export class PreloadScene extends Phaser.Scene {
 
     const target = resolveBootNavigation();
 
-    eventBus.emit('boot:preload-complete', undefined);
+    this.time.delayedCall(PRELOAD_EXTRA_DELAY_MS, () => {
+      eventBus.emit('boot:preload-complete', undefined);
 
-    // Must transition from this scene — game.scene.start() would leave Preload visible.
-    this.scene.start(target.sceneKey, target.data);
+      // Must transition from this scene — game.scene.start() would leave Preload visible.
+      this.scene.start(target.sceneKey, target.data);
+    });
   }
 
   private ensureFallbackTexture(key: string, width: number, height: number, color: number): void {
