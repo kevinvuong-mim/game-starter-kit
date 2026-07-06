@@ -24,6 +24,7 @@ import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
 import { settings } from '@platform/modules/settings/settings.service';
 import { missions, missionController } from '@platform/modules/missions';
+import { notificationController } from '@platform/modules/notifications';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
@@ -102,7 +103,8 @@ export class App {
       gameSyncController.bind(events),
       bindAdsController(events),
       bindIapController(events),
-      missionController.bind(events)
+      missionController.bind(events),
+      notificationController.bind(events)
     );
     this.bindLifecycle();
 

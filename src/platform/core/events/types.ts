@@ -46,6 +46,7 @@ export interface PlatformEventMap {
   'daily:claim:request': void;
   'game:synced': SyncResponse;
   'daily:status:request': void;
+  'boot:preload-complete': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
   'daily:claim:result': {
@@ -80,11 +81,13 @@ export interface PlatformEventMap {
   'leaderboard:request': { page?: number } | undefined;
   'iap:entitlement:changed': IapEntitlementChangedPayload;
   'auth:sign-in:request': { provider: 'google' | 'apple' };
+  'notification:tapped': { type?: string; route?: string };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'game:sync:dropped': { clientResultId: string; attempts: number };
   'ad:show:result': { placement: string; shown: boolean; error?: string };
+  'notification:received': { title?: string; body?: string; type?: string; route?: string };
 }
 
 export interface IEventBus {

@@ -13,3 +13,5 @@ node_modules/
 test-results/
 .derived-data/
 playwright-report/
+native/firebase/google-services.json
+native/firebase/GoogleService-Info.plist

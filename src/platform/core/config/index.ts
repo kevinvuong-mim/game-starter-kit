@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
+import notificationEnvConfigs from './notification-env.json';
+
 export type IapProvider = 'mock' | 'revenuecat';
 export type AnalyticsProvider = 'console' | 'firebase';
 export type Environment = 'dev' | 'staging' | 'production';
@@ -23,6 +25,8 @@ export interface RuntimeConfig {
   replaySecret: string;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
+  pushNotificationsEnabled: boolean;
+  localNotificationsEnabled: boolean;
   analyticsProvider: AnalyticsProvider;
 }
 
@@ -47,6 +51,7 @@ export interface AdsConfig {
 
 const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
   dev: {
+    ...notificationEnvConfigs.dev,
     debug: true,
     adsEnabled: true,
     iapEnabled: true,
@@ -54,6 +59,7 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     apiUrl: 'http://localhost:3000/api',
   },
   staging: {
+    ...notificationEnvConfigs.staging,
     debug: true,
     adsEnabled: true,
     iapEnabled: true,
@@ -61,6 +67,7 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     apiUrl: 'https://staging-api.studio.games/api',
   },
   production: {
+    ...notificationEnvConfigs.production,
     debug: false,
     adsEnabled: true,
     iapEnabled: true,
@@ -99,6 +106,27 @@ function resolveFirebaseConfig(): FirebaseConfig {
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
   };
+}
+
+export function isFirebaseConfigured(firebase: FirebaseConfig): boolean {
+  return Boolean(
+    firebase.appId &&
+    firebase.apiKey &&
+    firebase.projectId &&
+    firebase.authDomain &&
+    firebase.measurementId
+  );
+}
+
+function resolvePushNotificationsEnabled(baseEnabled: boolean, firebase: FirebaseConfig): boolean {
+  if (!baseEnabled) return false;
+  if (!Capacitor.isNativePlatform()) return false;
+  return isFirebaseConfigured(firebase);
+}
+
+function resolveLocalNotificationsEnabled(baseEnabled: boolean): boolean {
+  if (!baseEnabled) return false;
+  return Capacitor.isNativePlatform();
 }
 
 function resolveGameId(): string {
@@ -210,6 +238,7 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   const analyticsProvider = resolveAnalyticsProvider();
   const iap = resolveIapConfig();
   const ads = resolveAdsConfig();
+  const firebase = resolveFirebaseConfig();
 
   return {
     ads,
@@ -218,11 +247,18 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
     debug: base.debug ?? false,
     gameId: resolveGameId(),
     replaySecret: import.meta.env.VITE_REPLAY_SECRET ?? '',
-    firebase: resolveFirebaseConfig(),
+    firebase,
     adsEnabled: base.adsEnabled ?? false,
     analyticsProvider,
     analyticsEnabled: base.analyticsEnabled ?? false,
     iapEnabled: base.iapEnabled ?? false,
+    pushNotificationsEnabled: resolvePushNotificationsEnabled(
+      base.pushNotificationsEnabled ?? false,
+      firebase
+    ),
+    localNotificationsEnabled: resolveLocalNotificationsEnabled(
+      base.localNotificationsEnabled ?? false
+    ),
     ...overrides,
   };
 }

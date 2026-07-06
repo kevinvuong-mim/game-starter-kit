@@ -28,15 +28,16 @@ File chính: `capacitor.config.ts`.
 
 Current config:
 
-| Field                          | Value                       |
-| ------------------------------ | --------------------------- |
-| `appId`                        | `com.studio.gamestarterkit` |
-| `appName`                      | `Game Starter Kit`          |
-| `webDir`                       | `dist`                      |
-| `server.androidScheme`         | `https`                     |
-| `SplashScreen.launchAutoHide`  | `false`                     |
-| `SplashScreen.backgroundColor` | `#6b97b2`                   |
-| `StatusBar.overlaysWebView`    | `true`                      |
+| Field                                           | Value                       |
+| ----------------------------------------------- | --------------------------- |
+| `appId`                                         | `com.studio.gamestarterkit` |
+| `appName`                                       | `Game Starter Kit`          |
+| `webDir`                                        | `dist`                      |
+| `server.androidScheme`                          | `https`                     |
+| `SplashScreen.launchAutoHide`                   | `false`                     |
+| `SplashScreen.backgroundColor`                  | `#6b97b2`                   |
+| `StatusBar.overlaysWebView`                     | `true`                      |
+| `plugins.PushNotifications.presentationOptions` | `alert`, `badge`, `sound`   |
 
 Khi tạo game mới, đổi ít nhất:
 
@@ -73,6 +74,8 @@ node scripts/apply-ios-native.mjs            # post-sync: templates + AdMob plis
 
 Các script trong `scripts/` merge template từ `native/` để giữ native changes repeatable sau mỗi lần regenerate platform.
 
+**Firebase / FCM:** `apply-android-native.mjs` và `apply-ios-native.mjs` cũng copy `google-services.json` / `GoogleService-Info.plist`, permissions notification, và iOS `AppDelegate.swift` khi push enabled. Chi tiết: [Firebase Native Setup](./firebase-native.md).
+
 Hướng dẫn chi tiết build + chạy emulator/simulator (CLI & IDE): [Emulator and Simulator](../build/emulator-and-simulator.md).
 
 ---
@@ -86,7 +89,7 @@ Các event/lifecycle chính:
 - `app:ready` → hide splash screen.
 - Native app state change → emit `app:pause` / `app:resume`.
 - Back button native → emit `app:back`.
-- `app:resume` cũng kích hoạt game sync flush, mission reset checks, và daily reward checks qua controllers.
+- `app:resume` cũng kích hoạt game sync flush, mission reset checks, daily reward checks, và **notification heartbeat / local schedule reconcile** qua controllers.
 
 ---
 
@@ -94,13 +97,16 @@ Các event/lifecycle chính:
 
 - Bật AdMob thật bằng `VITE_ADS_PROVIDER=admob` và App ID theo platform.
 - Bật RevenueCat bằng `VITE_IAP_PROVIDER=revenuecat`, và API key theo platform.
+- Bật push: copy Firebase native config files + `VITE_FIREBASE_*` + backend `FIREBASE_*` (xem [firebase-native.md](./firebase-native.md)).
 - Chọn API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`.
-- Đảm bảo backend có row `games` khớp `VITE_GAME_ID` / `src/game/config.ts`.
+- Đảm bảo `VITE_GAME_ID` / `src/game/config.ts` khớp `GameId` enum trên `game-api`.
 
 ---
 
 ## Related Documentation
 
+- [Firebase Native Setup](./firebase-native.md)
+- [Notifications](../modules/notifications.md)
 - [Emulator and Simulator](../build/emulator-and-simulator.md)
 - [Environment Variables](./environment-variables.md)
 - [Runtime Architecture](../architecture/runtime-architecture.md)

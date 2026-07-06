@@ -142,5 +142,11 @@
     "rewardNotConfigured": "Chưa cấu hình phần thưởng cho vị trí {{placement}}",
     "rewardIncomplete": "Quảng cáo chưa hoàn thành",
     "useRequestReward": "Dùng requestReward cho vị trí quảng cáo thưởng"
+  },
+  "notifications": {
+    "dailyReward": {
+      "title": "Phần thưởng hàng ngày",
+      "body": "Phần thưởng hàng ngày đã sẵn sàng. Quay lại và nhận thưởng nhé!"
+    }
   }
 }

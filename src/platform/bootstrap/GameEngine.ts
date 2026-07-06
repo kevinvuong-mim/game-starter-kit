@@ -10,6 +10,7 @@ import { refreshServicesFromConfig } from '@platform/core/services';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
 import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
+import { navigationService } from '@platform/modules/navigation/navigation.service';
 
 export class GameEngine {
   private game: Phaser.Game | null = null;
@@ -68,6 +69,7 @@ export class GameEngine {
     };
 
     this.game = new PhaserLib.Game(phaserConfig);
+    navigationService.setGame(this.game);
     toast.init(this.game);
     soundManager.init(this.game);
 

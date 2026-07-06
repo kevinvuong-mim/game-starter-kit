@@ -4,18 +4,20 @@
 
 `game-starter-kit` là starter kit production-grade cho hyper-casual / casual mobile games. Mô hình clone-per-game: mỗi game = một repo riêng, clone từ kit này.
 
-| Layer        | Công nghệ                                           |
-| ------------ | --------------------------------------------------- |
-| Game Engine  | Phaser 3.87                                         |
-| Mobile shell | Capacitor 6                                         |
-| Language     | TypeScript 5.7 (strict)                             |
-| Bundler      | Vite 6                                              |
-| State        | Zustand 5 (vanilla, in-memory)                      |
-| Storage      | IndexedDB (web) / Capacitor Preferences (native)    |
-| Networking   | Fetch API + REST envelope (NestJS-compatible)       |
-| Analytics    | Console (dev) + Firebase Analytics 12               |
-| Ads          | Mock (web/dev) + AdMob @capacitor-community/admob 6 |
-| IAP          | Mock + RevenueCat @revenuecat/purchases-capacitor 9 |
+| Layer        | Công nghệ                                               |
+| ------------ | ------------------------------------------------------- |
+| Game Engine  | Phaser 3.87                                             |
+| Mobile shell | Capacitor 6                                             |
+| Language     | TypeScript 5.7 (strict)                                 |
+| Bundler      | Vite 6                                                  |
+| State        | Zustand 5 (vanilla, in-memory)                          |
+| Storage      | IndexedDB (web) / Capacitor Preferences (native)        |
+| Networking   | Fetch API + REST envelope (NestJS-compatible)           |
+| Analytics    | Console (dev) + Firebase Analytics 12                   |
+| Push         | `@capacitor/push-notifications` 6 (staging/prod native) |
+| Local notif  | `@capacitor/local-notifications` 6 (daily reward)       |
+| Ads          | Mock (web/dev) + AdMob @capacitor-community/admob 6     |
+| IAP          | Mock + RevenueCat @revenuecat/purchases-capacitor 9     |
 
 Node.js: `>= 20`
 
@@ -35,7 +37,8 @@ Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n shop missions leaderboard daily-rewards│
-│  save settings guest game-sync ads iap       │
+│  notifications navigation save settings guest│
+│  game-sync ads iap                           │
 ├─────────────────────────────────────────────┤
 │        PLATFORM CORE (src/platform/core/)    │
 │  events state config storage api analytics   │
@@ -78,11 +81,17 @@ game-starter-kit/
 │   ├── modules/
 │   │   ├── game-result-sync.md
 │   │   ├── guest-identity.md
-│   │   └── leaderboard.md
+│   │   ├── leaderboard.md
+│   │   └── notifications.md
 │   └── setup/
 │       ├── environment-variables.md
+│       ├── firebase-native.md
 │       ├── game-configuration.md
 │       └── mobile-build.md
+├── native/
+│   ├── firebase/              # google-services.json, GoogleService-Info.plist (gitignored)
+│   ├── android/
+│   └── ios/                   # AppDelegate.swift, App.entitlements templates
 ├── eslint.config.js
 ├── index.html
 ├── package.json
@@ -160,6 +169,8 @@ Dependencies:
 @capacitor/haptics
 @capacitor/network
 @capacitor/preferences
+@capacitor/local-notifications
+@capacitor/push-notifications
 @capacitor/splash-screen
 @capacitor/status-bar
 @revenuecat/purchases-capacitor
@@ -297,6 +308,9 @@ const config: CapacitorConfig = {
       showSpinner: false,
       launchAutoHide: false,
       backgroundColor: '#6b97b2',
+    },
+    PushNotifications: {
+      presentationOptions: ['alert', 'badge', 'sound'],
     },
   },
 };
@@ -529,6 +543,7 @@ Create Phaser game với gameScenes từ @game/scenes
 
 toast.init(game)
 soundManager.init(game)
+navigationService.setGame(game)
 
 Phaser config:
 type: AUTO
@@ -651,20 +666,25 @@ gameSyncController.bind
 bindAdsController
 bindIapController
 missionController.bind
+notificationController.bind
 
 bindLifecycle()
 ```
+
+`guest.onReady` → `notificationService.initialize()` (native only, khi push/local enabled).
 
 ---
 
 ## 5.4 Scene flow
 
 ```text
-Boot → Preload → Home
+Boot → Preload → Home (hoặc scene từ notification tap nếu pending)
                   ├→ Gameplay → GameOver → Home / Gameplay
                   ├→ Shop / Missions / Leaderboard / DailyReward
                   └→ Settings → HowToPlay / Legal
 ```
+
+`PreloadScene.create()` emit `boot:preload-complete` → `navigationService` consume pending notification destination (cold start).
 
 BootScene:
 
@@ -936,7 +956,11 @@ adsEnabled
 iapEnabled
 firebase
 analyticsEnabled
+pushNotificationsEnabled
+localNotificationsEnabled
 ```
+
+`notification-env.json` merge per-env push/local flags. Push requires native + full `VITE_FIREBASE_*`.
 
 ENV_CONFIGS:
 
@@ -1151,9 +1175,26 @@ save
 settings
 guest
 game-sync
+notifications
+navigation
 ads
 iap
 ```
+
+### Notifications (native)
+
+Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificationsEnabled`, `localNotificationsEnabled`).
+
+| Loại                    | Trigger client                             | API                                                       |
+| ----------------------- | ------------------------------------------ | --------------------------------------------------------- |
+| Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH /api/devices`, `PATCH /api/devices/heartbeat` |
+| Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                         |
+
+Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete`.
+
+Storage: `notification-state-v1` (`lastRegisteredToken`, `permissionGranted`).
+
+Chi tiết: `documents/modules/notifications.md`, `documents/setup/firebase-native.md`.
 
 ### Shop catalog
 
@@ -1274,6 +1315,18 @@ Endpoint:
 ```text
 GET /api/leaderboards?gameId=&page=&limit=&guestId=
   Response: { gameId, total, page, limit, items, self: { rank, bestScore } }
+
+POST /api/devices
+  Body: { token, platform: IOS|ANDROID, locale: EN|VI }
+
+PATCH /api/devices
+  Body: { token, locale }
+
+PATCH /api/devices/heartbeat
+  (app resume)
+
+DELETE /api/devices
+  (unregister)
 ```
 
 ---
@@ -1485,12 +1538,13 @@ Verify
 
 # 18. Backend integration summary
 
-| Feature      | Endpoint              | Auth   |
-| ------------ | --------------------- | ------ |
-| Guest init   | POST /api/guest/init  | Không  |
-| Guest rename | PATCH /api/guest/name | Bearer |
-| Game sync    | POST /api/results     | Bearer |
-| Leaderboard  | GET /api/leaderboards | Không  |
+| Feature      | Endpoint                                                     | Auth   |
+| ------------ | ------------------------------------------------------------ | ------ |
+| Guest init   | POST /api/guest/init                                         | Không  |
+| Guest rename | PATCH /api/guest/name                                        | Bearer |
+| Game sync    | POST /api/results                                            | Bearer |
+| Leaderboard  | GET /api/leaderboards                                        | Không  |
+| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/heartbeat | Bearer |
 
 Lưu ý:
 
@@ -1515,6 +1569,11 @@ secretToken
 deviceId
 → KHÔNG gửi lên server
 → mỗi lần install = guest mới, behavior đồng nhất iOS/Android
+
+FCM token
+→ đăng ký qua POST /api/devices sau guest.onReady + permission granted
+→ locale EN|VI sync khi đổi ngôn ngữ (PATCH /api/devices)
+→ push tap: in-app scene navigation (không deeplink URL)
 
 signature
 → HMAC-SHA256(replaySecret, `${gameId}|${guestId}|${clientResultId}|${score}|${playedAt || ''}`)
