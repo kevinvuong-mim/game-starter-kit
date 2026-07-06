@@ -12,20 +12,21 @@ const TAB_HEIGHT = 40;
  * Terms & Privacy tabbed content — lives in platform/ui so game scenes stay event-driven.
  */
 export class LegalPanel extends Phaser.GameObjects.Container {
-  private scrollY = 0;
-  private tabWidth = 0;
-  private maxScroll = 0;
-  private contentBaseY = 0;
   private readonly contentWidth: number;
   private readonly contentHeight: number;
   private readonly contentCenterY: number;
-  private contentText?: Phaser.GameObjects.Text;
   private readonly wheelHandler: (
     pointer: Phaser.Input.Pointer,
     gameObjects: Phaser.GameObjects.GameObject[],
     deltaX: number,
     deltaY: number
   ) => void;
+
+  private scrollY = 0;
+  private tabWidth = 0;
+  private maxScroll = 0;
+  private contentBaseY = 0;
+  private contentText?: Phaser.GameObjects.Text;
   private termsTabLabel?: Phaser.GameObjects.Text;
   private privacyTabLabel?: Phaser.GameObjects.Text;
   private termsTabBg?: Phaser.GameObjects.Rectangle;

@@ -14,6 +14,13 @@ import { AD_ANALYTICS_EVENTS, BANNER_ALLOWED_PLACEMENTS, DEFAULT_REMOTE_CONFIG }
 type AnalyticsHandler = (event: string, metadata?: Record<string, unknown>) => void;
 
 export class AdsService {
+  private readonly formats = {
+    app_open: new AdFormatManager('app_open'),
+    rewarded: new AdFormatManager('rewarded'),
+    interstitial: new AdFormatManager('interstitial'),
+  };
+  private readonly bannerState = new BannerStateMachine();
+
   private enabled = true;
   private adsRemoved = false;
   private lastRewardedAt = 0;
@@ -26,14 +33,6 @@ export class AdsService {
   private analyticsHandler: AnalyticsHandler | null = null;
   private remoteConfig: AdsRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
   private online = typeof navigator === 'undefined' ? true : navigator.onLine;
-
-  private readonly formats = {
-    rewarded: new AdFormatManager('rewarded'),
-    interstitial: new AdFormatManager('interstitial'),
-    app_open: new AdFormatManager('app_open'),
-  };
-
-  private readonly bannerState = new BannerStateMachine();
 
   setProvider(provider: IAdsProvider): void {
     this.provider = provider;

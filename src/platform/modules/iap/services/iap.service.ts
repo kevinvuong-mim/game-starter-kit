@@ -21,6 +21,9 @@ export interface IapServiceDeps {
 }
 
 export class IapService {
+  private readonly storage: PurchaseStorage;
+  private readonly emit: typeof eventBus.emit;
+
   private ready = false;
   private enabled = true;
   private restoring = false;
@@ -30,9 +33,6 @@ export class IapService {
   private provider: IAPProvider | null = null;
   private initPromise: Promise<void> | null = null;
   private initState: IapInitState = { loading: false, ready: false, error: null };
-
-  private readonly storage: PurchaseStorage;
-  private readonly emit: typeof eventBus.emit;
 
   constructor(deps: IapServiceDeps = {}) {
     this.storage = deps.storage ?? purchaseStorage;

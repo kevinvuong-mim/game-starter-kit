@@ -11,9 +11,9 @@ const SAVE_ROW_Y = 112;
 const MAX_NAME_LENGTH = 32;
 
 export class NameSettingsPanel extends Phaser.GameObjects.Container {
-  private domElement?: Phaser.GameObjects.DOMElement;
-  private inputElement?: HTMLInputElement;
   private saving = false;
+  private inputElement?: HTMLInputElement;
+  private domElement?: Phaser.GameObjects.DOMElement;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);

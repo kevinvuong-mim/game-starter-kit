@@ -33,9 +33,9 @@ function resolveToastCoords(
     default:
       return {
         x,
-        startY: TOAST_EDGE_MARGIN - TOAST_ANIMATION_OFFSET + offsetY,
         restY: TOAST_EDGE_MARGIN + offsetY,
         exitY: TOAST_EDGE_MARGIN + TOAST_ANIMATION_OFFSET + offsetY,
+        startY: TOAST_EDGE_MARGIN - TOAST_ANIMATION_OFFSET + offsetY,
       };
   }
 }
