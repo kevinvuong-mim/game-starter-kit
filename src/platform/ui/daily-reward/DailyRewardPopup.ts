@@ -178,12 +178,17 @@ export class DailyRewardPopup extends Phaser.GameObjects.Container {
     bg.setStrokeStyle(2, stroke);
     container.add(bg);
 
-    const dayLabel = this.scene.add.text(0, -this.cellHeight * 0.25, t('dailyReward.day', { day: entry.day }), {
-      fontSize: '14px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-      fontFamily: FREDOKA_FONT,
-    });
+    const dayLabel = this.scene.add.text(
+      0,
+      -this.cellHeight * 0.25,
+      t('dailyReward.day', { day: entry.day }),
+      {
+        fontSize: '14px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
+      }
+    );
     dayLabel.setOrigin(0.5);
     container.add(dayLabel);
 

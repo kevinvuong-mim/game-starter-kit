@@ -149,16 +149,11 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
     progressText.setOrigin(0, 0.5);
     container.add(progressText);
 
-    const rewardText = this.scene.add.text(
-      rowHalf - 14,
-      14,
-      t('missions.reward', { coins }),
-      {
-        fontSize: '13px',
-        color: '#ffd700',
-        fontFamily: FREDOKA_FONT,
-      }
-    );
+    const rewardText = this.scene.add.text(rowHalf - 14, 14, t('missions.reward', { coins }), {
+      fontSize: '13px',
+      color: '#ffd700',
+      fontFamily: FREDOKA_FONT,
+    });
     rewardText.setOrigin(1, 0);
     container.add(rewardText);
 

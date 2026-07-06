@@ -222,21 +222,21 @@ Modules are initialized in `bootstrap/App.ts`. Mission progress is **merged** wi
 
 Phaser-native UI building blocks. Most features are **full scenes** in `src/game/scenes/` that embed **panels**:
 
-| Component                       | Purpose                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `ScreenManager` / `BaseScreen`  | Overlay stack; `register()`, `open()`, `close()`, `unregisterForScene()` |
+| Component                       | Purpose                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `ScreenManager` / `BaseScreen`  | Overlay stack; `register()`, `open()`, `close()`, `unregisterForScene()`                                |
 | `createUIButton`                | Shared button factory; plays SFX on `pointerdown` (`sound`: `'pop'` default, `'coin-drop'`, or `false`) |
-| `HUD`                           | Score, coins — subscribes to store                                                       |
-| `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                    |
-| `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`              |
-| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                                          |
-| `MissionsPanel`                 | Mission list UI                                                                          |
-| `LeaderboardPanel`              | Paginated leaderboard UI                                                                 |
-| `DailyRewardPopup`              | Daily reward claim UI                                                                    |
-| `LanguageSettingsPanel`         | Language picker                                                                          |
-| `SoundSettingsPanel`            | Sound on/off toggle in `SettingsScene`                                                    |
-| `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                      |
-| `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                             |
+| `HUD`                           | Score, coins — subscribes to store                                                                      |
+| `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                                   |
+| `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`                             |
+| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                                                         |
+| `MissionsPanel`                 | Mission list UI                                                                                         |
+| `LeaderboardPanel`              | Paginated leaderboard UI                                                                                |
+| `DailyRewardPopup`              | Daily reward claim UI                                                                                   |
+| `LanguageSettingsPanel`         | Language picker                                                                                         |
+| `SoundSettingsPanel`            | Sound on/off toggle in `SettingsScene`                                                                  |
+| `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                                                     |
+| `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                                                            |
 
 Import from `@platform/ui` or `@platform/ui/<component>`.
 

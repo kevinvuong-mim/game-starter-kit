@@ -181,7 +181,14 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
   private buildSkeleton(): void {
     const rowHeight = ROW_HEIGHT - 6;
     for (let i = 0; i < SKELETON_ROWS; i++) {
-      const row = this.scene.add.rectangle(0, i * ROW_HEIGHT, this.rowWidth, rowHeight, 0x35355c, 1);
+      const row = this.scene.add.rectangle(
+        0,
+        i * ROW_HEIGHT,
+        this.rowWidth,
+        rowHeight,
+        0x35355c,
+        1
+      );
       row.setStrokeStyle(1, 0x3f3f6b);
       this.skeletonContainer.add(row);
     }

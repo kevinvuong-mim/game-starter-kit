@@ -1,4 +1,10 @@
 export * from './types';
+export {
+  soundManager,
+  SoundManager,
+  SOUND_POP_KEY,
+  SOUND_COIN_DROP_KEY,
+} from './audio/SoundManager';
 export { HUD } from './hud/HUD';
 export { ShopPanel } from './shop/ShopPanel';
 export { LegalPanel } from './legal/LegalPanel';
@@ -18,4 +24,3 @@ export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { HelpAndLegalSettingsPanel } from './settings/HelpAndLegalSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';
 export { ModalScreen, type ModalScreenLayout, type ModalScreenOptions } from './modal/ModalScreen';
-export { soundManager, SoundManager, SOUND_POP_KEY, SOUND_COIN_DROP_KEY } from './audio/SoundManager';

@@ -113,7 +113,7 @@ export class HomeScene extends Phaser.Scene {
       onClick: () =>
         screenManager.open('modal', {
           height: height / 2,
-          width: 2 * width / 3,
+          width: (2 * width) / 3,
           message: t('home.modalMessage'),
         }),
     });
