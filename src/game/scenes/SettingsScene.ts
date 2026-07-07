@@ -37,10 +37,10 @@ export class SettingsScene extends Phaser.Scene {
 
     let sectionY = height * 0.16;
 
-    new LanguageSettingsPanel(this, 0, sectionY);
+    new NameSettingsPanel(this, 0, sectionY);
     sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
 
-    new NameSettingsPanel(this, 0, sectionY);
+    new LanguageSettingsPanel(this, 0, sectionY);
     sectionY += NAME_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
 
     new SoundSettingsPanel(this, 0, sectionY);
