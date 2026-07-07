@@ -22,10 +22,6 @@ export class NotificationController {
 
     const unsubs: Array<() => void> = [];
 
-    guest.onReady(() => {
-      void notificationService.initialize();
-    });
-
     unsubs.push(
       events.on('app:resume', () => {
         void notificationService.onAppResume(dailyRewards.canClaim());
@@ -33,6 +29,8 @@ export class NotificationController {
     );
 
     if (config.localNotificationsEnabled) {
+      void notificationService.initializeLocal();
+
       unsubs.push(
         events.on('daily:claim', () => {
           void notificationService.scheduleDailyRewardReminder();
@@ -43,6 +41,10 @@ export class NotificationController {
     }
 
     if (config.pushNotificationsEnabled) {
+      guest.onReady(() => {
+        void notificationService.initializePush();
+      });
+
       unsubs.push(
         events.on('settings:change', ({ key }) => {
           if (key === 'language') {

@@ -7,40 +7,50 @@ import { navigationService } from '@platform/modules/navigation/navigation.servi
 import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
 
 export class NotificationService {
-  private initialized = false;
+  private localInitialized = false;
+  private pushInitialized = false;
 
-  async initialize(): Promise<void> {
+  /** Local notifications do not require guest or network. */
+  async initializeLocal(): Promise<void> {
     const config = getConfig();
 
-    if (!Capacitor.isNativePlatform() || this.initialized) {
+    if (!Capacitor.isNativePlatform() || this.localInitialized) {
       return;
     }
 
-    if (!config.pushNotificationsEnabled && !config.localNotificationsEnabled) {
+    if (!config.localNotificationsEnabled) {
       return;
     }
 
-    if (config.localNotificationsEnabled) {
-      await localNotificationService.initialize();
+    await localNotificationService.initialize();
+    this.localInitialized = true;
+    logger.info('[Notification] Local notifications initialized');
+  }
+
+  /** Push registration requires guest auth for device token sync. */
+  async initializePush(): Promise<void> {
+    const config = getConfig();
+
+    if (!Capacitor.isNativePlatform() || this.pushInitialized) {
+      return;
     }
 
-    if (config.pushNotificationsEnabled) {
-      pushNotificationService.setHandlers({
-        onReceived: (payload) => this.handleForegroundNotification(payload),
-        onAction: (payload) => this.handleNotificationTap(payload),
-      });
-
-      const granted = await pushNotificationService.initialize();
-      if (granted) {
-        await pushNotificationService.registerTokenWithBackend();
-      }
+    if (!config.pushNotificationsEnabled) {
+      return;
     }
 
-    this.initialized = true;
-    logger.info('[Notification] Service initialized', {
-      push: config.pushNotificationsEnabled,
-      local: config.localNotificationsEnabled,
+    pushNotificationService.setHandlers({
+      onReceived: (payload) => this.handleForegroundNotification(payload),
+      onAction: (payload) => this.handleNotificationTap(payload),
     });
+
+    const granted = await pushNotificationService.initialize();
+    if (granted) {
+      await pushNotificationService.registerTokenWithBackend();
+    }
+
+    this.pushInitialized = true;
+    logger.info('[Notification] Push notifications initialized');
   }
 
   async scheduleDailyRewardReminder(): Promise<void> {
