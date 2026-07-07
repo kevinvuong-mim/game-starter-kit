@@ -1,15 +1,25 @@
 import { i18n } from '../i18n/i18n.service';
 import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
+import type { SettingsState } from '@platform/core/state';
+
+type LegacySettingsState = SettingsState & {
+  localRemindersEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+};
 
 export class SettingsService {
   async init(): Promise<void> {
-    const { language } = usePlatformStore.getState().settings;
+    const { language } = this.getSettings();
     await i18n.setLanguage(language);
   }
 
-  getSettings() {
-    return usePlatformStore.getState().settings;
+  getSettings(): SettingsState {
+    const raw = usePlatformStore.getState().settings as LegacySettingsState;
+    return {
+      ...raw,
+      notificationsEnabled: this.resolveNotificationsEnabled(raw),
+    };
   }
 
   async setLanguage(language: string): Promise<void> {
@@ -35,6 +45,21 @@ export class SettingsService {
   async setGraphicsQuality(quality: 'low' | 'medium' | 'high'): Promise<void> {
     usePlatformStore.getState().updateSettings({ graphicsQuality: quality });
     eventBus.emit('settings:change', { key: 'graphicsQuality', value: quality });
+  }
+
+  async setNotificationsEnabled(enabled: boolean): Promise<void> {
+    usePlatformStore.getState().updateSettings({ notificationsEnabled: enabled });
+    eventBus.emit('settings:change', { key: 'notificationsEnabled', value: enabled });
+  }
+
+  private resolveNotificationsEnabled(settings: LegacySettingsState): boolean {
+    if (typeof settings.notificationsEnabled === 'boolean') {
+      return settings.notificationsEnabled;
+    }
+
+    const pushEnabled = settings.pushNotificationsEnabled ?? true;
+    const localEnabled = settings.localRemindersEnabled ?? true;
+    return pushEnabled && localEnabled;
   }
 }
 

@@ -1,0 +1,237 @@
+import {
+  deviceSyncNeeded,
+  type DeviceLocale,
+  type DevicePlatform,
+  type NotificationState,
+  MAX_DEVICE_SYNC_ATTEMPTS,
+  MAX_DEVICE_SYNC_BACKOFF_MS,
+  BASE_DEVICE_SYNC_BACKOFF_MS,
+} from './notification.model';
+import { ApiError } from '@platform/core/api';
+import { logger } from '@platform/core/error';
+import { guest, type GuestService } from '@platform/modules/guest';
+import { notificationRepository, type NotificationRepository } from './notification.repository';
+
+/**
+ * Offline-first FCM device token sync.
+ *
+ * Persists desired device state locally and flushes to `/api/devices`
+ * when guest is ready and network is available.
+ */
+export class DeviceSyncService {
+  private flushing = false;
+
+  constructor(
+    private readonly repository: NotificationRepository = notificationRepository,
+    private readonly guestService: GuestService = guest
+  ) {}
+
+  async loadState(): Promise<NotificationState> {
+    return this.repository.loadState();
+  }
+
+  async getPersistedToken(): Promise<string | null> {
+    const state = await this.loadState();
+    return state.pendingToken ?? state.lastSyncedToken;
+  }
+
+  async enqueueRegister(
+    token: string,
+    platform: DevicePlatform,
+    locale: DeviceLocale
+  ): Promise<void> {
+    const state = await this.loadState();
+
+    await this.repository.saveState({
+      ...state,
+      platform,
+      syncAttempts: 0,
+      pendingToken: token,
+      pendingLocale: locale,
+      permissionGranted: true,
+      unregisterPending: false,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+    });
+
+    logger.debug('[DeviceSync] Device registration queued', { platform, locale });
+  }
+
+  async enqueueHeartbeat(): Promise<void> {
+    const state = await this.loadState();
+    if (!state.lastSyncedToken && !state.pendingToken) {
+      return;
+    }
+
+    await this.repository.saveState({
+      ...state,
+      heartbeatPending: true,
+    });
+  }
+
+  async enqueueUnregister(): Promise<void> {
+    const state = await this.repository.loadState();
+
+    await this.repository.saveState({
+      ...state,
+      syncAttempts: 0,
+      heartbeatPending: false,
+      unregisterPending: true,
+      permissionGranted: false,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+    });
+  }
+
+  async flush(): Promise<void> {
+    if (this.flushing) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+
+    if (this.guestService.getStatus() !== 'ready' || !this.guestService.getGuestId()) {
+      logger.debug('[DeviceSync] Flush skipped — guest not ready');
+      return;
+    }
+
+    const state = await this.loadState();
+    if (!this.hasPendingWork(state)) {
+      return;
+    }
+
+    if (state.nextAttemptAt && Date.parse(state.nextAttemptAt) > Date.now()) {
+      return;
+    }
+
+    if (state.syncAttempts >= MAX_DEVICE_SYNC_ATTEMPTS) {
+      logger.warn('[DeviceSync] Max sync attempts reached — giving up until next enqueue');
+      return;
+    }
+
+    this.flushing = true;
+    try {
+      await this.flushState(state);
+    } finally {
+      this.flushing = false;
+    }
+  }
+
+  private hasPendingWork(state: NotificationState): boolean {
+    return state.unregisterPending || deviceSyncNeeded(state) || state.heartbeatPending;
+  }
+
+  private async flushState(state: NotificationState): Promise<void> {
+    let current = state;
+
+    try {
+      if (current.unregisterPending) {
+        current = await this.flushUnregister(current);
+        return;
+      }
+
+      if (deviceSyncNeeded(current)) {
+        current = await this.flushDeviceRegistration(current);
+      }
+
+      if (current.heartbeatPending && current.lastSyncedToken) {
+        current = await this.flushHeartbeat(current);
+      }
+    } catch (error) {
+      current = await this.markAttemptFailed(current, error);
+      logger.warn('[DeviceSync] Flush failed, will retry later', error);
+    }
+  }
+
+  private async flushUnregister(state: NotificationState): Promise<NotificationState> {
+    await this.repository.unregisterDevice();
+
+    const cleared: NotificationState = {
+      ...state,
+      platform: null,
+      syncAttempts: 0,
+      pendingToken: null,
+      pendingLocale: null,
+      lastSyncedToken: null,
+      lastSyncedLocale: null,
+      heartbeatPending: false,
+      permissionGranted: false,
+      lastAttemptAt: undefined,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+      unregisterPending: false,
+    };
+
+    await this.repository.saveState(cleared);
+    logger.info('[DeviceSync] Device unregistered');
+    return cleared;
+  }
+
+  private async flushDeviceRegistration(state: NotificationState): Promise<NotificationState> {
+    const { pendingToken, pendingLocale, platform } = state;
+    if (!pendingToken || !pendingLocale || !platform) {
+      return state;
+    }
+
+    await this.repository.syncDeviceRegistration(state);
+
+    const synced: NotificationState = {
+      ...state,
+      syncAttempts: 0,
+      permissionGranted: true,
+      lastAttemptAt: undefined,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+      lastSyncedToken: pendingToken,
+      lastSyncedLocale: pendingLocale,
+    };
+
+    await this.repository.saveState(synced);
+    logger.info('[DeviceSync] Device registration synced');
+    return synced;
+  }
+
+  private async flushHeartbeat(state: NotificationState): Promise<NotificationState> {
+    await this.repository.heartbeat();
+
+    const updated: NotificationState = {
+      ...state,
+      syncAttempts: 0,
+      heartbeatPending: false,
+      lastAttemptAt: undefined,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+    };
+
+    await this.repository.saveState(updated);
+    logger.debug('[DeviceSync] Heartbeat synced');
+    return updated;
+  }
+
+  private async markAttemptFailed(
+    state: NotificationState,
+    error: unknown
+  ): Promise<NotificationState> {
+    const syncAttempts = state.syncAttempts + 1;
+    const backoffMs = Math.min(
+      MAX_DEVICE_SYNC_BACKOFF_MS,
+      BASE_DEVICE_SYNC_BACKOFF_MS * 2 ** Math.max(0, syncAttempts - 1)
+    );
+    const now = Date.now();
+    const errorCode = error instanceof ApiError ? String(error.status) : 'network';
+
+    if (error instanceof ApiError && error.status === 401) {
+      logger.error('[DeviceSync] Guest auth failed — credentials may be invalid', error);
+    }
+
+    const failed: NotificationState = {
+      ...state,
+      syncAttempts,
+      lastErrorCode: errorCode,
+      lastAttemptAt: new Date(now).toISOString(),
+      nextAttemptAt: new Date(now + backoffMs).toISOString(),
+    };
+
+    await this.repository.saveState(failed);
+    return failed;
+  }
+}
+
+export const deviceSyncService = new DeviceSyncService();

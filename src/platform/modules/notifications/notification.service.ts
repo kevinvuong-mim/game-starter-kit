@@ -1,14 +1,23 @@
+import {
+  deviceSyncNeeded,
+  resolveNotificationRoute,
+  type PushNotificationPayload,
+} from './notification.model';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
+import { deviceSyncService } from './device-sync.service';
 import { pushNotificationService } from './push-notification.service';
+import { settings } from '@platform/modules/settings/settings.service';
 import { localNotificationService } from './local-notification.service';
+import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
-import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
+
+export type NotificationStatus = 'off' | 'active' | 'denied' | 'pending';
 
 export class NotificationService {
-  private localInitialized = false;
   private pushInitialized = false;
+  private localInitialized = false;
 
   /** Local notifications do not require guest or network. */
   async initializeLocal(): Promise<void> {
@@ -18,7 +27,7 @@ export class NotificationService {
       return;
     }
 
-    if (!config.localNotificationsEnabled) {
+    if (!config.localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
       return;
     }
 
@@ -35,7 +44,7 @@ export class NotificationService {
       return;
     }
 
-    if (!config.pushNotificationsEnabled) {
+    if (!config.pushNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
       return;
     }
 
@@ -46,15 +55,17 @@ export class NotificationService {
 
     const granted = await pushNotificationService.initialize();
     if (granted) {
-      await pushNotificationService.registerTokenWithBackend();
+      await pushNotificationService.syncDeviceState();
     }
+
+    void deviceSyncService.flush().catch(() => undefined);
 
     this.pushInitialized = true;
     logger.info('[Notification] Push notifications initialized');
   }
 
   async scheduleDailyRewardReminder(): Promise<void> {
-    if (!getConfig().localNotificationsEnabled) {
+    if (!getConfig().localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
       return;
     }
 
@@ -62,18 +73,89 @@ export class NotificationService {
   }
 
   async reconcileDailyRewardSchedule(canClaim: boolean): Promise<void> {
-    if (!getConfig().localNotificationsEnabled) {
+    if (!getConfig().localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
+      if (getConfig().localNotificationsEnabled) {
+        await localNotificationService.cancelDailyRewardReminder();
+      }
       return;
     }
 
     await localNotificationService.reconcileDailyRewardSchedule(canClaim);
   }
 
+  async setNotificationsEnabled(enabled: boolean): Promise<void> {
+    const config = getConfig();
+
+    if (enabled) {
+      if (config.localNotificationsEnabled) {
+        this.localInitialized = false;
+        await this.initializeLocal();
+        await this.reconcileDailyRewardSchedule(dailyRewards.canClaim());
+      }
+
+      if (config.pushNotificationsEnabled) {
+        this.pushInitialized = false;
+        await this.initializePush();
+      }
+
+      return;
+    }
+
+    if (config.localNotificationsEnabled) {
+      await localNotificationService.cancelDailyRewardReminder();
+    }
+
+    if (config.pushNotificationsEnabled) {
+      await pushNotificationService.unregister();
+      this.pushInitialized = false;
+    }
+  }
+
+  async getNotificationStatus(): Promise<NotificationStatus> {
+    if (!this.isNotificationsEnabledInSettings()) {
+      return 'off';
+    }
+
+    const config = getConfig();
+
+    if (config.pushNotificationsEnabled) {
+      const pushGranted = await pushNotificationService.hasPermission();
+      if (!pushGranted) {
+        return 'denied';
+      }
+    }
+
+    if (config.localNotificationsEnabled) {
+      const localGranted = await localNotificationService.hasPermission();
+      if (!localGranted) {
+        return 'denied';
+      }
+    }
+
+    if (config.pushNotificationsEnabled) {
+      const state = await deviceSyncService.loadState();
+      if (deviceSyncNeeded(state) || state.heartbeatPending || state.unregisterPending) {
+        return 'pending';
+      }
+
+      if (!state.lastSyncedToken) {
+        return 'pending';
+      }
+    }
+
+    return 'active';
+  }
+
   async onAppResume(canClaimDailyReward: boolean): Promise<void> {
+    if (!this.isNotificationsEnabledInSettings()) {
+      return;
+    }
+
     const config = getConfig();
 
     if (config.pushNotificationsEnabled) {
       await pushNotificationService.refreshTokenIfNeeded();
+      await deviceSyncService.flush();
     }
 
     if (config.localNotificationsEnabled) {
@@ -82,11 +164,14 @@ export class NotificationService {
   }
 
   async onLocaleChanged(): Promise<void> {
-    if (!getConfig().pushNotificationsEnabled) {
+    const config = getConfig();
+
+    if (!config.pushNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
       return;
     }
 
     await pushNotificationService.refreshTokenIfNeeded();
+    void deviceSyncService.flush().catch(() => undefined);
   }
 
   handleNotificationTap(payload: PushNotificationPayload): void {
@@ -96,6 +181,10 @@ export class NotificationService {
 
   private handleForegroundNotification(payload: PushNotificationPayload): void {
     logger.info('[Notification] Received in foreground', payload);
+  }
+
+  private isNotificationsEnabledInSettings(): boolean {
+    return settings.getSettings().notificationsEnabled;
   }
 }
 

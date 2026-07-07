@@ -80,7 +80,10 @@
     "playerNameRequired": "Vui lòng nhập tên",
     "playerNameUpdated": "Đã cập nhật tên",
     "playerNameFailed": "Không thể cập nhật tên",
-    "playerNameOffline": "Kết nối mạng để cập nhật tên"
+    "playerNameOffline": "Kết nối mạng để cập nhật tên",
+    "notifications": "Thông báo",
+    "notificationsOn": "Bật",
+    "notificationsOff": "Tắt"
   },
   "missions": {
     "title": "Nhiệm vụ",

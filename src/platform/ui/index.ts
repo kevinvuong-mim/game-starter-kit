@@ -23,4 +23,5 @@ export { SoundSettingsPanel } from './settings/SoundSettingsPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { HelpAndLegalSettingsPanel } from './settings/HelpAndLegalSettingsPanel';
 export { BaseScreen, screenManager, ScreenManager } from './screen/ScreenManager';
+export { NotificationsSettingsPanel } from './settings/NotificationsSettingsPanel';
 export { ModalScreen, type ModalScreenLayout, type ModalScreenOptions } from './modal/ModalScreen';

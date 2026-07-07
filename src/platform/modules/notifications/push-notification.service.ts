@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
+import { deviceSyncService } from './device-sync.service';
 import { i18n } from '@platform/modules/i18n/i18n.service';
 import { mapLocaleToDeviceLocale, type PushNotificationPayload } from './notification.model';
 import { notificationRepository, type NotificationRepository } from './notification.repository';
@@ -40,6 +41,7 @@ export class PushNotificationService {
         this.listenersBound = true;
       }
 
+      await this.hydrateTokenFromStorage();
       return true;
     } catch (error) {
       logger.warn('[PushNotification] Init failed', error);
@@ -47,34 +49,43 @@ export class PushNotificationService {
     }
   }
 
-  async registerTokenWithBackend(): Promise<void> {
-    if (!this.currentToken) {
+  async syncDeviceState(): Promise<void> {
+    const token = await this.resolveToken();
+    if (!token) {
       return;
     }
 
     const locale = mapLocaleToDeviceLocale(i18n.getCurrentLanguage());
     const platform = this.repository.resolvePlatform();
-    const state = await this.repository.loadState();
+    await deviceSyncService.enqueueRegister(token, platform, locale);
+    void deviceSyncService.flush().catch(() => undefined);
+  }
 
-    if (state.lastRegisteredToken === this.currentToken) {
-      await this.repository.updateDevice(this.currentToken, locale);
-    } else {
-      await this.repository.registerDevice(this.currentToken, platform, locale);
+  async hasPermission(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) {
+      return false;
     }
 
-    await this.repository.saveState({
-      lastRegisteredToken: this.currentToken,
-      permissionGranted: true,
-    });
+    try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      const status = await PushNotifications.checkPermissions();
+      return status.receive === 'granted';
+    } catch {
+      return false;
+    }
   }
 
   async refreshTokenIfNeeded(): Promise<void> {
-    if (!this.currentToken) {
+    const token = await this.resolveToken();
+    if (!token) {
       return;
     }
 
-    await this.registerTokenWithBackend();
-    await this.repository.heartbeat();
+    const locale = mapLocaleToDeviceLocale(i18n.getCurrentLanguage());
+    const platform = this.repository.resolvePlatform();
+    await deviceSyncService.enqueueRegister(token, platform, locale);
+    await deviceSyncService.enqueueHeartbeat();
+    void deviceSyncService.flush().catch(() => undefined);
   }
 
   async unregister(): Promise<void> {
@@ -83,21 +94,32 @@ export class PushNotificationService {
     }
 
     try {
-      await this.repository.unregisterDevice();
-      await this.repository.saveState({
-        lastRegisteredToken: null,
-        permissionGranted: false,
-      });
+      await deviceSyncService.enqueueUnregister();
+      void deviceSyncService.flush().catch(() => undefined);
+      this.currentToken = null;
     } catch (error) {
       logger.warn('[PushNotification] Unregister failed', error);
     }
+  }
+
+  private async hydrateTokenFromStorage(): Promise<void> {
+    if (this.currentToken) {
+      return;
+    }
+
+    this.currentToken = await deviceSyncService.getPersistedToken();
+  }
+
+  private async resolveToken(): Promise<string | null> {
+    await this.hydrateTokenFromStorage();
+    return this.currentToken;
   }
 
   private bindListeners(): void {
     void import('@capacitor/push-notifications').then(({ PushNotifications }) => {
       PushNotifications.addListener('registration', (event) => {
         this.currentToken = event.value;
-        void this.registerTokenWithBackend();
+        void this.syncDeviceState();
       });
 
       PushNotifications.addListener('registrationError', (error) => {

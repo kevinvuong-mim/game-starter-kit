@@ -32,6 +32,7 @@ export interface SettingsState {
   soundEnabled: boolean;
   musicEnabled: boolean;
   vibrationEnabled: boolean;
+  notificationsEnabled: boolean;
   graphicsQuality: 'low' | 'high' | 'medium';
 }
 
@@ -104,5 +105,6 @@ export const DEFAULT_STATE: PlatformState = {
     musicEnabled: true,
     vibrationEnabled: true,
     graphicsQuality: 'medium',
+    notificationsEnabled: true,
   },
 };

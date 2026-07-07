@@ -80,7 +80,10 @@
     "playerNameRequired": "Please enter a name",
     "playerNameUpdated": "Name updated",
     "playerNameFailed": "Could not update name",
-    "playerNameOffline": "Connect to the internet to update your name"
+    "playerNameOffline": "Connect to the internet to update your name",
+    "notifications": "Notifications",
+    "notificationsOn": "On",
+    "notificationsOff": "Off"
   },
   "missions": {
     "title": "Missions",

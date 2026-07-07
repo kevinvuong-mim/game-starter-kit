@@ -3,12 +3,18 @@ import { logger } from '@platform/core/error';
 import { guest } from '@platform/modules/guest';
 import { getConfig } from '@platform/core/config';
 import type { IEventBus } from '@platform/core/events';
+import { deviceSyncService } from './device-sync.service';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { notificationService } from './notification.service';
+import { settings } from '@platform/modules/settings/settings.service';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
 import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
 
 export class NotificationController {
+  private onlineHandler?: () => void;
+  private networkListener?: PluginListenerHandle;
+
   bind(events: IEventBus): () => void {
     const config = getConfig();
 
@@ -28,9 +34,13 @@ export class NotificationController {
       })
     );
 
-    if (config.localNotificationsEnabled) {
-      void notificationService.initializeLocal();
+    if (settings.getSettings().notificationsEnabled) {
+      if (config.localNotificationsEnabled) {
+        void notificationService.initializeLocal();
+      }
+    }
 
+    if (config.localNotificationsEnabled) {
       unsubs.push(
         events.on('daily:claim', () => {
           void notificationService.scheduleDailyRewardReminder();
@@ -40,23 +50,75 @@ export class NotificationController {
       void this.bindLocalNotificationActions();
     }
 
+    let guestReadyUnsub = () => {};
+
     if (config.pushNotificationsEnabled) {
-      guest.onReady(() => {
+      guestReadyUnsub = guest.onReady(() => {
+        if (!settings.getSettings().notificationsEnabled) {
+          return;
+        }
+
         void notificationService.initializePush();
+        void deviceSyncService.flush().catch(() => undefined);
       });
 
-      unsubs.push(
-        events.on('settings:change', ({ key }) => {
-          if (key === 'language') {
-            void notificationService.onLocaleChanged();
-          }
-        })
-      );
+      this.bindDeviceSyncListeners();
+
+      if (settings.getSettings().notificationsEnabled) {
+        void deviceSyncService.flush().catch(() => undefined);
+      }
     }
 
+    unsubs.push(
+      events.on('settings:change', ({ key }) => {
+        if (key === 'language') {
+          void notificationService.onLocaleChanged();
+          return;
+        }
+
+        if (key === 'notificationsEnabled') {
+          void notificationService.setNotificationsEnabled(
+            settings.getSettings().notificationsEnabled
+          );
+        }
+      })
+    );
+
     return () => {
+      guestReadyUnsub();
       for (const unsub of unsubs) unsub();
+      if (this.onlineHandler && typeof window !== 'undefined') {
+        window.removeEventListener('online', this.onlineHandler);
+        this.onlineHandler = undefined;
+      }
+      void this.networkListener?.remove();
+      this.networkListener = undefined;
     };
+  }
+
+  private bindDeviceSyncListeners(): void {
+    if (typeof window !== 'undefined') {
+      this.onlineHandler = () => {
+        logger.info('[DeviceSync] Network online — flushing device queue');
+        void deviceSyncService.flush().catch(() => undefined);
+      };
+      window.addEventListener('online', this.onlineHandler);
+    }
+
+    void this.bindNativeNetworkListener();
+  }
+
+  private async bindNativeNetworkListener(): Promise<void> {
+    try {
+      const { Network } = await import('@capacitor/network');
+      this.networkListener = await Network.addListener('networkStatusChange', ({ connected }) => {
+        if (!connected) return;
+        logger.info('[DeviceSync] Native network connected — flushing device queue');
+        void deviceSyncService.flush().catch(() => undefined);
+      });
+    } catch {
+      // Web builds and older native shells keep using the window 'online' fallback.
+    }
   }
 
   private async bindLocalNotificationActions(): Promise<void> {

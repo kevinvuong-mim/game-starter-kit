@@ -1,5 +1,9 @@
 export const NOTIFICATION_STORAGE_KEY = 'notification-state-v1';
 
+export const MAX_DEVICE_SYNC_ATTEMPTS = 10;
+export const BASE_DEVICE_SYNC_BACKOFF_MS = 30_000;
+export const MAX_DEVICE_SYNC_BACKOFF_MS = 30 * 60 * 1000;
+
 export const NOTIFICATION_IDS = {
   DAILY_REWARD: 1001,
 } as const;
@@ -28,8 +32,78 @@ export type DeviceLocale = 'EN' | 'VI';
 export type DevicePlatform = 'IOS' | 'ANDROID';
 
 export interface NotificationState {
+  syncAttempts: number;
+  lastAttemptAt?: string;
+  lastErrorCode?: string;
+  nextAttemptAt?: string;
+  heartbeatPending: boolean;
   permissionGranted: boolean;
-  lastRegisteredToken: string | null;
+  unregisterPending: boolean;
+  pendingToken: string | null;
+  lastSyncedToken: string | null;
+  platform: DevicePlatform | null;
+  pendingLocale: DeviceLocale | null;
+  lastSyncedLocale: DeviceLocale | null;
+}
+
+/** @deprecated Use lastSyncedToken — kept for storage migration only. */
+export interface LegacyNotificationState {
+  permissionGranted?: boolean;
+  lastRegisteredToken?: string | null;
+}
+
+export function createDefaultNotificationState(): NotificationState {
+  return {
+    platform: null,
+    syncAttempts: 0,
+    pendingToken: null,
+    pendingLocale: null,
+    lastSyncedToken: null,
+    lastSyncedLocale: null,
+    heartbeatPending: false,
+    permissionGranted: false,
+    unregisterPending: false,
+  };
+}
+
+export function normalizeNotificationState(value: unknown): NotificationState {
+  if (!value || typeof value !== 'object') {
+    return createDefaultNotificationState();
+  }
+
+  const raw = value as Partial<NotificationState> & LegacyNotificationState;
+  const lastSyncedToken = raw.lastSyncedToken ?? raw.lastRegisteredToken ?? null;
+
+  return {
+    heartbeatPending: Boolean(raw.heartbeatPending),
+    permissionGranted: Boolean(raw.permissionGranted),
+    unregisterPending: Boolean(raw.unregisterPending),
+    syncAttempts: typeof raw.syncAttempts === 'number' ? raw.syncAttempts : 0,
+    pendingToken: typeof raw.pendingToken === 'string' ? raw.pendingToken : null,
+    lastSyncedToken: typeof lastSyncedToken === 'string' ? lastSyncedToken : null,
+    platform: raw.platform === 'IOS' || raw.platform === 'ANDROID' ? raw.platform : null,
+    lastAttemptAt: typeof raw.lastAttemptAt === 'string' ? raw.lastAttemptAt : undefined,
+    lastErrorCode: typeof raw.lastErrorCode === 'string' ? raw.lastErrorCode : undefined,
+    nextAttemptAt: typeof raw.nextAttemptAt === 'string' ? raw.nextAttemptAt : undefined,
+    pendingLocale:
+      raw.pendingLocale === 'EN' || raw.pendingLocale === 'VI' ? raw.pendingLocale : null,
+    lastSyncedLocale:
+      raw.lastSyncedLocale === 'EN' || raw.lastSyncedLocale === 'VI' ? raw.lastSyncedLocale : null,
+  };
+}
+
+export function deviceSyncNeeded(state: NotificationState): boolean {
+  if (state.unregisterPending) {
+    return true;
+  }
+
+  if (!state.pendingToken || !state.pendingLocale || !state.platform) {
+    return false;
+  }
+
+  return (
+    state.lastSyncedToken !== state.pendingToken || state.lastSyncedLocale !== state.pendingLocale
+  );
 }
 
 export interface PushNotificationPayload {
@@ -41,13 +115,6 @@ export interface NavigationRequest {
   returnTo?: string;
   scene: NotificationRoute;
   returnData?: Record<string, unknown>;
-}
-
-export function createDefaultNotificationState(): NotificationState {
-  return {
-    permissionGranted: false,
-    lastRegisteredToken: null,
-  };
 }
 
 export function mapLocaleToDeviceLocale(language: string): DeviceLocale {

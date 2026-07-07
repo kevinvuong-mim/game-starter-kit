@@ -187,7 +187,17 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
 
   setDailyRewardState: (state) => set((s) => ({ dailyRewards: { ...s.dailyRewards, ...state } })),
 
-  hydrate: (state) => set((s) => ({ ...s, ...state })),
+  hydrate: (state) =>
+    set((s) => ({
+      ...s,
+      ...state,
+      settings: { ...DEFAULT_STATE.settings, ...s.settings, ...(state.settings ?? {}) },
+      dailyRewards: {
+        ...DEFAULT_STATE.dailyRewards,
+        ...s.dailyRewards,
+        ...(state.dailyRewards ?? {}),
+      },
+    })),
 
   reset: () => set(DEFAULT_STATE),
 }));
