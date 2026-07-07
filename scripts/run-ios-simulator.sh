@@ -17,7 +17,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-APP_ID="com.studio.gamestarterkit"
+APP_ID="$(node --input-type=module -e "import { readCapacitorAppId } from './scripts/capacitor-config.mjs'; console.log(readCapacitorAppId(process.cwd()));")"
 DERIVED_DATA="$ROOT/.derived-data/ios"
 APP_BUNDLE="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/App.app"
 IOS_WORKSPACE="ios/App/App.xcworkspace"
@@ -98,8 +98,10 @@ UDID="$(ensure_simulator "$UDID")"
 log "Using simulator: $UDID"
 
 if [[ "${SKIP_XCODEBUILD:-}" != "1" ]]; then
-  log 'Applying iOS native templates...'
-  node scripts/apply-ios-native.mjs
+  if [[ "${SKIP_BUILD:-}" == "1" ]]; then
+    log 'Applying iOS native templates (SKIP_BUILD=1)...'
+    node scripts/apply-ios-native.mjs
+  fi
   log 'Compiling for iOS Simulator (xcodebuild)...'
   xcodebuild \
     -workspace "$IOS_WORKSPACE" \

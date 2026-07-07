@@ -4,7 +4,8 @@ import {
 } from './notification-config.mjs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
-import { existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readCapacitorAppId, resolveMainActivityPath } from './capacitor-config.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -17,6 +18,8 @@ const ANDROID_PERMISSIONS = [
 ];
 const ADMOB_META_NAME = 'com.google.android.gms.ads.APPLICATION_ID';
 const GOOGLE_SAMPLE_ANDROID_APP_ID = 'ca-app-pub-3940256099942544~3347511713';
+const GOOGLE_SERVICES_PLUGIN = "apply plugin: 'com.google.gms.google-services'";
+const GOOGLE_SERVICES_CLASSPATH = "classpath 'com.google.gms:google-services:4.4.2'";
 const FCM_CHANNEL_META = 'com.google.firebase.messaging.default_notification_channel_id';
 
 function loadEnvFile(name) {
@@ -91,9 +94,6 @@ function injectNotificationPermissions(manifestPath) {
       '    <uses-permission android:name="android.permission.INTERNET" />',
       `${permissionBlock}\n    <uses-permission android:name="android.permission.INTERNET" />`
     );
-  }
-
-  if (changed) {
     writeFileSync(manifestPath, manifest);
   }
 
@@ -115,6 +115,54 @@ function injectFcmChannelMetadata(manifestPath) {
   return 'updated';
 }
 
+function injectGoogleServicesClasspath(projectBuildGradlePath) {
+  let content = readFileSync(projectBuildGradlePath, 'utf8');
+  if (content.includes('com.google.gms:google-services')) {
+    return 'present';
+  }
+
+  const updated = content.replace(
+    /(buildscript\s*\{[\s\S]*?dependencies\s*\{[\s\S]*?classpath[^\n]+\n)/,
+    `$1        ${GOOGLE_SERVICES_CLASSPATH}\n`
+  );
+
+  if (updated === content) {
+    throw new Error(
+      `[android-native] Could not inject Google Services classpath into ${projectBuildGradlePath}`
+    );
+  }
+
+  writeFileSync(projectBuildGradlePath, updated);
+  return 'injected';
+}
+
+function injectGoogleServicesAppPlugin(appBuildGradlePath) {
+  let content = readFileSync(appBuildGradlePath, 'utf8');
+  if (content.includes('com.google.gms.google-services')) {
+    return 'present';
+  }
+
+  writeFileSync(appBuildGradlePath, `${content.trimEnd()}\n\n${GOOGLE_SERVICES_PLUGIN}\n`);
+  return 'injected';
+}
+
+function injectGoogleServicesGradle() {
+  const projectBuildGradlePath = join(root, 'android/build.gradle');
+  const appBuildGradlePath = join(root, 'android/app/build.gradle');
+
+  if (!existsSync(projectBuildGradlePath) || !existsSync(appBuildGradlePath)) {
+    console.warn(
+      '[android-native] Android Gradle files not found — skipping Google Services plugin'
+    );
+    return;
+  }
+
+  const classpathResult = injectGoogleServicesClasspath(projectBuildGradlePath);
+  const pluginResult = injectGoogleServicesAppPlugin(appBuildGradlePath);
+  console.log(`[android-native] Google Services classpath ${classpathResult}`);
+  console.log(`[android-native] Google Services app plugin ${pluginResult}`);
+}
+
 function copyFirebaseAndroidConfig() {
   const source = join(root, 'native/firebase/google-services.json');
   const target = join(root, 'android/app/google-services.json');
@@ -126,23 +174,40 @@ function copyFirebaseAndroidConfig() {
     return false;
   }
 
-  copyFileSync(source, target);
+  writeFileSync(target, readFileSync(source, 'utf8'));
   console.log('[android-native] Copied google-services.json to android/app/');
   return true;
 }
 
+function applyMainActivityTemplate(appId) {
+  const templatePath = join(root, 'native/android/MainActivity.java');
+  const targetPath = resolveMainActivityPath(root, appId);
+
+  if (!existsSync(templatePath)) {
+    console.warn('[android-native] MainActivity template not found');
+    return;
+  }
+
+  if (!existsSync(join(root, 'android'))) {
+    console.warn('[android-native] Android project not found — run `npx cap add android` first');
+    return;
+  }
+
+  const source = readFileSync(templatePath, 'utf8');
+  const packageLine = `package ${appId};`;
+  const activity = source.replace(/^package\s+[^;]+;/m, packageLine);
+
+  mkdirSync(dirname(targetPath), { recursive: true });
+  writeFileSync(targetPath, activity);
+  console.log(`[android-native] Applied MainActivity template → ${targetPath}`);
+}
+
 loadEnvFile('.env');
 
-const template = join(root, 'native/android/MainActivity.java');
+const appId = readCapacitorAppId(root);
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
-const target = join(root, 'android/app/src/main/java/com/studio/gamestarterkit/MainActivity.java');
 
-if (existsSync(template) && existsSync(target)) {
-  copyFileSync(template, target);
-  console.log('[android-native] Applied MainActivity template');
-} else if (!existsSync(target)) {
-  console.warn('[android-native] Android project not found — run `npx cap add android` first');
-}
+applyMainActivityTemplate(appId);
 
 const adsProvider = process.env.VITE_ADS_PROVIDER ?? 'mock';
 const admobAppId = resolveAdMobAppId();
@@ -177,4 +242,5 @@ if (pushEnabled && existsSync(manifestPath)) {
   const channelResult = injectFcmChannelMetadata(manifestPath);
   console.log(`[android-native] FCM notification channel ${channelResult}`);
   copyFirebaseAndroidConfig();
+  injectGoogleServicesGradle();
 }

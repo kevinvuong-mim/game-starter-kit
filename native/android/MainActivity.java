@@ -1,3 +1,4 @@
+// Package line is rewritten by scripts/apply-android-native.mjs from capacitor.config.ts appId.
 package com.studio.gamestarterkit;
 
 import android.os.Bundle;

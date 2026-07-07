@@ -102,8 +102,9 @@ src/
         ├── iap.ts               # registerIapProvider()
         └── capacitor.ts         # Native plugins, splash, appStateChange
 
-native/                          # Templates merged on build:android / build:ios
-scripts/                         # apply-android-native.mjs, apply-ios-native.mjs
+native/                          # Templates applied on build:android / build:ios
+                                 # (immersive UI, FCM, AdMob only — not RevenueCat/IAP/Preferences)
+scripts/                         # apply-*-native.mjs, native-ops.mjs, capacitor-config.mjs
 public/assets/                   # Static assets (per-game)
   images/                        # UI/game art
   audio/                         # SFX (pop-sound-effect, coin-drop, …)

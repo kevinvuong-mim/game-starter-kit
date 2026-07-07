@@ -98,9 +98,9 @@ node scripts/apply-ios-native.mjs
 ### Android — script tự động:
 
 - Copy `google-services.json` → `android/app/`
+- Inject `com.google.gms:google-services` Gradle plugin (`android/build.gradle` + `android/app/build.gradle`)
 - Thêm permissions: `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `RECEIVE_BOOT_COMPLETED`, `VIBRATE`
 - Thêm FCM default notification channel metadata
-- `google-services` Gradle plugin (đã có sẵn trong `android/app/build.gradle`)
 
 > Android **không cần** `AppDelegate` tương đương. Firebase tự init qua Gradle + `google-services.json`, và Capacitor trả FCM token trực tiếp. Chi tiết Android permissions/channel: xem `scripts/apply-android-native.mjs`.
 

@@ -91,19 +91,6 @@ function patchPodfile(podfilePath) {
   return changed;
 }
 
-function patchInfoPlist(plistPath) {
-  let content = readFileSync(plistPath, 'utf8');
-
-  if (!content.includes('UIStatusBarHidden')) {
-    content = content.replace(
-      '</dict>\n</plist>',
-      '\t<key>UIStatusBarHidden</key>\n\t<true/>\n\t<key>UIStatusBarStyle</key>\n\t<string>UIStatusBarStyleLightContent</string>\n</dict>\n</plist>'
-    );
-    writeFileSync(plistPath, content);
-    console.log('[ios-native] Applied status bar Info.plist keys');
-  }
-}
-
 function patchNotificationPlist(plistPath) {
   let content = readFileSync(plistPath, 'utf8');
   let changed = false;
@@ -286,8 +273,6 @@ if (existsSync(nativeDir)) {
 } else {
   console.warn('[ios-native] native/ios templates not found — skipping fullscreen storyboard copy');
 }
-
-patchInfoPlist(plistPath);
 
 if (pushNotificationsEnabled()) {
   patchNotificationPlist(plistPath);

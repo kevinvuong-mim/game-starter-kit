@@ -88,10 +88,15 @@ game-starter-kit/
 │       ├── firebase-native.md
 │       ├── game-configuration.md
 │       └── mobile-build.md
-├── native/
+├── native/                    # Immersive UI, FCM, AdMob templates only (not RevenueCat/IAP/Preferences)
 │   ├── firebase/              # google-services.json, GoogleService-Info.plist (gitignored)
-│   ├── android/
-│   └── ios/                   # AppDelegate.swift, App.entitlements templates
+│   ├── android/               # MainActivity.java
+│   └── ios/                   # AppDelegate, entitlements, fullscreen storyboard
+├── scripts/
+│   ├── apply-android-native.mjs
+│   ├── apply-ios-native.mjs
+│   ├── capacitor-config.mjs   # Read appId from capacitor.config.ts
+│   └── native-ops.mjs
 ├── eslint.config.js
 ├── index.html
 ├── package.json
@@ -99,7 +104,6 @@ game-starter-kit/
 ├── public/assets/audio/
 ├── resources/
 │   └── logo.webp
-├── scripts/
 ├── src/
 │   ├── main.ts
 │   ├── vite-env.d.ts

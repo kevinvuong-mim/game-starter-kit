@@ -18,7 +18,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-APP_ID="com.studio.gamestarterkit"
+APP_ID="$(node --input-type=module -e "import { readCapacitorAppId } from './scripts/capacitor-config.mjs'; console.log(readCapacitorAppId(process.cwd()));")"
 MAIN_ACTIVITY="${APP_ID}/.MainActivity"
 APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
 BOOT_TIMEOUT_SEC="${BOOT_TIMEOUT_SEC:-300}"
@@ -131,8 +131,10 @@ else
 fi
 
 if [[ "${SKIP_GRADLE:-}" != "1" ]]; then
-  log 'Applying Android native templates...'
-  node scripts/apply-android-native.mjs
+  if [[ "${SKIP_BUILD:-}" == "1" ]]; then
+    log 'Applying Android native templates (SKIP_BUILD=1)...'
+    node scripts/apply-android-native.mjs
+  fi
   log 'Compiling debug APK (./gradlew assembleDebug)...'
   (cd android && ./gradlew assembleDebug --no-daemon)
 else

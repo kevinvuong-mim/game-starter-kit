@@ -71,8 +71,8 @@ game-starter-kit/
 ├── public/assets/             # Static game assets (create per project)
 │   ├── images/                # UI/game art
 │   └── audio/                 # SFX (e.g. pop-sound-effect, coin-drop)
-├── native/                    # Native templates applied on cap sync (AdMob, splash, etc.)
-├── scripts/                   # apply-android-native.mjs, apply-ios-native.mjs
+├── native/                    # Native templates: fullscreen, FCM, AdMob (applied by scripts/)
+├── scripts/                   # apply-android-native.mjs, apply-ios-native.mjs, native-ops.mjs
 ├── index.html
 └── capacitor.config.ts
 ```

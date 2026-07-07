@@ -136,7 +136,7 @@ Thứ tự thực thi:
 2. `cap add android` (nếu chưa có `android/`)
 3. `capacitor-assets generate` — icon/splash
 4. `cap sync android` — copy web assets + cập nhật plugins
-5. `node scripts/apply-android-native.mjs` — apply `MainActivity`, inject AdMob `APPLICATION_ID`
+5. `node scripts/apply-android-native.mjs` — apply `MainActivity` (package từ `capacitor.config.ts`), inject AdMob + Google Services Gradle
 
 Compile APK debug:
 
