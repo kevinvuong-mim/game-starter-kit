@@ -113,6 +113,7 @@
   "leaderboard": {
     "title": "Bảng xếp hạng",
     "refresh": "Làm mới",
+    "refreshing": "Đang cập nhật…",
     "retry": "Thử lại",
     "rank": "Hạng của bạn: #{{rank}}",
     "empty": "Chưa có điểm nào. Chơi một ván để lên bảng!",

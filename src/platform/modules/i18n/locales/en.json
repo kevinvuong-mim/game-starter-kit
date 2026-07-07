@@ -113,6 +113,7 @@
   "leaderboard": {
     "title": "Leaderboard",
     "refresh": "Refresh",
+    "refreshing": "Updating…",
     "retry": "Retry",
     "rank": "Your Rank: #{{rank}}",
     "empty": "No scores yet. Play a game to get on the board!",

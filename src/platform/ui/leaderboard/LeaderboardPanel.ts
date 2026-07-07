@@ -13,6 +13,7 @@ const SKELETON_ROWS = 5;
 const LIST_Y_RATIO = 0.26;
 const FOOTER_PAGE_Y_RATIO = 0.86;
 const FOOTER_RANK_Y_RATIO = 0.78;
+const REFRESHING_LIST_ALPHA = 0.72;
 const FOOTER_UPDATED_Y_RATIO = 0.82;
 
 /**
@@ -216,11 +217,22 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     const loading = view.status === 'loading';
     const refreshing = view.status === 'refreshing';
     const errored = view.status === 'error';
-    this.currentPage = view.pagination.page;
+
+    if (view.status === 'ready') {
+      this.currentPage = view.pagination.page;
+    }
 
     this.skeletonContainer.setVisible(loading);
     this.retryButton.setVisible(errored);
     this.refreshButton.setEnabled(!loading && !refreshing);
+
+    if (refreshing) {
+      this.renderRefreshing(view);
+      return;
+    }
+
+    this.scene.tweens.killTweensOf(this.listContainer);
+    this.listContainer.setAlpha(1);
 
     if (loading) {
       this.listContainer.removeAll(true);
@@ -258,7 +270,18 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.renderPagination(view, true);
   }
 
+  /** Keep the current list visible while a network refresh is in flight. */
+  private renderRefreshing(view: LeaderboardView): void {
+    this.statusText.setVisible(false);
+    this.retryButton.setVisible(false);
+    this.skeletonContainer.setVisible(false);
+    this.listContainer.setAlpha(REFRESHING_LIST_ALPHA);
+    this.updatedText.setText(t('leaderboard.refreshing'));
+    this.renderPagination(view, true, { interactive: false });
+  }
+
   private renderEntries(view: LeaderboardView): void {
+    const animate = this.listContainer.length === 0;
     this.listContainer.removeAll(true);
 
     view.entries.slice(0, LEADERBOARD_LIMIT).forEach((entry, index) => {
@@ -266,11 +289,19 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       this.listContainer.add(this.createEntryRow(entry, index * ROW_HEIGHT, isMe));
     });
 
+    this.scene.tweens.killTweensOf(this.listContainer);
+    this.listContainer.setAlpha(1);
+
+    if (!animate) {
+      return;
+    }
+
+    this.listContainer.setAlpha(0.35);
     this.scene.tweens.add({
-      targets: this.listContainer,
-      alpha: { from: 0.35, to: 1 },
+      alpha: 1,
       duration: 220,
       ease: 'Quad.easeOut',
+      targets: this.listContainer,
     });
   }
 
@@ -363,9 +394,15 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
     this.updatedText.setText(parts.join(' · '));
   }
 
-  private renderPagination(view: LeaderboardView, visible: boolean): void {
+  private renderPagination(
+    view: LeaderboardView,
+    visible: boolean,
+    options: { interactive?: boolean } = {}
+  ): void {
+    const interactive = options.interactive ?? true;
     const { pagination } = view;
     const hasPages = pagination.totalPages > 1;
+    const displayPage = interactive ? pagination.page : this.currentPage;
 
     this.pageText.setVisible(visible && hasPages);
     this.prevPageButton.setVisible(visible && hasPages);
@@ -378,10 +415,17 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
 
     this.pageText.setText(
       t('leaderboard.pageInfo', {
-        page: pagination.page,
+        page: displayPage,
         totalPages: pagination.totalPages,
       })
     );
+
+    if (!interactive) {
+      this.prevPageButton.setEnabled(false);
+      this.nextPageButton.setEnabled(false);
+      return;
+    }
+
     this.prevPageButton.setEnabled(pagination.page > 1);
     this.nextPageButton.setEnabled(pagination.page < pagination.totalPages);
   }
