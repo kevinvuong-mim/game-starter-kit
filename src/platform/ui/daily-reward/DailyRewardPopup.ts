@@ -7,7 +7,7 @@ import { t } from '@platform/modules/i18n/i18n.service';
 import type {
   RewardProgress,
   RewardDayProgress,
-} from '@platform/modules/daily-rewards/daily-reward.model';
+} from '@platform/modules/daily-reward/daily-reward.model';
 import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 

@@ -54,10 +54,11 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 8. Init ads module placement config (`adsModule.init()`).
 9. Set analytics user id và user property `game_id`.
 10. Load local save.
-11. Init daily rewards, settings, missions.
-12. Bind platform event handlers.
-13. Bind controllers: daily reward, leaderboard, game sync, ads, IAP, missions, **notifications**.
-14. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`; native: `capacitor.ts` `appStateChange`).
+11. `syncGuestToStore()` — hydrate display name từ guest credentials.
+12. Init daily rewards, settings, missions.
+13. Bind platform event handlers.
+14. Bind controllers: **guest**, daily reward, leaderboard, game sync, ads, IAP, missions, **notifications**.
+15. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`; native: `capacitor.ts` `appStateChange`).
 
 ---
 
@@ -76,15 +77,15 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event                   | Handler                                                                                                             |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                           |
-| `app:resume`            | Flush pending results; mission reset; daily reward checks; **push heartbeat + local schedule reconcile**            |
-| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets) |
-| `leaderboard:request`   | Load leaderboard cache/network                                                                                      |
-| `ad:reward:request`     | Show rewarded ad and grant reward                                                                                   |
-| `settings:change`       | Save local                                                                                                          |
-| `shop:purchase`         | Track purchase and save local                                                                                       |
+| Event                   | Handler                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                              |
+| `app:resume`            | Flush pending results; mission reset; daily reward checks; guest name flush; push heartbeat + local schedule reconcile |
+| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets)    |
+| `leaderboard:refresh`   | Load leaderboard cache/network (emit từ `LeaderboardPanel` khi mở)                                                     |
+| `ad:reward:request`     | Show rewarded ad and grant reward                                                                                      |
+| `settings:change`       | Save local                                                                                                             |
+| `shop:purchase`         | Track purchase and save local                                                                                          |
 
 ---
 

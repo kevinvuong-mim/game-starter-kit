@@ -162,12 +162,20 @@ export class GameSyncService {
       return queue;
     }
 
+    const rejectedIds = new Set((response.rejected ?? []).map((item) => item.clientResultId));
     const batchIds = new Set(batch.map((item) => item.localId));
-    return queue.map((item) =>
-      batchIds.has(item.localId) && item.gameId === gameId
-        ? { ...item, synced: true, guestId }
-        : item
-    );
+
+    return queue.flatMap((item) => {
+      if (!batchIds.has(item.localId) || item.gameId !== gameId) {
+        return [item];
+      }
+
+      if (rejectedIds.has(item.clientResultId)) {
+        return [];
+      }
+
+      return [{ ...item, synced: true, guestId }];
+    });
   }
 
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {

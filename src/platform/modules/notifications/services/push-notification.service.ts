@@ -1,11 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
+import { i18n } from '@platform/modules/i18n';
 import { deviceSyncService } from './device-sync.service';
-import { i18n } from '@platform/modules/i18n/i18n.service';
 import type { PluginListenerHandle } from '@capacitor/core';
-import { ensureAndroidNotificationChannel } from './android-notification-channel';
-import { mapLocaleToDeviceLocale, type PushNotificationPayload } from './notification.model';
-import { notificationRepository, type NotificationRepository } from './notification.repository';
+import { ensureAndroidNotificationChannel } from '../android-notification-channel';
+import { mapLocaleToDeviceLocale, type PushNotificationPayload } from '../notification.model';
+import { notificationRepository, type NotificationRepository } from '../notification.repository';
 
 type PushActionHandler = (payload: PushNotificationPayload) => void;
 

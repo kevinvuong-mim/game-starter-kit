@@ -6,12 +6,12 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
-import { deviceSyncService } from './device-sync.service';
-import { pushNotificationService } from './push-notification.service';
-import { settings } from '@platform/modules/settings/settings.service';
-import { localNotificationService } from './local-notification.service';
-import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
-import { navigationService } from '@platform/modules/navigation/navigation.service';
+import { settings } from '@platform/modules/settings';
+import { dailyRewards } from '@platform/modules/daily-reward';
+import { navigationService } from '@platform/modules/navigation';
+import { deviceSyncService } from './services/device-sync.service';
+import { pushNotificationService } from './services/push-notification.service';
+import { localNotificationService } from './services/local-notification.service';
 
 export type NotificationStatus = 'off' | 'active' | 'denied' | 'pending';
 

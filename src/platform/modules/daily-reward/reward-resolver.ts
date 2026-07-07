@@ -80,9 +80,9 @@ export class RewardResolver {
     }
 
     return {
-      label: String(definition.coins ?? 0),
       type: 'coins',
       coins: definition.coins,
+      label: String(definition.coins ?? 0),
     };
   }
 
@@ -98,8 +98,8 @@ export class RewardResolver {
       }
 
       return {
-        day: entry.day,
         status,
+        day: entry.day,
         coins: preview.coins,
         rewardType: preview.type,
         rewardLabel: preview.label,

@@ -16,8 +16,8 @@ import { dailyRewardRepository, type DailyRewardRepository } from './daily-rewar
 const BACKWARD_CLOCK_TOLERANCE_MS = 60_000;
 
 export class DailyRewardService {
-  private model: DailyRewardModel = createDefaultModel();
   private initialized = false;
+  private model: DailyRewardModel = createDefaultModel();
 
   constructor(
     private readonly repository: DailyRewardRepository = dailyRewardRepository,
@@ -150,9 +150,9 @@ export class DailyRewardService {
 function toClaimResult(reward: ResolvedReward): ClaimResult {
   return {
     day: reward.day,
-    rewardType: reward.type,
     coins: reward.coins,
     itemId: reward.itemId,
+    rewardType: reward.type,
     itemQuantity: reward.itemQuantity,
   };
 }

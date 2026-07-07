@@ -8,6 +8,7 @@ import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { getConfig } from '@platform/core/config';
+import { usePlatformStore } from '@platform/core/state';
 import { guest, type GuestService } from '@platform/modules/guest';
 import { leaderboardRepository, type LeaderboardRepository } from './leaderboard.repository';
 
@@ -30,10 +31,14 @@ export class LeaderboardService {
     const gameId = getConfig().gameId;
     const cache = await this.repository.loadCache(gameId, this.currentPage);
     if (cache) {
-      this.view = this.buildView(cache.data, {
-        fromCache: true,
-        lastUpdated: cache.updatedAt,
-      });
+      this.view = this.enrichWithLocalBest(
+        this.buildView(cache.data, {
+          fromCache: true,
+          isStale: !isCacheFresh(cache),
+          lastUpdated: cache.updatedAt,
+        })
+      );
+      this.emit(this.view);
     }
     logger.info('[Leaderboard] Initialized');
   }
@@ -48,16 +53,21 @@ export class LeaderboardService {
     }
 
     const current = this.view;
-    if (!options.force && current.lastUpdated && !current.fromCache) {
-      const fresh = isCacheFresh({
-        page: this.currentPage,
-        data: this.toData(current),
-        updatedAt: current.lastUpdated,
-      });
+    if (!options.force && current.lastUpdated && !current.fromCache && !current.isStale) {
+      const fresh =
+        isCacheFresh({
+          page: this.currentPage,
+          data: this.toData(current),
+          updatedAt: current.lastUpdated,
+        }) && current.pagination.page === this.currentPage;
       if (fresh && current.status === 'ready') {
         this.emit(current);
         return current;
       }
+    }
+
+    if (!options.force) {
+      await this.serveCachedPage(this.currentPage);
     }
 
     if (this.inflight) return this.inflight;
@@ -73,9 +83,25 @@ export class LeaderboardService {
     return this.fetchLeaderboard({ force: true, page });
   }
 
-  async fetchPlayerRank(): Promise<number | null> {
-    const view = await this.fetchLeaderboard();
-    return view.myRank;
+  private async serveCachedPage(page: number): Promise<boolean> {
+    const gameId = getConfig().gameId;
+    const cache = await this.repository.loadCache(gameId, page);
+    if (!cache) {
+      return false;
+    }
+
+    const view = this.enrichWithLocalBest(
+      this.buildView(cache.data, {
+        fromCache: true,
+        isStale: !isCacheFresh(cache),
+        lastUpdated: cache.updatedAt,
+        error: !isCacheFresh(cache) ? 'leaderboard.staleBanner' : null,
+      })
+    );
+
+    this.view = view;
+    this.emit(view);
+    return true;
   }
 
   private async runFetch(): Promise<LeaderboardView> {
@@ -111,6 +137,7 @@ export class LeaderboardService {
 
     const view = this.buildView(data, {
       fromCache: false,
+      isStale: false,
       lastUpdated: updatedAt,
       myGuestId: guestId,
     });
@@ -123,13 +150,31 @@ export class LeaderboardService {
     logger.warn('[Leaderboard] Fetch failed', error);
     const current = this.view;
     const hasData = current.entries.length > 0;
+    const localBest = this.getLocalBestScore();
 
-    const view: LeaderboardView = {
+    if (!hasData && localBest !== null) {
+      const view: LeaderboardView = {
+        ...current,
+        status: 'ready',
+        isEmpty: true,
+        fromCache: false,
+        isStale: true,
+        myBestScore: localBest,
+        myRank: null,
+        error: 'leaderboard.offlineLocalBest',
+      };
+      this.view = view;
+      this.emit(view);
+      return view;
+    }
+
+    const view = this.enrichWithLocalBest({
       ...current,
       status: hasData ? 'ready' : 'error',
       fromCache: hasData ? true : current.fromCache,
+      isStale: hasData,
       error: hasData ? 'leaderboard.offline' : 'leaderboard.error',
-    };
+    });
     this.view = view;
     this.emit(view);
     return view;
@@ -137,7 +182,13 @@ export class LeaderboardService {
 
   private buildView(
     data: LeaderboardData,
-    extra: { fromCache: boolean; lastUpdated: number; myGuestId?: string | null }
+    extra: {
+      fromCache: boolean;
+      isStale: boolean;
+      lastUpdated: number;
+      myGuestId?: string | null;
+      error?: string | null;
+    }
   ): LeaderboardView {
     const totalPages = data.total > 0 ? Math.ceil(data.total / data.limit) : 0;
 
@@ -155,9 +206,31 @@ export class LeaderboardService {
       myGuestId: extra.myGuestId ?? this.guestService.getGuestId(),
       isEmpty: data.items.length === 0,
       fromCache: extra.fromCache,
+      isStale: extra.isStale,
       lastUpdated: extra.lastUpdated,
-      error: null,
+      error: extra.error ?? null,
     };
+  }
+
+  private enrichWithLocalBest(view: LeaderboardView): LeaderboardView {
+    const localBest = this.getLocalBestScore();
+    if (localBest === null) {
+      return view;
+    }
+
+    const myBestScore =
+      view.myBestScore === null ? localBest : Math.max(view.myBestScore, localBest);
+
+    return {
+      ...view,
+      myBestScore,
+      isStale: view.isStale || (view.myBestScore === null && localBest !== null),
+    };
+  }
+
+  private getLocalBestScore(): number | null {
+    const score = usePlatformStore.getState().progress.highScore;
+    return score > 0 ? score : null;
   }
 
   private transition(patch: Partial<LeaderboardView>): void {

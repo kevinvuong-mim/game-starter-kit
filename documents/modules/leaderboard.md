@@ -1,15 +1,23 @@
 # Leaderboard
 
-Đọc all-time leaderboard từ `game-api`, cache theo page (TTL 60s, limit 20/page), expose view qua event bus.
+Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo page (TTL 60s, limit 20/page), stale-while-revalidate khi offline.
 
 ## Events
 
-| Event                 | Mô tả                              |
-| --------------------- | ---------------------------------- |
-| `leaderboard:request` | Load cache-aware (mặc định page 1) |
-| `leaderboard:refresh` | Bỏ cache, fetch lại từ network     |
-| `leaderboard:page`    | Load page cụ thể                   |
-| `leaderboard:update`  | UI nhận view model sau khi load    |
+| Event                 | Mô tả                                           |
+| --------------------- | ----------------------------------------------- |
+| `leaderboard:refresh` | Load cache-aware; UI emit khi mở panel (page 1) |
+| `leaderboard:page`    | Load page cụ thể (force network)                |
+| `leaderboard:update`  | UI nhận view model sau khi load                 |
+
+`LeaderboardController` cũng gọi `refreshLeaderboard()` trên `app:resume`.
+
+## Offline behavior
+
+- `init()`: hydrate từ cache local nếu có; đánh dấu `isStale` khi cache hết TTL.
+- `fetchLeaderboard()`: serve cache trước, revalidate nền khi online.
+- `myBestScore`: enrich từ `progress.highScore` local khi API không trả `self`.
+- UI hiển thị banner khi `status === 'offline'` hoặc `isStale === true`.
 
 ## Endpoint
 
@@ -30,4 +38,4 @@
 
 ## View model
 
-UI nhận `leaderboard:update` với `entries[].bestScore`, `myRank`, `myBestScore`.
+UI nhận `leaderboard:update` với `entries[].bestScore`, `myRank`, `myBestScore`, `isStale`, `fromCache`, `status`.

@@ -130,7 +130,7 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 | shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                  |
 | missions      | Daily / weekly / permanent missions (`missions.json`)                     |
 | leaderboard   | Offline cache, TTL, paginated leaderboard via REST                        |
-| daily-rewards | 7-day streak calendar, local persistence                                  |
+| daily-reward  | 7-day streak calendar, local persistence                                  |
 | save          | Single `game-save` key — hydrates Zustand store on boot                   |
 | settings      | Language, sound, vibration, graphics — part of store state                |
 | guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`) |

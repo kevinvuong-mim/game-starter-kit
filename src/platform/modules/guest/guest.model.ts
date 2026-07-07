@@ -12,6 +12,8 @@ export interface GuestCredentials {
   guestId: string;
   secretToken: string;
   name?: string | null;
+  /** When true, `name` is saved locally but not yet confirmed by the server. */
+  nameSyncPending?: boolean;
 }
 
 /** Shape of the `POST /guest/init` response payload (inside the envelope). */

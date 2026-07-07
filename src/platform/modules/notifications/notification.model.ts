@@ -87,10 +87,6 @@ export function normalizeNotificationState(value: unknown): NotificationState {
   return {
     heartbeatPending: Boolean(raw.heartbeatPending),
     unregisterPending: Boolean(raw.unregisterPending),
-    pendingNotificationsEnabled:
-      typeof raw.pendingNotificationsEnabled === 'boolean'
-        ? raw.pendingNotificationsEnabled
-        : null,
     syncAttempts: typeof raw.syncAttempts === 'number' ? raw.syncAttempts : 0,
     pendingToken: typeof raw.pendingToken === 'string' ? raw.pendingToken : null,
     lastSyncedToken: typeof lastSyncedToken === 'string' ? lastSyncedToken : null,
@@ -102,6 +98,8 @@ export function normalizeNotificationState(value: unknown): NotificationState {
       raw.pendingLocale === 'EN' || raw.pendingLocale === 'VI' ? raw.pendingLocale : null,
     lastSyncedLocale:
       raw.lastSyncedLocale === 'EN' || raw.lastSyncedLocale === 'VI' ? raw.lastSyncedLocale : null,
+    pendingNotificationsEnabled:
+      typeof raw.pendingNotificationsEnabled === 'boolean' ? raw.pendingNotificationsEnabled : null,
   };
 }
 

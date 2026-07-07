@@ -36,7 +36,7 @@ Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts
 │  panels / hud / toast / audio / button / screen │
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
-│  i18n shop missions leaderboard daily-rewards│
+│  i18n shop missions leaderboard daily-reward│
 │  notifications navigation save settings guest│
 │  game-sync ads iap                           │
 ├─────────────────────────────────────────────┤
@@ -618,7 +618,7 @@ guest.init():
 Hệ quả khi `guestStatus = 'pending'`:
 
 ```text
-- Gameplay, HUD, shop (currency local), missions, daily-rewards vẫn chạy
+- Gameplay, HUD, shop (currency local), missions, daily-reward vẫn chạy
   bình thường 100% offline (không phụ thuộc guestId).
 - game-sync: kết quả trận đấu vẫn được ghi vào local queue (game-sync)
   như bình thường — CHỈ hoãn gọi POST /results tới khi
@@ -648,15 +648,17 @@ analytics.setUserProperty(
 
 saveService.loadLocal()
 
+syncGuestToStore()
+
 dailyRewards.init()
 settings.init()
 missions.init()
 
 bindPlatformEvents()
 
-dailyRewardController.bind(events)
-
 Push unsubscribers:
+guestController.bind
+dailyRewardController.bind(events)
 leaderboardController.bind
 gameSyncController.bind
 bindAdsController
@@ -1166,7 +1168,7 @@ i18n
 shop
 missions
 leaderboard
-daily-rewards
+daily-reward
 save
 settings
 guest
@@ -1181,10 +1183,10 @@ iap
 
 Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificationsEnabled`, `localNotificationsEnabled`).
 
-| Loại                    | Trigger client                             | API                                                       |
-| ----------------------- | ------------------------------------------ | --------------------------------------------------------- |
-| Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH /api/devices`, `PATCH /api/devices/heartbeat` |
-| Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                         |
+| Loại                    | Trigger client                             | API                                                                                         |
+| ----------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH /api/devices`, `PATCH /api/devices/heartbeat`, `PATCH /api/devices/preferences` |
+| Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                                                           |
 
 Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
@@ -1247,9 +1249,11 @@ PATCH /api/guest/name
 Storage key:
 
 ```text
-gsk:guest → JSON { guestId: string, secretToken: string }
+gsk:guest → JSON { guestId: string, secretToken: string, name?: string, nameSyncPending?: boolean }
 Provider: Capacitor Preferences (native) / localStorage (web)
 ```
+
+**Offline name:** `updateName()` cập nhật local trước, set `nameSyncPending: true`, flush qua `PATCH /api/guest/name` khi online. `guest.controller.ts` retry trên `app:resume`, `guest.onReady`, network reconnect.
 
 ### Game sync
 
@@ -1268,7 +1272,7 @@ Endpoint:
 POST /api/results
   Header: Authorization: Bearer <secretToken>
   Body: { gameId, items: [{ clientResultId, score, playedAt, metadata, signature }] }
-  Response: { success, insertedCount, message }
+  Response: { success, insertedCount, rejectedCount?, rejected?, message }
 ```
 
 Limits:
@@ -1306,6 +1310,10 @@ result kể cả khi request trước đó thật ra đã thành công phía ser
 
 ### Leaderboard
 
+Hybrid offline-first: cache theo page (TTL 60s), stale-while-revalidate, `myBestScore` từ `progress.highScore` local.
+
+Events: `leaderboard:refresh`, `leaderboard:page`, `leaderboard:update` (không còn `leaderboard:request`).
+
 Endpoint:
 
 ```text
@@ -1320,6 +1328,9 @@ PATCH /api/devices
 
 PATCH /api/devices/heartbeat
   (app resume)
+
+PATCH /api/devices/preferences
+  Body: { enabled: boolean }
 
 DELETE /api/devices
   (unregister)
@@ -1534,13 +1545,13 @@ Verify
 
 # 18. Backend integration summary
 
-| Feature      | Endpoint                                                     | Auth   |
-| ------------ | ------------------------------------------------------------ | ------ |
-| Guest init   | POST /api/guest/init                                         | Không  |
-| Guest rename | PATCH /api/guest/name                                        | Bearer |
-| Game sync    | POST /api/results                                            | Bearer |
-| Leaderboard  | GET /api/leaderboards                                        | Không  |
-| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/heartbeat | Bearer |
+| Feature      | Endpoint                                                                                     | Auth   |
+| ------------ | -------------------------------------------------------------------------------------------- | ------ |
+| Guest init   | POST /api/guest/init                                                                         | Không  |
+| Guest rename | PATCH /api/guest/name                                                                        | Bearer |
+| Game sync    | POST /api/results                                                                            | Bearer |
+| Leaderboard  | GET /api/leaderboards                                                                        | Không  |
+| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/heartbeat, PATCH /api/devices/preferences | Bearer |
 
 Lưu ý:
 

@@ -90,8 +90,13 @@ export class NameSettingsPanel extends Phaser.GameObjects.Container {
 
     this.saving = true;
     try {
-      await guest.updateName(name);
-      toast.show({ message: t('settings.playerNameUpdated'), type: 'success' });
+      const result = await guest.updateName(name);
+      toast.show({
+        message: result.synced
+          ? t('settings.playerNameUpdated')
+          : t('settings.playerNameSavedLocally'),
+        type: 'success',
+      });
     } catch {
       toast.show({ message: t('settings.playerNameFailed'), type: 'error' });
     } finally {

@@ -60,11 +60,11 @@ export class DailyRewardRepository {
 
     return {
       version: state.version,
-      currentDay: clampDay(state.currentDay),
       lastClaimDate: state.lastClaimDate,
+      currentDay: clampDay(state.currentDay),
+      timeManipulated: state.timeManipulated ?? false,
       lastClaimWallClock: state.lastClaimWallClock ?? 0,
       lastSessionTimestamp: state.lastSessionTimestamp ?? 0,
-      timeManipulated: state.timeManipulated ?? false,
     };
   }
 
@@ -73,9 +73,9 @@ export class DailyRewardRepository {
       version: model.version,
       currentDay: model.currentDay,
       lastClaimDate: model.lastClaimDate,
+      timeManipulated: model.timeManipulated,
       lastClaimWallClock: model.lastClaimWallClock,
       lastSessionTimestamp: model.lastSessionTimestamp,
-      timeManipulated: model.timeManipulated,
     };
   }
 
@@ -125,12 +125,12 @@ function migrateLegacyState(legacy: LegacyDailyRewardState): DailyRewardModel {
     legacy.lastClaimAt > 0 ? getLocalDateString(new Date(legacy.lastClaimAt)) : null;
 
   return {
-    version: DAILY_REWARD_MODEL_VERSION,
     currentDay,
     lastClaimDate,
+    timeManipulated: false,
+    version: DAILY_REWARD_MODEL_VERSION,
     lastClaimWallClock: legacy.lastClaimAt ?? 0,
     lastSessionTimestamp: legacy.lastClaimAt ?? 0,
-    timeManipulated: false,
   };
 }
 

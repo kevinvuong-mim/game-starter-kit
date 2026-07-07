@@ -24,7 +24,8 @@
       "@platform/ui/*": ["src/platform/ui/*"],
       "@platform/core/*": ["src/platform/core/*"],
       "@platform/modules/*": ["src/platform/modules/*"],
-      "@platform/bootstrap/*": ["src/platform/bootstrap/*"]
+      "@platform/bootstrap/*": ["src/platform/bootstrap/*"],
+      "@platform/modules": ["src/platform/modules/index.ts"]
     }
   }
 }

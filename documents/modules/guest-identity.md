@@ -10,9 +10,9 @@ Guest identity quản lý anonymous player cho `game-api`.
 
 ## Storage
 
-| Key         | Provider                                            | Nội dung                   |
-| ----------- | --------------------------------------------------- | -------------------------- |
-| `gsk:guest` | Capacitor Preferences (native) / localStorage (web) | `{ guestId, secretToken }` |
+| Key         | Provider                                            | Nội dung                                            |
+| ----------- | --------------------------------------------------- | --------------------------------------------------- |
+| `gsk:guest` | Capacitor Preferences (native) / localStorage (web) | `{ guestId, secretToken, name?, nameSyncPending? }` |
 
 ## `guest.init()` flow
 
@@ -22,6 +22,25 @@ Guest identity quản lý anonymous player cho `game-api`.
 4. Lưu `{ guestId, secretToken }`, gọi `setAuthToken`.
 
 Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry khi network online (`@capacitor/network` trên native, `window.online` trên web). Khi API trả 401, `guest.recoverFromUnauthorized()` xóa credentials cũ và tạo guest mới.
+
+`init()` và `recoverFromUnauthorized()` dùng mutex để tránh race khi retry song song.
+
+## Offline name sync
+
+Đổi tên qua `guest.updateName()`:
+
+1. Cập nhật local ngay (`displayName` trong store + `name` trong `gsk:guest`).
+2. Set `nameSyncPending: true`.
+3. Gọi `PATCH /api/guest/name` khi online.
+
+`guest.controller.ts` gọi `flushPendingName()` khi:
+
+- `app:resume`
+- `guest.onReady`
+- `window.online` (web)
+- `@capacitor/network` reconnect (native)
+
+Sau sync thành công: `nameSyncPending: false`.
 
 ## Endpoints
 

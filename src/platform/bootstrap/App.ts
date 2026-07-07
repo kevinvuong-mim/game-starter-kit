@@ -1,26 +1,31 @@
+import {
+  i18n,
+  guest,
+  missions,
+  settings,
+  leaderboard,
+  saveService,
+  dailyRewards,
+  guestController,
+  bindAdsController,
+  bindIapController,
+  missionController,
+  gameSyncController,
+  dailyRewardController,
+  leaderboardController,
+  notificationController,
+} from '@platform/modules';
 import { logger } from '@platform/core/error';
 import { apiClient } from '@platform/core/api';
-import { guest } from '@platform/modules/guest';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
-import { bindAdsController } from '@platform/modules/ads';
-import { bindIapController } from '@platform/modules/iap';
-import { i18n } from '@platform/modules/i18n/i18n.service';
 import { registerAdsProvider } from '@platform/bootstrap/ads';
 import { registerIapProvider } from '@platform/bootstrap/iap';
-import { gameSyncController } from '@platform/modules/game-sync';
-import { saveService } from '@platform/modules/save/save.service';
 import { trackSessionEnd } from '@platform/core/analytics/events';
 import { bindAppEvents } from '@platform/bootstrap/bind-app-events';
-import { settings } from '@platform/modules/settings/settings.service';
-import { missions, missionController } from '@platform/modules/missions';
-import { notificationController } from '@platform/modules/notifications';
 import { bindAppLifecycle } from '@platform/bootstrap/bind-app-lifecycle';
-import { bindGuestStoreSync } from '@platform/bootstrap/sync-guest-store';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
-import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
-import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
-import { dailyRewardController } from '@platform/modules/daily-rewards/daily-reward.controller';
+import { syncGuestToStore, bindGuestStoreSync } from '@platform/bootstrap/sync-guest-store';
 
 const { ads, iap, config, events, analytics } = services;
 
@@ -87,6 +92,7 @@ export class App {
     analytics.setUserProperty('game_id', config().gameId);
 
     await saveService.loadLocal();
+    syncGuestToStore();
     await dailyRewards.init();
     await settings.init();
     missions.init();
@@ -95,6 +101,7 @@ export class App {
     this.unsubscribers.push(bindAppLifecycle());
     this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
     this.controllerUnsubscribers.push(
+      guestController.bind(events),
       leaderboardController.bind(events),
       gameSyncController.bind(events),
       bindAdsController(events),

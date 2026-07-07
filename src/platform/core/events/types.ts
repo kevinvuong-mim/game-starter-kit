@@ -11,7 +11,7 @@ import type {
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
-import type { RewardProgress } from '@platform/modules/daily-rewards/daily-reward.model';
+import type { RewardProgress } from '@platform/modules/daily-reward/daily-reward.model';
 
 export type PlatformEvent = keyof PlatformEventMap;
 
@@ -74,7 +74,6 @@ export interface PlatformEventMap {
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
   'leaderboard:refresh': { page?: number } | undefined;
-  'leaderboard:request': { page?: number } | undefined;
   'iap:entitlement:changed': IapEntitlementChangedPayload;
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };

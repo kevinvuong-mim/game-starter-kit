@@ -26,15 +26,16 @@ Preset trong `src/platform/core/config/notification-env.json`, merge vào `ENV_C
 
 ## File chính
 
-| File                               | Vai trò                                                                |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| `notification.service.ts`          | Orchestrator: init, tap handler, daily reward reconcile                |
-| `push-notification.service.ts`     | Capacitor PushNotifications, đăng ký token lên API                     |
-| `local-notification.service.ts`    | Schedule/cancel daily reward reminder                                  |
-| `notification.repository.ts`       | `POST/PATCH/DELETE /devices`, heartbeat                                |
-| `notification.controller.ts`       | Bind lifecycle: `guest.onReady`, `app:resume`, `daily:claim`, settings |
-| `notification.model.ts`            | Types, routes, `resolveNotificationRoute()`                            |
-| `navigation/navigation.service.ts` | In-app navigation + pending queue (cold start)                         |
+| File                                     | Vai trò                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `notification.service.ts`                | Orchestrator: init, tap handler, daily reward reconcile                |
+| `services/push-notification.service.ts`  | Capacitor PushNotifications, đăng ký token lên API                     |
+| `services/local-notification.service.ts` | Schedule/cancel daily reward reminder                                  |
+| `services/device-sync.service.ts`        | Token refresh, heartbeat, preferences sync                             |
+| `notification.repository.ts`             | `POST/PATCH/DELETE /devices`, heartbeat, `PATCH /devices/preferences`  |
+| `notification.controller.ts`             | Bind lifecycle: `guest.onReady`, `app:resume`, `daily:claim`, settings |
+| `notification.model.ts`                  | Types, routes, `resolveNotificationRoute()`                            |
+| `navigation/navigation.service.ts`       | In-app navigation + pending queue (cold start)                         |
 
 ## Init flow
 
@@ -52,6 +53,7 @@ Permission granted → FCM token
   → POST /api/devices (lần đầu)
   → PATCH /api/devices (token refresh hoặc đổi locale)
   → PATCH /api/devices/heartbeat (app resume)
+  → PATCH /api/devices/preferences (bật/tắt push)
   → DELETE /api/devices (unregister — API có sẵn, chưa gọi từ UI)
 ```
 
@@ -86,12 +88,13 @@ Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bin
 
 ## Events liên quan
 
-| Event                          | Handler                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| `app:resume`                   | Push: refresh token + heartbeat; local: reconcile daily schedule        |
-| `daily:claim`                  | Schedule local reminder ngày hôm sau                                    |
-| `settings:change` (`language`) | Push: `PATCH /api/devices` với locale mới                               |
-| `boot:preload-complete`        | `markBootComplete()` + clear pending (PreloadScene navigate tới target) |
+| Event                               | Handler                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| `app:resume`                        | Push: refresh token + heartbeat; local: reconcile daily schedule        |
+| `daily:claim`                       | Schedule local reminder ngày hôm sau                                    |
+| `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                               |
+| `settings:change` (`notifications`) | Push: `PATCH /api/devices/preferences` với `enabled`                    |
+| `boot:preload-complete`             | `markBootComplete()` + clear pending (PreloadScene navigate tới target) |
 
 ## API backend
 

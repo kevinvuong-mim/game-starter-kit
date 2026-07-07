@@ -14,7 +14,7 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 ├─────────────────────────────────────────────┤
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n / shop / missions / leaderboard / save │
-│  settings / daily-rewards / guest / game-sync│
+│  settings / daily-reward / guest / game-sync│
 │  notifications / navigation / ads (module) / iap (module)    │
 ├─────────────────────────────────────────────┤
 │        PLATFORM CORE (src/platform/core/)    │
@@ -68,12 +68,12 @@ src/
     │   ├── shop/                # shop.service.ts + catalog.json
     │   ├── missions/            # mission.service.ts + missions.json
     │   ├── leaderboard/         # service + repository + controller + model
-    │   ├── daily-rewards/       # service + repository + controller + model
+    │   ├── daily-reward/          # service + repository + controller + model
     │   ├── save/                # save.service.ts
     │   ├── settings/            # settings.service.ts
-    │   ├── guest/               # guest.service.ts + repository (API auth)
+    │   ├── guest/               # guest.service.ts, guest.repository.ts, guest.controller.ts
     │   ├── game-sync/           # offline queue + controller
-    │   ├── notifications/       # push + local notification services + controller
+    │   ├── notifications/       # services/ (push, local, device-sync) + controller
     │   ├── navigation/          # navigation.service.ts — scene routing + pending queue
     │   ├── ads/                 # static placement config module + controller
     │   └── iap/                 # purchase flow, entitlements, ads integration
@@ -92,7 +92,8 @@ src/
     │   ├── settings/SoundSettingsPanel.ts
     │   ├── how-to-play/HowToPlayPanel.ts
     │   ├── legal/LegalPanel.ts
-    │   └── typography.ts        # FREDOKA_FONT, NUNITO_FONT (in index.ts)
+    │   ├── modal/ModalScreen.ts
+    │   └── index.ts             # FREDOKA_FONT, NUNITO_FONT + barrel exports
     └── bootstrap/
         ├── App.ts               # Module wiring, event handlers, lifecycle
         ├── GameEngine.ts        # Phaser bootstrap, fonts, toast + sound init
@@ -110,13 +111,14 @@ public/assets/                   # Static assets (per-game)
 
 ## Path Aliases
 
-| Alias                   | Resolves to                |
-| ----------------------- | -------------------------- |
-| `@platform/core/*`      | `src/platform/core/*`      |
-| `@platform/modules/*`   | `src/platform/modules/*`   |
-| `@platform/ui/*`        | `src/platform/ui/*`        |
-| `@platform/bootstrap/*` | `src/platform/bootstrap/*` |
-| `@game/*`               | `src/game/*`               |
+| Alias                   | Resolves to                              |
+| ----------------------- | ---------------------------------------- |
+| `@platform/core/*`      | `src/platform/core/*`                    |
+| `@platform/modules`     | `src/platform/modules/index.ts` (barrel) |
+| `@platform/modules/*`   | `src/platform/modules/*`                 |
+| `@platform/ui/*`        | `src/platform/ui/*`                      |
+| `@platform/bootstrap/*` | `src/platform/bootstrap/*`               |
+| `@game/*`               | `src/game/*`                             |
 
 Vite also exposes bare aliases (`@game`, `@platform/ui`, …) for directory imports.
 
@@ -201,22 +203,22 @@ Durable save   →  saveService (key: game-save)
 
 **Location:** `src/platform/modules/`
 
-| Module        | Key files                                                                        |
-| ------------- | -------------------------------------------------------------------------------- |
-| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                                   |
-| shop          | `shop/shop.service.ts` + `shop/catalog.json`                                     |
-| missions      | `missions/mission.service.ts` + `missions/missions.json`                         |
-| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`        |
-| settings      | `settings/settings.service.ts`                                                   |
-| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`       |
-| save          | `save/save.service.ts`                                                           |
-| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init`       |
-| game-sync     | Offline match queue → `POST /results`; controller on `game:over`                 |
-| notifications | Push (FCM) + local daily reward; `notification.controller.ts` on lifecycle       |
-| navigation    | `navigation.service.ts` — tap notification → Phaser scene; pending on cold start |
-| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`                   |
+| Module        | Key files                                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                                                                 |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`                                                                   |
+| missions      | `missions/mission.service.ts` + `missions/missions.json`                                                       |
+| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`                                      |
+| settings      | `settings/settings.service.ts`                                                                                 |
+| daily-reward  | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`                                     |
+| save          | `save/save.service.ts`                                                                                         |
+| guest         | `guest.service.ts`, `guest.repository.ts`, `guest.controller.ts` — lazy `POST /guest/init`, offline name queue |
+| game-sync     | Offline match queue → `POST /results`; controller on `game:over`                                               |
+| notifications | Push (FCM) + local daily reward; `notification.controller.ts` on lifecycle                                     |
+| navigation    | `navigation.service.ts` — tap notification → Phaser scene; pending on cold start                               |
+| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`                                                 |
 
-**Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, `notificationController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
+**Controller pattern:** `guestController`, `leaderboardController`, `gameSyncController`, `dailyRewardController`, `notificationController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
 
 Modules are initialized in `bootstrap/App.ts`. Mission progress is **merged** with saved state on init (not reset).
 
@@ -271,12 +273,13 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 8. adsModule.init() (static ad placement config)
 9. analytics.setUserId() + setUserProperty('game_id')
 10. saveService.loadLocal()        ← hydrate store
-11. dailyRewards.init()
-12. settings.init()
-13. missions.init()
-14. bindPlatformEvents()
-15. Bind controllers: dailyReward, leaderboard, gameSync, ads, IAP, missions, **notifications**
-16. bindLifecycle() (web visibility)
+11. syncGuestToStore()             ← hydrate display name from guest credentials
+12. dailyRewards.init()
+13. settings.init()
+14. missions.init()
+15. bindPlatformEvents()
+16. Bind controllers: guest, dailyReward, leaderboard, gameSync, ads, IAP, missions, **notifications**
+17. bindLifecycle() (web visibility)
 ```
 
 `GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Audio files are preloaded in `PreloadScene`. When assets finish loading, `PreloadScene.create()` reads the pending boot destination via `getBootNavigationTarget()`, emits `boot:preload-complete` (which calls `navigationService.markBootComplete()`), then starts the target scene. `SoundManager` reads `settings.soundEnabled` from the store before playing.

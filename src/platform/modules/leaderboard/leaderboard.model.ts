@@ -36,6 +36,7 @@ export interface LeaderboardCache {
 
 export interface LeaderboardView {
   isEmpty: boolean;
+  isStale: boolean;
   fromCache: boolean;
   error: string | null;
   pagination: {
@@ -65,6 +66,7 @@ export function createInitialView(): LeaderboardView {
     status: 'idle',
     myGuestId: null,
     fromCache: false,
+    isStale: false,
     myBestScore: null,
     lastUpdated: null,
     pagination: createInitialPagination(),

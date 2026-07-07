@@ -243,9 +243,13 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
 
     if (view.isEmpty) {
       this.listContainer.removeAll(true);
-      this.setStatus(t('leaderboard.empty'));
+      this.setStatus(t(view.error ?? 'leaderboard.empty'));
     } else {
-      this.statusText.setVisible(false);
+      if (view.isStale && view.error) {
+        this.setStatus(t(view.error));
+      } else {
+        this.statusText.setVisible(false);
+      }
       this.renderEntries(view);
     }
 
@@ -323,6 +327,12 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
       return;
     }
 
+    if (view.myBestScore && view.myBestScore > 0) {
+      this.rankText.setText(t('leaderboard.localBest', { score: view.myBestScore }));
+      this.rankText.setVisible(true);
+      return;
+    }
+
     if (view.myGuestId) {
       this.rankText.setText(t('leaderboard.rankUnavailable'));
       this.rankText.setVisible(true);
@@ -340,7 +350,17 @@ export class LeaderboardPanel extends Phaser.GameObjects.Container {
 
     const seconds = Math.max(0, Math.round((Date.now() - view.lastUpdated) / 1000));
     const when = t('leaderboard.updatedAgo', { seconds });
-    this.updatedText.setText(view.fromCache ? `${t('leaderboard.cached')} · ${when}` : when);
+    const parts: string[] = [];
+
+    if (view.isStale) {
+      parts.push(t('leaderboard.stale'));
+    }
+    if (view.fromCache) {
+      parts.push(t('leaderboard.cached'));
+    }
+
+    parts.push(when);
+    this.updatedText.setText(parts.join(' · '));
   }
 
   private renderPagination(view: LeaderboardView, visible: boolean): void {

@@ -1,7 +1,7 @@
 import { guest } from '@platform/modules/guest';
 import { usePlatformStore } from '@platform/core/state';
 
-function syncGuestToStore(): void {
+export function syncGuestToStore(): void {
   const guestId = guest.getGuestId();
   if (!guestId) return;
 

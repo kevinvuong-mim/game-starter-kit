@@ -5,7 +5,6 @@ import { leaderboard, type LeaderboardService } from './leaderboard.service';
  * Connects the leaderboard service to the event bus so the UI stays decoupled
  * from data fetching:
  *
- * - `leaderboard:request` → load (cache-aware).
  * - `leaderboard:refresh` → force a network refresh.
  * - `leaderboard:page`    → load a specific page.
  */
@@ -14,16 +13,16 @@ export class LeaderboardController {
 
   bind(events: IEventBus): () => void {
     const unsubs = [
-      events.on('leaderboard:request', (payload) => {
-        void this.service.fetchLeaderboard({ page: payload?.page }).catch(() => undefined);
-      }),
-
       events.on('leaderboard:refresh', (payload) => {
         void this.service.refreshLeaderboard(payload?.page).catch(() => undefined);
       }),
 
       events.on('leaderboard:page', ({ page }) => {
         void this.service.fetchLeaderboard({ page, force: true }).catch(() => undefined);
+      }),
+
+      events.on('app:resume', () => {
+        void this.service.refreshLeaderboard().catch(() => undefined);
       }),
     ];
 

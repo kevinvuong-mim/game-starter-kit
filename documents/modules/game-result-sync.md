@@ -56,9 +56,12 @@ Header: `Authorization: Bearer <secretToken>`
   "success": true,
   "insertedCount": 1,
   "rejectedCount": 0,
+  "rejected": [],
   "message": "Results submitted"
 }
 ```
+
+Item trong `rejected[]` (signature invalid, v.v.) **không** được đánh dấu synced — vẫn ở queue để retry hoặc drop theo policy.
 
 ## Metadata
 
@@ -70,4 +73,4 @@ Header: `Authorization: Bearer <secretToken>`
 1. `game:over` → queue local.
 2. `flush()` khi online / `app:resume` / guest ready / native network reconnect.
 3. Batch tối đa 50 items, Bearer auth.
-4. Đánh dấu batch synced khi HTTP success.
+4. Chỉ đánh dấu synced các item có trong `insertedCount` (loại trừ `rejected`).

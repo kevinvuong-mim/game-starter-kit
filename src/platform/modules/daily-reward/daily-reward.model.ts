@@ -6,14 +6,14 @@ export interface DailyRewardModel {
   version: number;
   /** Next reward day in the 7-day cycle (1–7). */
   currentDay: number;
-  /** Local calendar date of the last claim (`YYYY-MM-DD`). */
-  lastClaimDate: string | null;
-  /** `Date.now()` at the moment of the last successful claim. */
-  lastClaimWallClock: number;
-  /** `Date.now()` from the previous app session. */
-  lastSessionTimestamp: number;
   /** Set when clock manipulation is detected; blocks further claims. */
   timeManipulated: boolean;
+  /** `Date.now()` at the moment of the last successful claim. */
+  lastClaimWallClock: number;
+  /** Local calendar date of the last claim (`YYYY-MM-DD`). */
+  lastClaimDate: string | null;
+  /** `Date.now()` from the previous app session. */
+  lastSessionTimestamp: number;
 }
 
 export interface LegacyDailyRewardState {
