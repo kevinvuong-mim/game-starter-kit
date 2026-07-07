@@ -17,10 +17,10 @@ const DEFAULT_RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
 export class ApiClient implements IApiClient {
   private baseUrl: string;
   private authToken: string | null = null;
-  private authRecoveryHandler: AuthRecoveryHandler | null = null;
   private errorInterceptors: ErrorInterceptor[] = [];
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
+  private authRecoveryHandler: AuthRecoveryHandler | null = null;
 
   constructor(baseUrl?: string) {
     this.baseUrl = baseUrl ?? '';

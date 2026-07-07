@@ -5,6 +5,7 @@ import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
 export abstract class BaseScreen extends Phaser.GameObjects.Container implements IUIScreen {
   abstract readonly id: string;
+
   protected overlay?: Phaser.GameObjects.Rectangle;
 
   constructor(scene: Phaser.Scene, x = 0, y = 0) {

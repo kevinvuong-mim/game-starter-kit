@@ -1,4 +1,4 @@
-export type ProductType = 'non_consumable' | 'consumable' | 'subscription';
+export type ProductType = 'consumable' | 'subscription' | 'non_consumable';
 
 export interface ProductDefinition {
   id: string;
@@ -8,54 +8,54 @@ export interface ProductDefinition {
 
 export interface ProviderProduct {
   id: string;
-  type: ProductType;
   title: string;
   price: string;
   currency: string;
+  type: ProductType;
   description: string;
   priceAmount: number;
 }
 
 export interface ProviderPurchase {
-  productId: string;
-  transactionId: string;
   receipt: string;
+  productId: string;
   purchaseTime: number;
+  transactionId: string;
 }
 
 export interface PurchaseResult {
+  error?: string;
   success: boolean;
   cancelled: boolean;
   entitlement?: string;
-  error?: string;
 }
 
 export interface RestoreResult {
+  error?: string;
   success: boolean;
   restoredEntitlements: string[];
-  error?: string;
 }
 
 export interface IapInitState {
-  loading: boolean;
   ready: boolean;
+  loading: boolean;
   error: string | null;
 }
 
 export interface StoredEntitlements {
   version: number;
-  entitlements: string[];
   updatedAt: number;
+  entitlements: string[];
 }
 
 export interface IAPProvider {
   readonly name: string;
   initialize(): Promise<void>;
-  getProducts(): Promise<ProviderProduct[]>;
-  purchase(productId: string): Promise<ProviderPurchase>;
-  restore(): Promise<ProviderPurchase[]>;
   /** Sync active entitlements from the provider (RevenueCat CustomerInfo, mock cache). */
   fetchEntitlements(): Promise<string[]>;
+  restore(): Promise<ProviderPurchase[]>;
+  getProducts(): Promise<ProviderProduct[]>;
+  purchase(productId: string): Promise<ProviderPurchase>;
 }
 
 export class IapError extends Error {

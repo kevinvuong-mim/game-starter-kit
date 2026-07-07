@@ -3,9 +3,9 @@ import {
   NOTIFICATION_CHANNEL,
   getNextDailyRewardReminderAt,
 } from '../notification.model';
+import { t } from '@platform/modules/i18n';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
-import { t } from '@platform/modules/i18n';
 import { ensureAndroidNotificationChannel } from '../android-notification-channel';
 
 export class LocalNotificationService {

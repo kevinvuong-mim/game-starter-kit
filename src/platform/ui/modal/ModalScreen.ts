@@ -24,6 +24,7 @@ type ResolvedModalLayout = {
 
 export class ModalScreen extends BaseScreen {
   readonly id = 'modal';
+
   private onClose?: () => void;
   private defaultLayout: ModalScreenLayout;
   private content?: Phaser.GameObjects.Text;

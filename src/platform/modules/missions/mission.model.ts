@@ -1,10 +1,10 @@
 import { getLocalDateKey, now } from '@platform/core/utils/time';
 
+export type MissionBehaviorType = 'WATCH_AD';
+
 export type MissionStatus = 'active' | 'completed' | 'claimed';
 
 export type MissionResetPolicy = 'daily' | 'weekly' | 'never' | 'repeat';
-
-export type MissionBehaviorType = 'WATCH_AD';
 
 export interface MissionReward {
   type: 'coins';

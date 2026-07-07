@@ -11,9 +11,9 @@ interface HowToPlaySceneData {
 }
 
 export class HowToPlayScene extends Phaser.Scene {
-  private unsubscribers: Array<() => void> = [];
   private returnTo = 'Settings';
   private returnData?: Record<string, unknown>;
+  private unsubscribers: Array<() => void> = [];
 
   constructor() {
     super({ key: 'HowToPlay' });
