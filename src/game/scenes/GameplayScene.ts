@@ -82,6 +82,7 @@ export class GameplayScene extends Phaser.Scene {
     });
 
     eventBus.emit('game:start', { gameId: gameConfig.id });
+    eventBus.emit('ad:context:change', { context: 'GAMEPLAY' });
 
     this.unsubscribers.push(
       eventBus.on('app:back', () => {

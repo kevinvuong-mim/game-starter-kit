@@ -6,9 +6,9 @@ import {
   createDefaultNotificationState,
 } from './notification.model';
 import { Capacitor } from '@capacitor/core';
-import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import type { ApiEnvelope } from '@platform/core/api';
+import { apiClient, unwrapSuccessEnvelope } from '@platform/core/api';
 
 interface RegisterDeviceResponse {
   status: string;
@@ -42,7 +42,7 @@ export class NotificationRepository {
       platform,
       locale,
     });
-    return envelope.data;
+    return unwrapSuccessEnvelope(envelope);
   }
 
   async updateDevice(token: string, locale: DeviceLocale) {
@@ -50,7 +50,7 @@ export class NotificationRepository {
       token,
       locale,
     });
-    return envelope.data;
+    return unwrapSuccessEnvelope(envelope);
   }
 
   async unregisterDevice() {

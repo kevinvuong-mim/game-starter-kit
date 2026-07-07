@@ -5,6 +5,8 @@
  * (see `documents/game.md` §9). The shared {@link ApiClient} returns the raw
  * body, so repositories must unwrap `.data` to reach the real payload.
  */
+import { ApiError } from './types';
+
 export interface ApiEnvelope<T> {
   data: T;
   path: string;
@@ -24,8 +26,15 @@ export interface ApiErrorEnvelope {
   errors?: Array<{ field: string; message: string; constraint: string; value: unknown }>;
 }
 
-/** Unwrap a success envelope to its inner payload. */
-export function unwrapEnvelope<T>(envelope: ApiEnvelope<T>): T {
+/** Unwrap a success envelope to its inner payload, throwing if success is false. */
+export function unwrapSuccessEnvelope<T>(envelope: ApiEnvelope<T>): T {
+  if (!envelope.success) {
+    throw new ApiError(
+      envelope.message ?? 'API request failed',
+      envelope.statusCode ?? 500,
+      envelope
+    );
+  }
   return envelope.data;
 }
 

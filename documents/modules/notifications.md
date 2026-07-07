@@ -79,19 +79,19 @@ Luồng:
 Khi app bị kill, tap notification có thể tới **trước** khi Phaser sẵn sàng. `navigationService` **defer** payload cho đến `boot:preload-complete`:
 
 1. Tap sớm → lưu `pending` (không navigate).
-2. `PreloadScene.create()` emit `boot:preload-complete`.
-3. `navigationService` consume pending → mở scene đích (hoặc `Home`).
+2. `PreloadScene.create()` emit `boot:preload-complete` → `navigationService.markBootComplete()`.
+3. `PreloadScene` đọc `getBootNavigationTarget()` và `scene.start()` tới pending scene hoặc `Home`.
 
 Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bind — không mất event, chỉ cần defer navigate.
 
 ## Events liên quan
 
-| Event                          | Handler                                                          |
-| ------------------------------ | ---------------------------------------------------------------- |
-| `app:resume`                   | Push: refresh token + heartbeat; local: reconcile daily schedule |
-| `daily:claim`                  | Schedule local reminder ngày hôm sau                             |
-| `settings:change` (`language`) | Push: `PATCH /api/devices` với locale mới                        |
-| `boot:preload-complete`        | Resolve pending navigation sau preload assets                    |
+| Event                          | Handler                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| `app:resume`                   | Push: refresh token + heartbeat; local: reconcile daily schedule        |
+| `daily:claim`                  | Schedule local reminder ngày hôm sau                                    |
+| `settings:change` (`language`) | Push: `PATCH /api/devices` với locale mới                               |
+| `boot:preload-complete`        | `markBootComplete()` + clear pending (PreloadScene navigate tới target) |
 
 ## API backend
 

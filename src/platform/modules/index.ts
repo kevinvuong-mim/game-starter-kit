@@ -8,5 +8,5 @@ export { missions, missionController } from './missions';
 export { gameSync, gameSyncController } from './game-sync';
 export type { SupportedLanguage } from './i18n/i18n.service';
 export { leaderboard, leaderboardController } from './leaderboard';
+export { iap, PRODUCTS, IAP_EVENTS, bindIapController } from './iap';
 export { dailyRewards, dailyRewardController } from './daily-rewards';
-export { iap, PRODUCTS, IAP_EVENTS, bindIapController, useEntitlement } from './iap';

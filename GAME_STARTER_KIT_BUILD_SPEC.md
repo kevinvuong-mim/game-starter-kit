@@ -118,7 +118,6 @@ android/
 ios/
 .env
 .vite/
-coverage/
 ```
 
 ---
@@ -141,7 +140,7 @@ Scripts:
 
 ```text
 dev
-build
+build              # tsc + vite only; không chain game:verify-config
 preview
 cap:sync
 cap:add:android  # via scripts/native-ops.mjs ensure android
@@ -166,7 +165,6 @@ Dependencies:
 @capacitor-community/admob
 @capacitor/app
 @capacitor/core
-@capacitor/haptics
 @capacitor/network
 @capacitor/preferences
 @capacitor/local-notifications
@@ -403,10 +401,8 @@ dist/
 *.local
 android/
 .DS_Store
-coverage/
 node_modules/
 !.env.example
-playwright-report/
 ```
 
 ---
@@ -684,7 +680,7 @@ Boot → Preload → Home (hoặc scene từ notification tap nếu pending)
                   └→ Settings → HowToPlay / Legal
 ```
 
-`PreloadScene.create()` emit `boot:preload-complete` → `navigationService` consume pending notification destination (cold start).
+`PreloadScene.create()` gọi `getBootNavigationTarget()` (đọc pending notification destination), emit `boot:preload-complete` → `navigationService.markBootComplete()`, rồi `scene.start()` tới target (cold start).
 
 BootScene:
 
@@ -1190,7 +1186,7 @@ Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificati
 | Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH /api/devices`, `PATCH /api/devices/heartbeat` |
 | Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                         |
 
-Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete`.
+Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
 Storage: `notification-state-v1` (`lastRegisteredToken`, `permissionGranted`).
 
@@ -1501,8 +1497,8 @@ npm install
 cp .env.example .env
 # Điền VITE_REPLAY_SECRET vào .env trước khi chạy
 npm run lint
+npm run game:verify-config   # manual — chạy trước build production / native
 npm run build
-npm run game:verify-config
 npm run dev
 ```
 

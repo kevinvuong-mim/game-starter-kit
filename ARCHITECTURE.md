@@ -279,7 +279,7 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 16. bindLifecycle() (web visibility)
 ```
 
-`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Audio files are preloaded in `PreloadScene`; `PreloadScene` emits `boot:preload-complete` to flush any pending notification navigation. `SoundManager` reads `settings.soundEnabled` from the store before playing.
+`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Audio files are preloaded in `PreloadScene`. When assets finish loading, `PreloadScene.create()` reads the pending boot destination via `getBootNavigationTarget()`, emits `boot:preload-complete` (which calls `navigationService.markBootComplete()`), then starts the target scene. `SoundManager` reads `settings.soundEnabled` from the store before playing.
 
 `BootScene` emits `app:ready` → `App.ts` hides native splash and requests APP_START/HOME ads.
 
@@ -332,7 +332,7 @@ Boot → Preload → Home (hoặc scene từ notification tap nếu có pending)
                   └→ (modal overlay via screenManager on Home)
 ```
 
-Notification tap dùng **in-app navigation** (`type` + `route` trong FCM `data` / local `extra`), không dùng deeplink URL. Cold start: `navigationService` defer cho đến `boot:preload-complete`.
+Notification tap dùng **in-app navigation** (`type` + `route` trong FCM `data` / local `extra`), không dùng deeplink URL. Cold start: `navigationService` defer cho đến `boot:preload-complete` (listener trong `navigation.service.ts` gọi `markBootComplete()`).
 
 `HomeScene` registers `ModalScreen` with `screenManager` and calls `screenManager.unregisterForScene(this)` on shutdown.
 
@@ -360,7 +360,7 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 - **Local:** `@capacitor/local-notifications` — daily reward reminder 07:00 ngày hôm sau (`localNotificationsEnabled`; bật cả trên `dev`).
 - **Backend triggers:** Top 100 entered/exited, Saturday rank broadcast (xem `game-api` Devices API).
 - **Tap handling:** FCM `data` / local `extra` → `resolveNotificationRoute()` → `navigationService.navigateToScene()`. Không dùng deeplink URL.
-- **Cold start:** Pending navigation queue cho đến `boot:preload-complete` (sau preload assets trong `PreloadScene`).
+- **Cold start:** Pending navigation queue cho đến `boot:preload-complete`. `PreloadScene` emit event sau khi assets load; `navigationService` subscribe event để `markBootComplete()` và clear pending.
 - **Setup:** [documents/setup/firebase-native.md](./documents/setup/firebase-native.md), [documents/modules/notifications.md](./documents/modules/notifications.md).
 
 ## Starting a New Game

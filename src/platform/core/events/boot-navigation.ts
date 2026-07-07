@@ -11,6 +11,7 @@ export function registerBootNavigationResolver(fn: BootNavigationResolver): void
   resolver = fn;
 }
 
-export function resolveBootNavigation(): BootNavigationTarget {
+/** Read pending boot destination without side effects (no markBootComplete). */
+export function getBootNavigationTarget(): BootNavigationTarget {
   return resolver?.() ?? { sceneKey: 'Home' };
 }

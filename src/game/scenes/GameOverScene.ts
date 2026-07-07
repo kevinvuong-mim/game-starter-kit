@@ -10,6 +10,8 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data: { score?: number; jumps?: number } = {}): void {
+    eventBus.emit('ad:context:change', { context: 'HOME' });
+
     const score = data.score ?? 0;
     const { width, height } = this.cameras.main;
 

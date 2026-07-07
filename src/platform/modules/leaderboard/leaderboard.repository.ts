@@ -4,9 +4,9 @@ import {
   type LeaderboardCache,
   LEADERBOARD_CACHE_PREFIX,
 } from './leaderboard.model';
-import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import type { ApiEnvelope } from '@platform/core/api';
+import { apiClient, unwrapSuccessEnvelope } from '@platform/core/api';
 
 export interface FetchLeaderboardParams {
   page?: number;
@@ -36,7 +36,7 @@ export class LeaderboardRepository {
       { timeout: this.timeoutMs, auth: false }
     );
 
-    return this.normalize(envelope.data, page, limit);
+    return this.normalize(unwrapSuccessEnvelope(envelope), page, limit);
   }
 
   async loadCache(gameId: string, page: number): Promise<LeaderboardCache | null> {

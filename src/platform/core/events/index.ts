@@ -1,5 +1,5 @@
 export {
-  resolveBootNavigation,
+  getBootNavigationTarget,
   type BootNavigationTarget,
   registerBootNavigationResolver,
 } from './boot-navigation';

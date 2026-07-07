@@ -158,7 +158,7 @@ Kiểm tra:
 
 1. Backend gửi FCM với `data: { type, route }` (ví dụ `top_100_entered`, `route: Leaderboard`)
 2. Tap notification → in-app navigation tới `Leaderboard` (không dùng deeplink URL)
-3. Cold start: navigation được defer cho đến sau preload assets (`boot:preload-complete`)
+3. Cold start: navigation được defer cho đến sau preload assets; `navigationService` subscribe `boot:preload-complete` để `markBootComplete()`
 
 ---
 
@@ -171,7 +171,7 @@ Client **không dùng deeplink URL**. Flow:
 | Push Top 100 / Saturday | `data.type` + `data.route`   | `Leaderboard` |
 | Local daily reward      | `extra.type` + `extra.route` | `DailyReward` |
 
-**Cold start:** Nếu user tap notification khi app bị kill, `navigationService` lưu pending destination và navigate sau `PreloadScene` emit `boot:preload-complete` (assets đã load).
+**Cold start:** Nếu user tap notification khi app bị kill, `navigationService` lưu pending destination. Sau preload assets, `PreloadScene` emit `boot:preload-complete` (listener gọi `markBootComplete()`) rồi navigate tới target scene.
 
 Chi tiết module: [documents/modules/notifications.md](../modules/notifications.md).
 

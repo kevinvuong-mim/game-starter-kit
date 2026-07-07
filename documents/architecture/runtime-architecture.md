@@ -36,7 +36,7 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 9. `toast.init(game)`.
 10. `soundManager.init(game)`.
 
-`PreloadScene` emit `boot:preload-complete` sau khi load assets — flush pending notification navigation (cold start).
+`PreloadScene` emit `boot:preload-complete` sau khi load assets — `navigationService` subscribe event để `markBootComplete()` và clear pending navigation (cold start).
 
 ---
 
@@ -76,15 +76,15 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event                   | Handler                                                                                                  |
-| ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                |
-| `app:resume`            | Flush pending results; mission reset; daily reward checks; **push heartbeat + local schedule reconcile** |
-| `boot:preload-complete` | **Pending notification navigation** → target scene hoặc `Home` (emit từ `PreloadScene`)                  |
-| `leaderboard:request`   | Load leaderboard cache/network                                                                           |
-| `ad:reward:request`     | Show rewarded ad and grant reward                                                                        |
-| `settings:change`       | Save local                                                                                               |
-| `shop:purchase`         | Track purchase and save local                                                                            |
+| Event                   | Handler                                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                           |
+| `app:resume`            | Flush pending results; mission reset; daily reward checks; **push heartbeat + local schedule reconcile**            |
+| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets) |
+| `leaderboard:request`   | Load leaderboard cache/network                                                                                      |
+| `ad:reward:request`     | Show rewarded ad and grant reward                                                                                   |
+| `settings:change`       | Save local                                                                                                          |
+| `shop:purchase`         | Track purchase and save local                                                                                       |
 
 ---
 

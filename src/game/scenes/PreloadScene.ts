@@ -1,9 +1,7 @@
 import Phaser from 'phaser';
 
-import { eventBus, resolveBootNavigation } from '@platform/core/events';
+import { eventBus, getBootNavigationTarget } from '@platform/core/events';
 import { SOUND_POP_KEY, SOUND_COIN_DROP_KEY } from '@platform/ui/audio/SoundManager';
-
-const PRELOAD_EXTRA_DELAY_MS = 10_000;
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -36,14 +34,12 @@ export class PreloadScene extends Phaser.Scene {
     this.ensureFallbackTexture('play-button-background', 256, 78, 0x4a90d9);
     this.ensureFallbackTexture('play-button-icon', 43, 43, 0xffffff);
 
-    const target = resolveBootNavigation();
+    const target = getBootNavigationTarget();
 
-    this.time.delayedCall(PRELOAD_EXTRA_DELAY_MS, () => {
-      eventBus.emit('boot:preload-complete', undefined);
+    eventBus.emit('boot:preload-complete', undefined);
 
-      // Must transition from this scene — game.scene.start() would leave Preload visible.
-      this.scene.start(target.sceneKey, target.data);
-    });
+    // Must transition from this scene — game.scene.start() would leave Preload visible.
+    this.scene.start(target.sceneKey, target.data);
   }
 
   private ensureFallbackTexture(key: string, width: number, height: number, color: number): void {
