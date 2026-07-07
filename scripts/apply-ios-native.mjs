@@ -1,13 +1,17 @@
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
-import { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolvePushNotificationsEnabled } from './notification-config.mjs';
+import { rmSync, existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+const ENTITLEMENTS_FILE = 'App.entitlements';
 const SWIFT_FILE_REF_ID = 'F5LL5CRN1FED79650016851F';
+const ENTITLEMENTS_REF_ID = 'F5LL5CRN3FED79650016851F';
 const SWIFT_BUILD_FILE_ID = 'F5LL5CRN2FED79650016851F';
 const SWIFT_FILE = 'FullscreenBridgeViewController.swift';
 const GOOGLE_SAMPLE_IOS_APP_ID = 'ca-app-pub-3940256099942544~1458002511';
+const ENTITLEMENTS_BUILD_SETTING = 'CODE_SIGN_ENTITLEMENTS = App/App.entitlements;';
 
 function loadEnvFile(name) {
   const envPath = join(root, name);
@@ -33,18 +37,58 @@ function resolveAdMobAppId() {
   return '';
 }
 
+function pushNotificationsEnabled() {
+  return resolvePushNotificationsEnabled();
+}
+
+function resetIosPods(podDir) {
+  const podfileLockPath = join(podDir, 'Podfile.lock');
+  const podsDir = join(podDir, 'Pods');
+  const manifestPath = join(podsDir, 'Manifest.lock');
+
+  if (existsSync(podfileLockPath)) {
+    unlinkSync(podfileLockPath);
+    console.log('[ios-native] Cleared Podfile.lock for fresh pod resolve');
+  }
+
+  if (existsSync(manifestPath)) {
+    unlinkSync(manifestPath);
+  }
+
+  if (existsSync(podsDir)) {
+    rmSync(podsDir, { recursive: true, force: true });
+    console.log('[ios-native] Cleared Pods/ for fresh pod resolve');
+  }
+}
+
 function patchPodfile(podfilePath) {
   if (!existsSync(podfilePath)) return false;
   let content = readFileSync(podfilePath, 'utf8');
-  if (content.includes("pod 'GoogleUserMessagingPlatform'")) return false;
+  let changed = false;
 
-  content = content.replace(
-    /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
-    `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`
-  );
-  writeFileSync(podfilePath, content);
-  console.log('[ios-native] Pinned GoogleUserMessagingPlatform ~> 2.3 in Podfile');
-  return true;
+  if (!content.includes("pod 'GoogleUserMessagingPlatform'")) {
+    content = content.replace(
+      /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n)/,
+      `$1  pod 'GoogleUserMessagingPlatform', '~> 2.3'\n`
+    );
+    changed = true;
+    console.log('[ios-native] Pinned GoogleUserMessagingPlatform ~> 2.3 in Podfile');
+  }
+
+  if (pushNotificationsEnabled() && !content.includes("pod 'FirebaseMessaging'")) {
+    content = content.replace(
+      /(target 'App' do\n(?:.*\n)*? {2}# Add your Pods here\n(?:.*\n)*?)/,
+      `$1  pod 'FirebaseMessaging'\n`
+    );
+    changed = true;
+    console.log('[ios-native] Added FirebaseMessaging pod');
+  }
+
+  if (changed) {
+    writeFileSync(podfilePath, content);
+  }
+
+  return changed;
 }
 
 function patchInfoPlist(plistPath) {
@@ -57,6 +101,32 @@ function patchInfoPlist(plistPath) {
     );
     writeFileSync(plistPath, content);
     console.log('[ios-native] Applied status bar Info.plist keys');
+  }
+}
+
+function patchNotificationPlist(plistPath) {
+  let content = readFileSync(plistPath, 'utf8');
+  let changed = false;
+
+  if (!content.includes('UIBackgroundModes')) {
+    content = content.replace(
+      '</dict>\n</plist>',
+      '\t<key>UIBackgroundModes</key>\n\t<array>\n\t\t<string>remote-notification</string>\n\t</array>\n</dict>\n</plist>'
+    );
+    changed = true;
+  }
+
+  if (!content.includes('FirebaseAppDelegateProxyEnabled')) {
+    content = content.replace(
+      '</dict>\n</plist>',
+      '\t<key>FirebaseAppDelegateProxyEnabled</key>\n\t<true/>\n</dict>\n</plist>'
+    );
+    changed = true;
+  }
+
+  if (changed) {
+    writeFileSync(plistPath, content);
+    console.log('[ios-native] Applied push notification Info.plist keys');
   }
 }
 
@@ -90,34 +160,80 @@ function patchAdMobPlist(plistPath, appId) {
 
 function patchPbxproj(projectPath) {
   let content = readFileSync(projectPath, 'utf8');
-  if (content.includes(SWIFT_FILE)) return;
+  let changed = false;
 
-  content = content.replace(
-    '504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };',
-    `504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
+  if (!content.includes(SWIFT_FILE)) {
+    content = content.replace(
+      '504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };',
+      `504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 \t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */ = {isa = PBXBuildFile; fileRef = ${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */; };`
-  );
+    );
 
-  content = content.replace(
-    '504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };',
-    `504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+    content = content.replace(
+      '504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };',
+      `504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 \t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ${SWIFT_FILE}; sourceTree = "<group>"; };`
-  );
+    );
 
-  content = content.replace(
-    '504EC3071FED79650016851F /* AppDelegate.swift */,',
-    `504EC3071FED79650016851F /* AppDelegate.swift */,
+    content = content.replace(
+      '504EC3071FED79650016851F /* AppDelegate.swift */,',
+      `504EC3071FED79650016851F /* AppDelegate.swift */,
 \t\t\t\t${SWIFT_FILE_REF_ID} /* ${SWIFT_FILE} */,`
-  );
+    );
 
-  content = content.replace(
-    '504EC3081FED79650016851F /* AppDelegate.swift in Sources */,',
-    `504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+    content = content.replace(
+      '504EC3081FED79650016851F /* AppDelegate.swift in Sources */,',
+      `504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 \t\t\t\t${SWIFT_BUILD_FILE_ID} /* ${SWIFT_FILE} in Sources */,`
-  );
+    );
 
-  writeFileSync(projectPath, content);
-  console.log('[ios-native] Registered FullscreenBridgeViewController in Xcode project');
+    changed = true;
+    console.log('[ios-native] Registered FullscreenBridgeViewController in Xcode project');
+  }
+
+  if (pushNotificationsEnabled() && !content.includes(ENTITLEMENTS_FILE)) {
+    content = content.replace(
+      '504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };',
+      `504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+\t\t${ENTITLEMENTS_REF_ID} /* ${ENTITLEMENTS_FILE} */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ${ENTITLEMENTS_FILE}; sourceTree = "<group>"; };`
+    );
+
+    content = content.replace(
+      '504EC3071FED79650016851F /* AppDelegate.swift */,',
+      `504EC3071FED79650016851F /* AppDelegate.swift */,
+\t\t\t\t${ENTITLEMENTS_REF_ID} /* ${ENTITLEMENTS_FILE} */,`
+    );
+
+    if (!content.includes(ENTITLEMENTS_BUILD_SETTING)) {
+      content = content.replace(
+        /CODE_SIGN_STYLE = Automatic;\n/g,
+        `CODE_SIGN_STYLE = Automatic;\n\t\t\t\t${ENTITLEMENTS_BUILD_SETTING}\n`
+      );
+    }
+
+    changed = true;
+    console.log('[ios-native] Registered App.entitlements in Xcode project');
+  }
+
+  if (changed) {
+    writeFileSync(projectPath, content);
+  }
+}
+
+function copyFirebaseIosConfig(iosAppDir) {
+  const source = join(root, 'native/firebase/GoogleService-Info.plist');
+  const target = join(iosAppDir, 'GoogleService-Info.plist');
+
+  if (!existsSync(source)) {
+    console.warn(
+      '[ios-native] Missing native/firebase/GoogleService-Info.plist — FCM push will not work until you add it'
+    );
+    return false;
+  }
+
+  copyFileSync(source, target);
+  console.log('[ios-native] Copied GoogleService-Info.plist to ios/App/App/');
+  return true;
 }
 
 loadEnvFile('.env');
@@ -138,9 +254,8 @@ if (!existsSync(iosAppDir)) {
 
 if (mode === 'pre-sync') {
   const podfileChanged = patchPodfile(podfilePath);
-  if (podfileChanged && existsSync(podfileLockPath)) {
-    unlinkSync(podfileLockPath);
-    console.log('[ios-native] Cleared Podfile.lock after UMP pin change');
+  if (podfileChanged) {
+    resetIosPods(podDir);
   }
   process.exit(0);
 }
@@ -148,6 +263,8 @@ if (mode === 'pre-sync') {
 if (existsSync(nativeDir)) {
   const swiftTemplate = join(nativeDir, SWIFT_FILE);
   const storyboardTemplate = join(nativeDir, 'Main.storyboard');
+  const appDelegateTemplate = join(nativeDir, 'AppDelegate.swift');
+  const entitlementsTemplate = join(nativeDir, ENTITLEMENTS_FILE);
 
   if (existsSync(swiftTemplate)) {
     copyFileSync(swiftTemplate, join(iosAppDir, SWIFT_FILE));
@@ -155,7 +272,15 @@ if (existsSync(nativeDir)) {
   if (existsSync(storyboardTemplate)) {
     copyFileSync(storyboardTemplate, join(iosAppDir, 'Base.lproj/Main.storyboard'));
   }
-  if (existsSync(iosProject) && existsSync(swiftTemplate)) {
+  if (pushNotificationsEnabled() && existsSync(appDelegateTemplate)) {
+    copyFileSync(appDelegateTemplate, join(iosAppDir, 'AppDelegate.swift'));
+    console.log('[ios-native] Applied Firebase AppDelegate template');
+  }
+  if (pushNotificationsEnabled() && existsSync(entitlementsTemplate)) {
+    copyFileSync(entitlementsTemplate, join(iosAppDir, ENTITLEMENTS_FILE));
+    console.log('[ios-native] Applied App.entitlements template');
+  }
+  if (existsSync(iosProject)) {
     patchPbxproj(iosProject);
   }
 } else {
@@ -163,6 +288,11 @@ if (existsSync(nativeDir)) {
 }
 
 patchInfoPlist(plistPath);
+
+if (pushNotificationsEnabled()) {
+  patchNotificationPlist(plistPath);
+  copyFirebaseIosConfig(iosAppDir);
+}
 
 const adsProvider = process.env.VITE_ADS_PROVIDER ?? 'mock';
 const admobAppId = resolveAdMobAppId();

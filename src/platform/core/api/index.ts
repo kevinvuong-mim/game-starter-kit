@@ -9,5 +9,5 @@ export type {
 } from './types';
 export { ApiError } from './types';
 export { apiClient, ApiClient } from './ApiClient';
-export { unwrapEnvelope, isApiErrorEnvelope } from './envelope';
 export type { ApiEnvelope, ApiErrorEnvelope } from './envelope';
+export { isApiErrorEnvelope, unwrapSuccessEnvelope } from './envelope';

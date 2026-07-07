@@ -15,7 +15,7 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 │      PLATFORM MODULES (src/platform/modules/)│
 │  i18n / shop / missions / leaderboard / save │
 │  settings / daily-rewards / guest / game-sync│
-│  ads (module) / iap (module)                                │
+│  notifications / navigation / ads (module) / iap (module)    │
 ├─────────────────────────────────────────────┤
 │        PLATFORM CORE (src/platform/core/)    │
 │  events / state / config / storage / api     │
@@ -73,6 +73,8 @@ src/
     │   ├── settings/            # settings.service.ts
     │   ├── guest/               # guest.service.ts + repository (API auth)
     │   ├── game-sync/           # offline queue + controller
+    │   ├── notifications/       # push + local notification services + controller
+    │   ├── navigation/          # navigation.service.ts — scene routing + pending queue
     │   ├── ads/                 # static placement config module + controller
     │   └── iap/                 # purchase flow, entitlements, ads integration
     ├── ui/
@@ -199,20 +201,22 @@ Durable save   →  saveService (key: game-save)
 
 **Location:** `src/platform/modules/`
 
-| Module        | Key files                                                                  |
-| ------------- | -------------------------------------------------------------------------- |
-| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                             |
-| shop          | `shop/shop.service.ts` + `shop/catalog.json`                               |
-| missions      | `missions/mission.service.ts` + `missions/missions.json`                   |
-| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`  |
-| settings      | `settings/settings.service.ts`                                             |
-| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts` |
-| save          | `save/save.service.ts`                                                     |
-| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init` |
-| game-sync     | Offline match queue → `POST /results`; controller on `game:over`           |
-| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`             |
+| Module        | Key files                                                                        |
+| ------------- | -------------------------------------------------------------------------------- |
+| i18n          | `i18n/i18n.service.ts` + `i18n/locales/*.json`                                   |
+| shop          | `shop/shop.service.ts` + `shop/catalog.json`                                     |
+| missions      | `missions/mission.service.ts` + `missions/missions.json`                         |
+| leaderboard   | `leaderboard.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`        |
+| settings      | `settings/settings.service.ts`                                                   |
+| daily-rewards | `daily-reward.service.ts`, `.repository.ts`, `.controller.ts`, `.model.ts`       |
+| save          | `save/save.service.ts`                                                           |
+| guest         | `guest/guest.service.ts` + `guest.repository.ts` — lazy `POST /guest/init`       |
+| game-sync     | Offline match queue → `POST /results`; controller on `game:over`                 |
+| notifications | Push (FCM) + local daily reward; `notification.controller.ts` on lifecycle       |
+| navigation    | `navigation.service.ts` — tap notification → Phaser scene; pending on cold start |
+| ads (module)  | Remote ad config, reward handling; `bindAdsController(events)`                   |
 
-**Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
+**Controller pattern:** `leaderboardController`, `gameSyncController`, `dailyRewardController`, `notificationController`, and `bindAdsController` subscribe to the event bus in `App.init()` and bridge UI/lifecycle events to services. UI panels emit/request events; they do not call the API directly.
 
 Modules are initialized in `bootstrap/App.ts`. Mission progress is **merged** with saved state on init (not reset).
 
@@ -244,13 +248,13 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                   |
-| --------------- | ---------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle               |
-| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game  |
-| `analytics.ts`  | Registers Console + Firebase analytics providers                       |
-| `ads.ts`        | Registers Mock or AdMob provider based on platform + env               |
-| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume` |
+| File            | Role                                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                             |
+| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()` |
+| `analytics.ts`  | Registers Console + Firebase analytics providers                                                     |
+| `ads.ts`        | Registers Mock or AdMob provider based on platform + env                                             |
+| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                               |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
@@ -271,11 +275,11 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 12. settings.init()
 13. missions.init()
 14. bindPlatformEvents()
-15. Bind controllers: dailyReward, leaderboard, gameSync, ads, IAP, missions
+15. Bind controllers: dailyReward, leaderboard, gameSync, ads, IAP, missions, **notifications**
 16. bindLifecycle() (web visibility)
 ```
 
-`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. `toast.init(game)` and `soundManager.init(game)` run after the game instance exists. Audio files are preloaded in `PreloadScene`; `SoundManager` reads `settings.soundEnabled` from the store before playing.
+`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Audio files are preloaded in `PreloadScene`. When assets finish loading, `PreloadScene.create()` reads the pending boot destination via `getBootNavigationTarget()`, emits `boot:preload-complete` (which calls `navigationService.markBootComplete()`), then starts the target scene. `SoundManager` reads `settings.soundEnabled` from the store before playing.
 
 `BootScene` emits `app:ready` → `App.ts` hides native splash and requests APP_START/HOME ads.
 
@@ -318,15 +322,17 @@ App.ts → saveService.saveLocal()
 ## Scene Flow
 
 ```
-Boot → Preload → Home
+Boot → Preload → Home (hoặc scene từ notification tap nếu có pending)
                   ├→ Gameplay → GameOver → Home / Gameplay
                   ├→ Shop
                   ├→ Missions
-                  ├→ Leaderboard
-                  ├→ DailyReward
+                  ├→ Leaderboard   ← push: Top 100, Saturday rank
+                  ├→ DailyReward   ← local: daily reward reminder
                   ├→ Settings → HowToPlay / Legal
                   └→ (modal overlay via screenManager on Home)
 ```
+
+Notification tap dùng **in-app navigation** (`type` + `route` trong FCM `data` / local `extra`), không dùng deeplink URL. Cold start: `navigationService` defer cho đến `boot:preload-complete` (listener trong `navigation.service.ts` gọi `markBootComplete()`).
 
 `HomeScene` registers `ModalScreen` with `screenManager` and calls `screenManager.unregisterForScene(this)` on shutdown.
 
@@ -348,6 +354,15 @@ Firebase DebugView: run a staging build with analytics enabled and use the Fireb
 
 Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android-native.mjs` / `apply-ios-native.mjs` from `native/`.
 
+## Notifications
+
+- **Push (FCM):** `@capacitor/push-notifications` — staging/production native when `pushNotificationsEnabled` + đủ `VITE_FIREBASE_*`. Token sync qua `POST/PATCH /api/devices`.
+- **Local:** `@capacitor/local-notifications` — daily reward reminder 07:00 ngày hôm sau (`localNotificationsEnabled`; bật cả trên `dev`).
+- **Backend triggers:** Top 100 entered/exited, Saturday rank broadcast (xem `game-api` Devices API).
+- **Tap handling:** FCM `data` / local `extra` → `resolveNotificationRoute()` → `navigationService.navigateToScene()`. Không dùng deeplink URL.
+- **Cold start:** Pending navigation queue cho đến `boot:preload-complete`. `PreloadScene` emit event sau khi assets load; `navigationService` subscribe event để `markBootComplete()` và clear pending.
+- **Setup:** [documents/setup/firebase-native.md](./documents/setup/firebase-native.md), [documents/modules/notifications.md](./documents/modules/notifications.md).
+
 ## Starting a New Game
 
 1. Clone this repo: `git clone <url> my-new-game`
@@ -356,7 +371,7 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 4. Update `capacitor.config.ts` (appId, appName)
 5. Implement gameplay in `src/game/scenes/GameplayScene.ts`
 6. Load assets in `PreloadScene.ts`; place images under `public/assets/images/` and audio under `public/assets/audio/`
-7. Configure AdMob/Firebase env vars for native release builds
+7. Configure AdMob/Firebase env vars and native FCM files for push on release builds (see `documents/setup/firebase-native.md`)
 
 ## Adding a New Platform Module
 

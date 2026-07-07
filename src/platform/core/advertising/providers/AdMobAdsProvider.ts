@@ -34,6 +34,7 @@ type AdMobModule = {
 
 export class AdMobAdsProvider implements IAdsProvider {
   readonly name = 'admob';
+
   private bannerVisible = false;
   private ready = new Set<AdFormat>();
   private cached = new Set<AdFormat>();

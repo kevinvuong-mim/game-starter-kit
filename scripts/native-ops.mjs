@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
@@ -8,8 +9,8 @@ function fail(message) {
   process.exit(1);
 }
 
-function run(command, args) {
-  const result = spawnSync(command, args, { stdio: 'inherit' });
+function run(command, args, options = {}) {
+  const result = spawnSync(command, args, { stdio: 'inherit', ...options });
 
   if (result.error) {
     throw result.error;
@@ -18,6 +19,10 @@ function run(command, args) {
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+}
+
+function runInDir(directory, command, args) {
+  run(command, args, { cwd: directory });
 }
 
 function ensureCapPlatform(targetPlatform) {
@@ -38,6 +43,16 @@ function ensureCapPlatform(targetPlatform) {
   fail(`Unsupported platform: ${targetPlatform}`);
 }
 
+function resolveIosPods() {
+  const iosAppDir = join(process.cwd(), 'ios/App');
+  if (!existsSync(join(iosAppDir, 'Podfile'))) {
+    return;
+  }
+
+  console.log('[native-ops] Resolving iOS pods with repo update...');
+  runInDir(iosAppDir, 'pod', ['install', '--repo-update']);
+}
+
 function build(targetPlatform) {
   run('npm', ['run', 'build']);
   ensureCapPlatform(targetPlatform);
@@ -51,6 +66,7 @@ function build(targetPlatform) {
 
   if (targetPlatform === 'ios') {
     run('node', ['scripts/apply-ios-native.mjs', 'pre-sync']);
+    resolveIosPods();
     run('cap', ['sync', 'ios']);
     run('node', ['scripts/apply-ios-native.mjs']);
     return;

@@ -1,17 +1,6 @@
-import {
-  trackAdReward,
-  trackGameOver,
-  trackPurchase,
-  trackGameStart,
-  trackSessionEnd,
-  trackLevelComplete,
-  trackMissionComplete,
-} from '@platform/core/analytics/events';
-import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { apiClient } from '@platform/core/api';
 import { guest } from '@platform/modules/guest';
-import { generateId } from '@platform/core/utils';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
 import { bindAdsController } from '@platform/modules/ads';
@@ -20,10 +9,14 @@ import { i18n } from '@platform/modules/i18n/i18n.service';
 import { registerAdsProvider } from '@platform/bootstrap/ads';
 import { registerIapProvider } from '@platform/bootstrap/iap';
 import { gameSyncController } from '@platform/modules/game-sync';
-import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
+import { trackSessionEnd } from '@platform/core/analytics/events';
+import { bindAppEvents } from '@platform/bootstrap/bind-app-events';
 import { settings } from '@platform/modules/settings/settings.service';
 import { missions, missionController } from '@platform/modules/missions';
+import { notificationController } from '@platform/modules/notifications';
+import { bindAppLifecycle } from '@platform/bootstrap/bind-app-lifecycle';
+import { bindGuestStoreSync } from '@platform/bootstrap/sync-guest-store';
 import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
 import { leaderboard, leaderboardController } from '@platform/modules/leaderboard';
 import { dailyRewards } from '@platform/modules/daily-rewards/daily-reward.service';
@@ -47,8 +40,8 @@ export class App {
     logger.info('[App] Initializing platform...');
 
     const store = usePlatformStore.getState();
-    if (!store.user.id) {
-      store.setUser({ id: generateId('user'), displayName: 'Player' });
+    if (!store.user.displayName) {
+      store.setUser({ displayName: 'Player' });
     }
 
     registerAnalyticsProviders();
@@ -71,9 +64,12 @@ export class App {
       }
     }
 
-    guest.onReady((guestId) => {
-      analytics.setUserId(guestId);
-    });
+    this.unsubscribers.push(
+      guest.onReady((guestId) => {
+        analytics.setUserId(guestId);
+      }),
+      bindGuestStoreSync()
+    );
 
     const fallbackUserId = usePlatformStore.getState().user.id || undefined;
     const analyticsUserId = guest.getGuestId() ?? fallbackUserId;
@@ -95,103 +91,20 @@ export class App {
     await settings.init();
     missions.init();
 
-    this.bindPlatformEvents();
+    this.unsubscribers.push(bindAppEvents());
+    this.unsubscribers.push(bindAppLifecycle());
     this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
     this.controllerUnsubscribers.push(
       leaderboardController.bind(events),
       gameSyncController.bind(events),
       bindAdsController(events),
       bindIapController(events),
-      missionController.bind(events)
+      missionController.bind(events),
+      notificationController.bind(events)
     );
-    this.bindLifecycle();
 
     this.initialized = true;
     logger.info('[App] Platform ready');
-  }
-
-  private bindPlatformEvents(): void {
-    const forwardAnalytics = events.on('analytics', ({ event, params }) => {
-      analytics.track(event, params);
-    });
-
-    this.unsubscribers.push(
-      forwardAnalytics,
-
-      events.on('app:ready', () => {
-        logger.info('[App] Game shell ready');
-        void hideNativeSplash();
-        events.emit('ad:show:request', { placement: 'APP_START' });
-        events.emit('ad:show:request', { placement: 'HOME' });
-      }),
-
-      events.on('coin:add', ({ amount }) => {
-        usePlatformStore.getState().addCoins(amount);
-      }),
-
-      events.on('coin:spend', ({ amount }) => {
-        usePlatformStore.getState().spendCoins(amount);
-      }),
-
-      events.on('score:update', ({ score }) => {
-        usePlatformStore.getState().setHighScore(score);
-      }),
-
-      events.on('game:start', () => {
-        usePlatformStore.getState().incrementGamesPlayed();
-        trackGameStart();
-      }),
-
-      events.on('game:over', async ({ score, duration, jumps }) => {
-        trackGameOver({ score, duration, jumps });
-        events.emit('ad:show:request', { placement: 'GAME_OVER' });
-        await saveService.saveLocal();
-      }),
-
-      events.on('level:complete', ({ level, stars }) => {
-        trackLevelComplete({ level, stars });
-      }),
-
-      events.on('mission:complete', ({ missionId }) => {
-        trackMissionComplete({ missionId });
-      }),
-
-      events.on('settings:change', () => {
-        void saveService.saveLocal();
-      }),
-
-      events.on('shop:purchase', ({ itemId, price }) => {
-        trackPurchase({ itemId, price });
-        void saveService.saveLocal();
-      }),
-
-      events.on('shop:restore', () => {
-        void saveService.saveLocal();
-      }),
-
-      events.on('game:destroy', () => {
-        void saveService.saveLocal();
-      }),
-
-      events.on('ad:reward', ({ placement, reward }) => {
-        trackAdReward({ placement, reward: JSON.stringify(reward) });
-      })
-    );
-  }
-
-  private bindLifecycle(): void {
-    if (typeof document === 'undefined' || Capacitor.isNativePlatform()) return;
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        trackSessionEnd();
-        events.emit('app:pause', undefined);
-        void saveService.saveLocal();
-        void analytics.flush();
-      } else {
-        events.emit('app:resume', undefined);
-      }
-    });
   }
 
   async destroy(): Promise<void> {

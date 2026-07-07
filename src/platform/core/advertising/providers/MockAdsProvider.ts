@@ -3,6 +3,7 @@ import type { AdFormat, AdShowResult, IAdsProvider, AdsProviderConfig } from '..
 
 export class MockAdsProvider implements IAdsProvider {
   readonly name = 'mock';
+
   private ready = new Set<AdFormat>();
   private cached = new Set<AdFormat>();
 

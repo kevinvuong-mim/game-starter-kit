@@ -6,11 +6,11 @@ import {
   type GuestProfilePayload,
 } from './guest.model';
 import { Capacitor } from '@capacitor/core';
-import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
 import { getConfig } from '@platform/core/config';
 import type { ApiEnvelope } from '@platform/core/api';
 import type { StorageProviderType } from '@platform/core/storage';
+import { apiClient, unwrapSuccessEnvelope } from '@platform/core/api';
 
 function guestStorageProvider(): StorageProviderType {
   return Capacitor.isNativePlatform() ? 'preferences' : 'localStorage';
@@ -40,7 +40,7 @@ export class GuestRepository {
       { gameId },
       { auth: false, retries: 0 }
     );
-    const payload = envelope.data;
+    const payload = unwrapSuccessEnvelope(envelope);
 
     if (!payload?.guestId || !payload.secretToken) {
       throw new Error('[Guest] /guest/init returned invalid identity');
@@ -53,7 +53,7 @@ export class GuestRepository {
     const envelope = await apiClient.patch<ApiEnvelope<GuestProfilePayload>>('/guest/name', {
       name,
     });
-    return envelope.data;
+    return unwrapSuccessEnvelope(envelope);
   }
 }
 

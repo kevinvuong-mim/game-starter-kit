@@ -32,5 +32,4 @@ export type { ProductKey } from './config/iap.config';
 export { iap, IapService } from './services/iap.service';
 export type { IapServiceDeps } from './services/iap.service';
 export { purchaseStorage, PurchaseStorage } from './storage/purchase.storage';
-export { useEntitlement, onEntitlementsChanged } from './hooks/use-entitlement';
 export { MockIapAdapter, createIapProvider, RevenueCatAdapter } from './adapters';

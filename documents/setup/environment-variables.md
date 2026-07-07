@@ -84,7 +84,9 @@ VITE_ADMOB_IOS_APP_OPEN_ID=
 
 ---
 
-## Firebase Analytics
+## Firebase (Analytics + Push)
+
+Cùng bộ `VITE_FIREBASE_*` dùng cho **Firebase Analytics** (khi `analyticsEnabled`) và là **điều kiện bật push** trên native (`pushNotificationsEnabled` trong `notification-env.json`).
 
 ```env
 VITE_ANALYTICS_PROVIDER=firebase
@@ -95,12 +97,23 @@ VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-| Env                                | Analytics                                                 |
-| ---------------------------------- | --------------------------------------------------------- |
-| `VITE_ANALYTICS_PROVIDER=console`  | Ghi event ra console                                      |
-| `VITE_ANALYTICS_PROVIDER=firebase` | Dùng Firebase Analytics nếu cấu hình đủ `VITE_FIREBASE_*` |
+| Variable          | Description                                                             |
+| ----------------- | ----------------------------------------------------------------------- |
+| `VITE_FIREBASE_*` | Web config từ Firebase Console → Project settings → General → Your apps |
 
-Analytics service chỉ được enable khi `ENV_CONFIGS[env].analyticsEnabled` là `true`.
+| Env          | Analytics                  | Push (native) | Local notifications |
+| ------------ | -------------------------- | ------------- | ------------------- |
+| `dev`        | off (mặc định)             | off           | on                  |
+| `staging`    | on (nếu provider firebase) | on\*          | on                  |
+| `production` | on                         | on\*          | on                  |
+
+\* Push chỉ active khi `Capacitor.isNativePlatform()` **và** đủ 5 biến `VITE_FIREBASE_*` (`isFirebaseConfigured()`).
+
+Flags merge từ `src/platform/core/config/notification-env.json` vào `ENV_CONFIGS` tại `src/platform/core/config/index.ts`.
+
+Backend push (FCM gửi từ server) cần thêm `FIREBASE_*` trên `game-api` — xem `game-api/documents/setup/environment-variables.md`.
+
+Native config files (`google-services.json`, `GoogleService-Info.plist`): [Firebase Native Setup](./firebase-native.md).
 
 ---
 
@@ -125,6 +138,7 @@ VITE_ADMOB_IOS_APP_ID=
 
 ## Related Documentation
 
+- [Notifications](../modules/notifications.md)
+- [Firebase Native Setup](./firebase-native.md)
 - [Game Configuration](./game-configuration.md)
-- [Mobile Build](./mobile-build.md)
 - [Mobile Build](./mobile-build.md)

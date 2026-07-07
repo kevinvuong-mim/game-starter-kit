@@ -32,8 +32,11 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 5. `initCapacitorPlugins()`.
 6. Load fonts `Fredoka` và `Nunito Sans`.
 7. Create Phaser game với `gameScenes`.
-8. `toast.init(game)`.
-9. `soundManager.init(game)`.
+8. `navigationService.setGame(game)`.
+9. `toast.init(game)`.
+10. `soundManager.init(game)`.
+
+`PreloadScene` emit `boot:preload-complete` sau khi load assets — `navigationService` subscribe event để `markBootComplete()` và clear pending navigation (cold start).
 
 ---
 
@@ -53,8 +56,8 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 10. Load local save.
 11. Init daily rewards, settings, missions.
 12. Bind platform event handlers.
-13. Bind controllers: daily reward, leaderboard, game sync, ads, IAP, missions.
-14. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`).
+13. Bind controllers: daily reward, leaderboard, game sync, ads, IAP, missions, **notifications**.
+14. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`; native: `capacitor.ts` `appStateChange`).
 
 ---
 
@@ -73,14 +76,15 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event                 | Handler                                                                                   |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| `game:over`           | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result |
-| `app:resume`          | Flush pending results; reset daily missions; daily reward checks                          |
-| `leaderboard:request` | Load leaderboard cache/network                                                            |
-| `ad:reward:request`   | Show rewarded ad and grant reward                                                         |
-| `settings:change`     | Save local                                                                                |
-| `shop:purchase`       | Track purchase and save local                                                             |
+| Event                   | Handler                                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                           |
+| `app:resume`            | Flush pending results; mission reset; daily reward checks; **push heartbeat + local schedule reconcile**            |
+| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets) |
+| `leaderboard:request`   | Load leaderboard cache/network                                                                                      |
+| `ad:reward:request`     | Show rewarded ad and grant reward                                                                                   |
+| `settings:change`       | Save local                                                                                                          |
+| `shop:purchase`         | Track purchase and save local                                                                                       |
 
 ---
 
@@ -88,14 +92,15 @@ Platform controllers sẽ nhận event:
 
 Zustand store là runtime state in-memory. Durable persistence do services quản lý:
 
-| Data                                                                                             | Owner                   | Storage key                                                                  |
-| ------------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------------------------------------------------------- |
-| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`           | `game-save`                                                                  |
-| Guest identity/session                                                                           | `GuestRepository`       | `guest` → `gsk:guest` trên Preferences/localStorage                          |
-| Pending game results                                                                             | `GameSyncRepository`    | `game-sync:pending`                                                          |
-| Leaderboard page cache                                                                           | `LeaderboardRepository` | `leaderboard:cache:{gameId}:p{page}`                                         |
-| IAP entitlements                                                                                 | `PurchaseStorage`       | `iap-entitlements`                                                           |
-| Daily reward model                                                                               | `DailyRewardRepository` | `daily-reward-v2` (Capacitor Preferences trực tiếp, không qua `gsk:` prefix) |
+| Data                                                                                             | Owner                    | Storage key                                                                  |
+| ------------------------------------------------------------------------------------------------ | ------------------------ | ---------------------------------------------------------------------------- |
+| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`            | `game-save`                                                                  |
+| Guest identity/session                                                                           | `GuestRepository`        | `guest` → `gsk:guest` trên Preferences/localStorage                          |
+| Pending game results                                                                             | `GameSyncRepository`     | `game-sync:pending`                                                          |
+| Leaderboard page cache                                                                           | `LeaderboardRepository`  | `leaderboard:cache:{gameId}:p{page}`                                         |
+| IAP entitlements                                                                                 | `PurchaseStorage`        | `iap-entitlements`                                                           |
+| Daily reward model                                                                               | `DailyRewardRepository`  | `daily-reward-v2` (Capacitor Preferences trực tiếp, không qua `gsk:` prefix) |
+| Notification client state                                                                        | `NotificationRepository` | `notification-state-v1`                                                      |
 
 Durable provider (`StorageService`):
 
@@ -131,6 +136,8 @@ Game layer không nên import trực tiếp:
 
 ## Related Documentation
 
+- [Notifications](../modules/notifications.md)
 - [Game Result Sync](../modules/game-result-sync.md)
 - [Guest Identity](../modules/guest-identity.md)
+- [Firebase Native Setup](../setup/firebase-native.md)
 - [ARCHITECTURE.md](../../ARCHITECTURE.md) — chi tiết kiến trúc đầy đủ

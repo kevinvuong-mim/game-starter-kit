@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 import { t } from '@platform/ui/index';
+import { eventBus } from '@platform/core/events';
 import { ModalScreen } from '@platform/ui/modal/ModalScreen';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
@@ -16,6 +17,8 @@ export class HomeScene extends Phaser.Scene {
   }
 
   create(): void {
+    eventBus.emit('ad:context:change', { context: 'HOME' });
+
     const { width, height } = this.cameras.main;
 
     this.addBackgroundImage(width, height);

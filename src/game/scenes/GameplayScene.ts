@@ -15,6 +15,10 @@ interface FallingObject {
  * Replace this scene with your own game mechanics.
  */
 export class GameplayScene extends Phaser.Scene {
+  private readonly maxJumps = 5;
+  private readonly gravity = 1500;
+  private readonly jumpVelocity = -600;
+
   private hud!: HUD;
   private jumps = 0;
   private score = 0;
@@ -22,11 +26,8 @@ export class GameplayScene extends Phaser.Scene {
   private startTime = 0;
   private velocityY = 0;
   private gameActive = true;
-  private sessionEnded = false;
   private jumpsRemaining = 0;
-  private readonly maxJumps = 5;
-  private readonly gravity = 1500;
-  private readonly jumpVelocity = -600;
+  private sessionEnded = false;
   private player!: Phaser.GameObjects.Arc;
   private pool!: ObjectPool<FallingObject>;
   private spawnTimer?: Phaser.Time.TimerEvent;
@@ -81,6 +82,7 @@ export class GameplayScene extends Phaser.Scene {
     });
 
     eventBus.emit('game:start', { gameId: gameConfig.id });
+    eventBus.emit('ad:context:change', { context: 'GAMEPLAY' });
 
     this.unsubscribers.push(
       eventBus.on('app:back', () => {

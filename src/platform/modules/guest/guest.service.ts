@@ -1,6 +1,7 @@
 import { logger } from '@platform/core/error';
 import { apiClient } from '@platform/core/api';
 import { getConfig } from '@platform/core/config';
+import { usePlatformStore } from '@platform/core/state';
 import { guestRepository, type GuestRepository } from './guest.repository';
 
 export type GuestStatus = 'ready' | 'pending';
@@ -13,11 +14,12 @@ type GuestReadyListener = (guestId: string) => void;
  * `init()` loads stored credentials or creates a new guest once per install.
  */
 export class GuestService {
-  private guestStatus: GuestStatus = 'pending';
+  private readonly readyListeners = new Set<GuestReadyListener>();
+
   private guestId: string | null = null;
   private playerName: string | null = null;
   private networkListenerRegistered = false;
-  private readonly readyListeners = new Set<GuestReadyListener>();
+  private guestStatus: GuestStatus = 'pending';
 
   constructor(private readonly repository: GuestRepository = guestRepository) {}
 
@@ -99,6 +101,8 @@ export class GuestService {
 
     const payload = await this.repository.updateName(name);
     this.playerName = payload.name;
+
+    usePlatformStore.getState().setUser({ displayName: payload.name ?? 'Player' });
 
     const stored = await this.repository.loadCredentials();
     if (stored) {

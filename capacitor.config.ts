@@ -6,6 +6,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   appName: 'Game Starter Kit',
+  appId: 'com.studio.gamestarterkit',
   plugins: {
     StatusBar: {
       overlaysWebView: true,
@@ -15,8 +16,10 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
       backgroundColor: '#6b97b2',
     },
+    PushNotifications: {
+      presentationOptions: ['alert', 'badge', 'sound'],
+    },
   },
-  appId: 'com.studio.gamestarterkit',
 };
 
 export default config;

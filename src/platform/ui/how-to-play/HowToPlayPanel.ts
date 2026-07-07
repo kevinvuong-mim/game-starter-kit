@@ -8,19 +8,20 @@ import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
  * How to play guide — lives in platform/ui so game scenes stay event-driven.
  */
 export class HowToPlayPanel extends Phaser.GameObjects.Container {
-  private scrollY = 0;
-  private maxScroll = 0;
-  private contentBaseY = 0;
   private readonly contentWidth: number;
   private readonly contentHeight: number;
   private readonly contentCenterY: number;
-  private contentText?: Phaser.GameObjects.Text;
   private readonly wheelHandler: (
     pointer: Phaser.Input.Pointer,
     gameObjects: Phaser.GameObjects.GameObject[],
     deltaX: number,
     deltaY: number
   ) => void;
+
+  private scrollY = 0;
+  private maxScroll = 0;
+  private contentBaseY = 0;
+  private contentText?: Phaser.GameObjects.Text;
   private contentHitArea?: Phaser.GameObjects.Rectangle;
 
   constructor(scene: Phaser.Scene) {

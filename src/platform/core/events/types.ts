@@ -32,11 +32,8 @@ export interface PlatformEventMap {
   'app:back': void;
   'app:ready': void;
   'app:pause': void;
-  'game:pause': void;
   'app:resume': void;
-  'game:resume': void;
   'game:destroy': void;
-  'game:init': { gameId: string };
   'game:start': { gameId: string };
   'game:over': { score: number; jumps?: number; duration: number };
 
@@ -46,6 +43,7 @@ export interface PlatformEventMap {
   'daily:claim:request': void;
   'game:synced': SyncResponse;
   'daily:status:request': void;
+  'boot:preload-complete': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
   'daily:claim:result': {
@@ -72,14 +70,12 @@ export interface PlatformEventMap {
   'iap:purchase:failed': IapPurchaseFailedPayload;
   'iap:restore:success': IapRestoreSuccessPayload;
   'iap:purchase:success': IapPurchaseSuccessPayload;
-  'error:report': { error: Error; context?: string };
   'settings:change': { key: string; value: unknown };
   'shop:purchase': { itemId: string; price: number };
   'ad:reward': { placement: string; reward: unknown };
   'leaderboard:refresh': { page?: number } | undefined;
   'leaderboard:request': { page?: number } | undefined;
   'iap:entitlement:changed': IapEntitlementChangedPayload;
-  'auth:sign-in:request': { provider: 'google' | 'apple' };
   'mission:update': { missionId: string; progress: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };

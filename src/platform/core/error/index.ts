@@ -49,44 +49,8 @@ export class Logger {
 
 export const logger = new Logger('Platform');
 
-export interface CrashReport {
-  stack?: string;
-  message: string;
-  context?: string;
-  timestamp: number;
-  userAgent?: string;
-}
-
-export type CrashReporter = (report: CrashReport) => void | Promise<void>;
-
-const crashReporters: CrashReporter[] = [];
-
-export function registerCrashReporter(reporter: CrashReporter): () => void {
-  crashReporters.push(reporter);
-  return () => {
-    const idx = crashReporters.indexOf(reporter);
-    if (idx >= 0) crashReporters.splice(idx, 1);
-  };
-}
-
 export async function reportCrash(error: Error, context?: string): Promise<void> {
-  const report: CrashReport = {
-    context,
-    stack: error.stack,
-    timestamp: Date.now(),
-    message: error.message,
-    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-  };
-
   logger.error('Crash reported', error, { context });
-
-  for (const reporter of crashReporters) {
-    try {
-      await reporter(report);
-    } catch (e) {
-      logger.error('Crash reporter failed', e);
-    }
-  }
 }
 
 export class ErrorBoundary {

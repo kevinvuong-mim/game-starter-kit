@@ -14,6 +14,8 @@ Production-grade starter kit for hyper-casual / casual mobile games. **Clone thi
 | Storage     | IndexedDB (web) / Capacitor Preferences (native)                 |
 | Networking  | Fetch API (NestJS-compatible REST envelope)                      |
 | Analytics   | Console (dev) + Firebase Analytics (staging/production)          |
+| Push        | FCM via `@capacitor/push-notifications` (staging/production)     |
+| Local notif | `@capacitor/local-notifications` (daily reward reminder)         |
 | Ads         | Mock (web/dev) + AdMob via `@capacitor-community/admob` (native) |
 
 IAP / remove-ads entitlements are client-authoritative in this starter kit. RevenueCat can verify purchases on device, but `game-api` does not store or validate entitlements server-side.
@@ -59,7 +61,7 @@ game-starter-kit/
 │   ├── main.ts                # Entry → GameEngine.bootstrap()
 │   ├── platform/              # Reusable platform (keep as-is across games)
 │   │   ├── core/              # events, state, storage, api, analytics, advertising, iap, error
-│   │   ├── modules/           # i18n, shop, missions, leaderboard, save, settings, guest, game-sync, ads
+│   │   ├── modules/           # i18n, shop, missions, leaderboard, notifications, save, settings, guest, game-sync, ads
 │   │   ├── ui/                # Phaser UI: panels, HUD, toast, audio, screen stack, buttons
 │   │   └── bootstrap/         # App, GameEngine, analytics, ads, iap, capacitor
 │   └── game/                  # YOUR game — customize per project
@@ -133,6 +135,7 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 | settings      | Language, sound, vibration, graphics — part of store state                |
 | guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`) |
 | game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)           |
+| notifications | Push (FCM) + local daily reward; device token sync (`/devices`)           |
 | ads (module)  | Static placement config, reward flow, controller wired to event bus       |
 | analytics     | Provider interface — Console + Firebase                                   |
 | advertising   | AdMob / mock providers, placement state machines                          |
@@ -179,7 +182,7 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_ADMOB_ANDROID_BANNER_ID= …
 # VITE_ADMOB_IOS_REWARDED_ID= …
 
-# Firebase — staging/production only (dev has analyticsEnabled=false)
+# Firebase — analytics (staging/production) + push (staging/production when native)
 # VITE_FIREBASE_API_KEY=
 # VITE_FIREBASE_AUTH_DOMAIN=
 # VITE_FIREBASE_PROJECT_ID=
@@ -187,17 +190,19 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-| Variable                  | Description                                          |
-| ------------------------- | ---------------------------------------------------- |
-| `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`) |
-| `VITE_GAME_ID`            | Game id used by the frontend and backend             |
-| `VITE_REPLAY_SECRET`      | HMAC replay secret — must match backend per game id  |
-| `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                               |
-| `VITE_ADS_PROVIDER`       | `mock` or `admob`                                    |
-| `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                              |
-| `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds         |
-| `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform           |
-| `VITE_FIREBASE_*`         | Firebase web config for Analytics                    |
+Push/local toggles per env: `src/platform/core/config/notification-env.json`. Native FCM setup: [documents/setup/firebase-native.md](./documents/setup/firebase-native.md).
+
+| Variable                  | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`)  |
+| `VITE_GAME_ID`            | Game id used by the frontend and backend              |
+| `VITE_REPLAY_SECRET`      | HMAC replay secret — must match backend per game id   |
+| `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                                |
+| `VITE_ADS_PROVIDER`       | `mock` or `admob`                                     |
+| `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                               |
+| `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds          |
+| `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform            |
+| `VITE_FIREBASE_*`         | Firebase web config (analytics + push gate on native) |
 
 API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `GameEngine` passes `gameConfig.id` and `gameConfig.replaySecret` (from `VITE_GAME_ID` / `VITE_REPLAY_SECRET`) into runtime config. `name`, `width`, `height`, and `version` are edited directly in `src/game/config.ts`.
 
@@ -220,7 +225,17 @@ npm run cap:add:android   # idempotent — no-op if android/ exists
 npm run cap:add:ios       # idempotent — no-op if ios/ exists
 ```
 
-`build:android` / `build:ios` then run `capacitor-assets generate` and apply templates from `native/` (AdMob manifest snippets, MainActivity, iOS storyboard).
+`build:android` / `build:ios` then run `capacitor-assets generate` and apply templates from `native/` (AdMob manifest snippets, Firebase FCM, MainActivity, iOS storyboard).
+
+## Documentation
+
+| Topic            | Path                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Architecture     | [ARCHITECTURE.md](./ARCHITECTURE.md)                                                   |
+| Notifications    | [documents/modules/notifications.md](./documents/modules/notifications.md)             |
+| Firebase native  | [documents/setup/firebase-native.md](./documents/setup/firebase-native.md)             |
+| Mobile build     | [documents/setup/mobile-build.md](./documents/setup/mobile-build.md)                   |
+| Environment vars | [documents/setup/environment-variables.md](./documents/setup/environment-variables.md) |
 
 ## Performance Targets
 

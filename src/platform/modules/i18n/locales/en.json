@@ -142,5 +142,11 @@
     "rewardNotConfigured": "No reward configured for placement {{placement}}",
     "rewardIncomplete": "Ad was not completed",
     "useRequestReward": "Use requestReward for rewarded placements"
+  },
+  "notifications": {
+    "dailyReward": {
+      "title": "Daily Reward Ready",
+      "body": "Your daily reward is waiting. Come back and claim it!"
+    }
   }
 }
