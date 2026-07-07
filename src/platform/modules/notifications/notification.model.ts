@@ -48,18 +48,17 @@ export interface NotificationState {
   lastErrorCode?: string;
   nextAttemptAt?: string;
   heartbeatPending: boolean;
-  permissionGranted: boolean;
   unregisterPending: boolean;
   pendingToken: string | null;
   lastSyncedToken: string | null;
   platform: DevicePlatform | null;
   pendingLocale: DeviceLocale | null;
   lastSyncedLocale: DeviceLocale | null;
+  pendingNotificationsEnabled: boolean | null;
 }
 
 /** @deprecated Use lastSyncedToken — kept for storage migration only. */
 export interface LegacyNotificationState {
-  permissionGranted?: boolean;
   lastRegisteredToken?: string | null;
 }
 
@@ -72,8 +71,8 @@ export function createDefaultNotificationState(): NotificationState {
     lastSyncedToken: null,
     lastSyncedLocale: null,
     heartbeatPending: false,
-    permissionGranted: false,
     unregisterPending: false,
+    pendingNotificationsEnabled: null,
   };
 }
 
@@ -87,8 +86,11 @@ export function normalizeNotificationState(value: unknown): NotificationState {
 
   return {
     heartbeatPending: Boolean(raw.heartbeatPending),
-    permissionGranted: Boolean(raw.permissionGranted),
     unregisterPending: Boolean(raw.unregisterPending),
+    pendingNotificationsEnabled:
+      typeof raw.pendingNotificationsEnabled === 'boolean'
+        ? raw.pendingNotificationsEnabled
+        : null,
     syncAttempts: typeof raw.syncAttempts === 'number' ? raw.syncAttempts : 0,
     pendingToken: typeof raw.pendingToken === 'string' ? raw.pendingToken : null,
     lastSyncedToken: typeof lastSyncedToken === 'string' ? lastSyncedToken : null,

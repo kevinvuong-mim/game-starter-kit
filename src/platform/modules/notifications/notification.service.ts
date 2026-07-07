@@ -94,8 +94,10 @@ export class NotificationService {
       }
 
       if (config.pushNotificationsEnabled) {
+        await deviceSyncService.enqueuePreference(true);
         this.pushInitialized = false;
         await this.initializePush();
+        void deviceSyncService.flush().catch(() => undefined);
       }
 
       return;
@@ -106,7 +108,9 @@ export class NotificationService {
     }
 
     if (config.pushNotificationsEnabled) {
+      await deviceSyncService.enqueuePreference(false);
       await pushNotificationService.unregister();
+      void deviceSyncService.flush().catch(() => undefined);
       this.pushInitialized = false;
     }
   }
@@ -134,7 +138,12 @@ export class NotificationService {
 
     if (config.pushNotificationsEnabled) {
       const state = await deviceSyncService.loadState();
-      if (deviceSyncNeeded(state) || state.heartbeatPending || state.unregisterPending) {
+      if (
+        state.pendingNotificationsEnabled !== null ||
+        deviceSyncNeeded(state) ||
+        state.heartbeatPending ||
+        state.unregisterPending
+      ) {
         return 'pending';
       }
 

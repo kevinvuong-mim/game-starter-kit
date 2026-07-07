@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { deviceSyncService } from './device-sync.service';
 import { i18n } from '@platform/modules/i18n/i18n.service';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { ensureAndroidNotificationChannel } from './android-notification-channel';
 import { mapLocaleToDeviceLocale, type PushNotificationPayload } from './notification.model';
 import { notificationRepository, type NotificationRepository } from './notification.repository';
@@ -13,6 +14,7 @@ export class PushNotificationService {
   private currentToken: string | null = null;
   private onAction: PushActionHandler | null = null;
   private onReceived: PushActionHandler | null = null;
+  private listenerHandles: PluginListenerHandle[] = [];
 
   constructor(private readonly repository: NotificationRepository = notificationRepository) {}
 
@@ -36,13 +38,12 @@ export class PushNotificationService {
         return false;
       }
 
-      await PushNotifications.register();
-
       if (!this.listenersBound) {
-        this.bindListeners();
+        await this.bindListeners();
         this.listenersBound = true;
       }
 
+      await PushNotifications.register();
       await this.hydrateTokenFromStorage();
       return true;
     } catch (error) {
@@ -96,7 +97,15 @@ export class PushNotificationService {
     }
 
     try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
       await deviceSyncService.enqueueUnregister();
+      await PushNotifications.unregister();
+      await PushNotifications.removeAllListeners();
+      for (const handle of this.listenerHandles) {
+        await handle.remove();
+      }
+      this.listenerHandles = [];
+      this.listenersBound = false;
       void deviceSyncService.flush().catch(() => undefined);
       this.currentToken = null;
     } catch (error) {
@@ -117,27 +126,25 @@ export class PushNotificationService {
     return this.currentToken;
   }
 
-  private bindListeners(): void {
-    void import('@capacitor/push-notifications').then(({ PushNotifications }) => {
-      PushNotifications.addListener('registration', (event) => {
+  private async bindListeners(): Promise<void> {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+    this.listenerHandles.push(
+      await PushNotifications.addListener('registration', (event) => {
         this.currentToken = event.value;
         void this.syncDeviceState();
-      });
-
-      PushNotifications.addListener('registrationError', (error) => {
+      }),
+      await PushNotifications.addListener('registrationError', (error) => {
         logger.warn('[PushNotification] Registration error', error);
-      });
-
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      }),
+      await PushNotifications.addListener('pushNotificationReceived', (notification) => {
         const payload = this.extractPayload(notification.data);
         this.onReceived?.(payload);
-      });
-
-      PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      }),
+      await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
         const payload = this.extractPayload(action.notification.data);
         this.onAction?.(payload);
-      });
-    });
+      })
+    );
   }
 
   private extractPayload(data?: Record<string, unknown>): PushNotificationPayload {

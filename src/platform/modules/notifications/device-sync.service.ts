@@ -48,10 +48,10 @@ export class DeviceSyncService {
       syncAttempts: 0,
       pendingToken: token,
       pendingLocale: locale,
-      permissionGranted: true,
       unregisterPending: false,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
+      pendingNotificationsEnabled: true,
     });
 
     logger.debug('[DeviceSync] Device registration queued', { platform, locale });
@@ -77,9 +77,20 @@ export class DeviceSyncService {
       syncAttempts: 0,
       heartbeatPending: false,
       unregisterPending: true,
-      permissionGranted: false,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
+      pendingNotificationsEnabled: false,
+    });
+  }
+
+  async enqueuePreference(enabled: boolean): Promise<void> {
+    const state = await this.loadState();
+    await this.repository.saveState({
+      ...state,
+      syncAttempts: 0,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+      pendingNotificationsEnabled: enabled,
     });
   }
 
@@ -115,13 +126,22 @@ export class DeviceSyncService {
   }
 
   private hasPendingWork(state: NotificationState): boolean {
-    return state.unregisterPending || deviceSyncNeeded(state) || state.heartbeatPending;
+    return (
+      state.pendingNotificationsEnabled !== null ||
+      state.unregisterPending ||
+      deviceSyncNeeded(state) ||
+      state.heartbeatPending
+    );
   }
 
   private async flushState(state: NotificationState): Promise<void> {
     let current = state;
 
     try {
+      if (current.pendingNotificationsEnabled !== null) {
+        current = await this.flushPreference(current, current.pendingNotificationsEnabled);
+      }
+
       if (current.unregisterPending) {
         current = await this.flushUnregister(current);
         return;
@@ -152,11 +172,11 @@ export class DeviceSyncService {
       lastSyncedToken: null,
       lastSyncedLocale: null,
       heartbeatPending: false,
-      permissionGranted: false,
       lastAttemptAt: undefined,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
       unregisterPending: false,
+      pendingNotificationsEnabled: null,
     };
 
     await this.repository.saveState(cleared);
@@ -175,7 +195,6 @@ export class DeviceSyncService {
     const synced: NotificationState = {
       ...state,
       syncAttempts: 0,
-      permissionGranted: true,
       lastAttemptAt: undefined,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
@@ -186,6 +205,26 @@ export class DeviceSyncService {
     await this.repository.saveState(synced);
     logger.info('[DeviceSync] Device registration synced');
     return synced;
+  }
+
+  private async flushPreference(
+    state: NotificationState,
+    enabled: boolean
+  ): Promise<NotificationState> {
+    await this.repository.setNotificationPreference(enabled);
+
+    const updated: NotificationState = {
+      ...state,
+      syncAttempts: 0,
+      lastAttemptAt: undefined,
+      lastErrorCode: undefined,
+      nextAttemptAt: undefined,
+      pendingNotificationsEnabled: null,
+    };
+
+    await this.repository.saveState(updated);
+    logger.debug('[DeviceSync] Notification preference synced', { enabled });
+    return updated;
   }
 
   private async flushHeartbeat(state: NotificationState): Promise<NotificationState> {
