@@ -1,7 +1,12 @@
+import {
+  NOTIFICATION_IDS,
+  NOTIFICATION_CHANNEL,
+  getNextDailyRewardReminderAt,
+} from './notification.model';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { t } from '@platform/modules/i18n/i18n.service';
-import { NOTIFICATION_IDS, getNextDailyRewardReminderAt } from './notification.model';
+import { ensureAndroidNotificationChannel } from './android-notification-channel';
 
 export class LocalNotificationService {
   private initialized = false;
@@ -13,6 +18,7 @@ export class LocalNotificationService {
 
     try {
       const { LocalNotifications } = await import('@capacitor/local-notifications');
+      await ensureAndroidNotificationChannel();
       await LocalNotifications.requestPermissions();
       this.initialized = true;
     } catch (error) {
@@ -57,6 +63,7 @@ export class LocalNotificationService {
             id: NOTIFICATION_IDS.DAILY_REWARD,
             title: t('notifications.dailyReward.title'),
             body: t('notifications.dailyReward.body'),
+            channelId: NOTIFICATION_CHANNEL.ID,
             schedule: { at: scheduleAt },
             extra: {
               route: 'DailyReward',

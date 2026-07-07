@@ -8,6 +8,17 @@ export const NOTIFICATION_IDS = {
   DAILY_REWARD: 1001,
 } as const;
 
+/** Android notification channel — must match FCM default channel in native manifest. */
+export const NOTIFICATION_CHANNEL = {
+  ID: 'game_alerts',
+  NAME: 'Game alerts',
+  /** IMPORTANCE_HIGH — wakes screen and shows heads-up notification. */
+  IMPORTANCE: 4 as const,
+  /** VISIBILITY_PUBLIC — show full content on lock screen. */
+  VISIBILITY: 1 as const,
+  DESCRIPTION: 'Leaderboard updates and daily reward reminders',
+} as const;
+
 export const NOTIFICATION_ROUTES = {
   HOME: 'Home',
   LEADERBOARD: 'Leaderboard',

@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { deviceSyncService } from './device-sync.service';
 import { i18n } from '@platform/modules/i18n/i18n.service';
+import { ensureAndroidNotificationChannel } from './android-notification-channel';
 import { mapLocaleToDeviceLocale, type PushNotificationPayload } from './notification.model';
 import { notificationRepository, type NotificationRepository } from './notification.repository';
 
@@ -27,6 +28,7 @@ export class PushNotificationService {
 
     try {
       const { PushNotifications } = await import('@capacitor/push-notifications');
+      await ensureAndroidNotificationChannel();
       const permission = await PushNotifications.requestPermissions();
 
       if (permission.receive !== 'granted') {

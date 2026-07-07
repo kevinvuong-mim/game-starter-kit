@@ -8,7 +8,7 @@ import { existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const FCM_DEFAULT_CHANNEL_ID = 'default';
+const FCM_DEFAULT_CHANNEL_ID = 'game_alerts';
 const ANDROID_PERMISSIONS = [
   'android.permission.POST_NOTIFICATIONS',
   'android.permission.SCHEDULE_EXACT_ALARM',
