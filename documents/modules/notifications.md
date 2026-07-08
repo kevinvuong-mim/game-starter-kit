@@ -72,11 +72,11 @@ State local: key `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `un
 
 **Không dùng deeplink URL.** Backend gửi FCM `data: { type, route }`; local notification gắn `extra: { type, route }`.
 
-| `type`                                                 | Scene mở      |
-| ------------------------------------------------------ | ------------- |
-| `top_100_entered` / `top_100_exited` / `saturday_rank` | `Leaderboard` |
-| `daily_reward`                                         | `DailyReward` |
-| (mặc định)                                             | `Home`        |
+| Nguồn / payload                                                    | Scene mở      |
+| ------------------------------------------------------------------ | ------------- |
+| FCM `type`: `top_100_entered` / `top_100_exited` / `saturday_rank` | `Leaderboard` |
+| Local notification `extra.route`: `DailyReward`                    | `DailyReward` |
+| (mặc định)                                                         | `Home`        |
 
 Luồng:
 

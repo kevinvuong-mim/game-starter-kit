@@ -27,8 +27,8 @@ export const NOTIFICATION_ROUTES = {
 
 export type NotificationRoute = (typeof NOTIFICATION_ROUTES)[keyof typeof NOTIFICATION_ROUTES];
 
+/** FCM push types sent by game-api — local-only notifications use `route` only. */
 export const NOTIFICATION_TYPES = {
-  DAILY_REWARD: 'daily_reward',
   SATURDAY_RANK: 'saturday_rank',
   TOP_100_EXITED: 'top_100_exited',
   TOP_100_ENTERED: 'top_100_entered',
@@ -145,9 +145,6 @@ export function resolveNotificationRoute(
   if (route === NOTIFICATION_ROUTES.DAILY_REWARD) return NOTIFICATION_ROUTES.DAILY_REWARD;
 
   switch (type) {
-    case NOTIFICATION_TYPES.DAILY_REWARD:
-      return NOTIFICATION_ROUTES.DAILY_REWARD;
-
     case NOTIFICATION_TYPES.TOP_100_ENTERED:
     case NOTIFICATION_TYPES.TOP_100_EXITED:
     case NOTIFICATION_TYPES.SATURDAY_RANK:
