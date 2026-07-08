@@ -240,7 +240,7 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | `HUD`                           | Score, coins — subscribes to store                                                                      |
 | `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                                   |
 | `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`                             |
-| `ShopPanel`                     | Shop UI embedded in `ShopScene` (extends `BasePanelScene`)                                            |
+| `ShopPanel`                     | Shop UI embedded in `ShopScene` (extends `BasePanelScene`)                                              |
 | `MissionsPanel`                 | Mission list UI; WATCH_AD missions show a “Watch ad” button (`ad:reward:request`)                       |
 | `LeaderboardPanel`              | Paginated leaderboard UI                                                                                |
 | `DailyRewardPopup`              | Daily reward claim UI                                                                                   |
@@ -255,14 +255,14 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                             |
-| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()` |
-| `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                     |
+| File            | Role                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                                                      |
+| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()`                          |
+| `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                                              |
 | `app-events.ts` | `bindAppEvents()` (`coin:add`, `game:over`, `shop:purchase`, `mission:complete`, ads) + `bindAppLifecycle()` (web visibility) |
-| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                               |
-| `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                           |
+| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                                                        |
+| `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                                                    |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 

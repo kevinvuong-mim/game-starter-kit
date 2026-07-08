@@ -96,13 +96,13 @@ Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bin
 
 ## Events liên quan
 
-| Event                               | Handler                                                                 |
-| ----------------------------------- | ----------------------------------------------------------------------- |
-| `app:resume`                        | Push: refresh token + heartbeat; local: reconcile daily schedule        |
-| `daily:claim`                       | Schedule local reminder ngày hôm sau                                    |
-| `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                               |
+| Event                               | Handler                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `app:resume`                        | Push: refresh token + heartbeat; local: reconcile daily schedule                                             |
+| `daily:claim`                       | Schedule local reminder ngày hôm sau                                                                         |
+| `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                                                                    |
 | `settings:change` (`notifications`) | Bật: `PATCH /api/devices/preferences` (`enabled: true`); tắt: preferences + `DELETE /api/devices` unregister |
-| `boot:preload-complete`             | `markBootComplete()` + clear pending (PreloadScene navigate tới target) |
+| `boot:preload-complete`             | `markBootComplete()` + clear pending (PreloadScene navigate tới target)                                      |
 
 ## API backend
 

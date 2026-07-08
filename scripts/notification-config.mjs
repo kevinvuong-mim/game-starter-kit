@@ -4,7 +4,7 @@ import { join, dirname } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const NOTIFICATION_ENV_CONFIGS = JSON.parse(
-  readFileSync(join(root, 'src/platform/core/config/notification-env.json'), 'utf8'),
+  readFileSync(join(root, 'src/platform/core/config/notification-env.json'), 'utf8')
 );
 
 const FIREBASE_ENV_KEYS = [

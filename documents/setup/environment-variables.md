@@ -16,10 +16,10 @@ VITE_GAME_ID=FRULOOP
 VITE_REPLAY_SECRET=<64-char-sha256-hex>
 ```
 
-| Variable             | Values                         | Default / Source     | Description                                                   |
-| -------------------- | ------------------------------ | -------------------- | ------------------------------------------------------------- |
-| `VITE_APP_ENV`       | `dev`, `staging`, `production` | `dev` khi chạy local | Chọn preset runtime trong `src/platform/core/config/index.ts` |
-| `VITE_GAME_ID`       | string                         | Bắt buộc             | Game id dùng ở frontend và backend                            |
+| Variable             | Values                         | Default / Source     | Description                                                                  |
+| -------------------- | ------------------------------ | -------------------- | ---------------------------------------------------------------------------- |
+| `VITE_APP_ENV`       | `dev`, `staging`, `production` | `dev` khi chạy local | Chọn preset runtime trong `src/platform/core/config/index.ts`                |
+| `VITE_GAME_ID`       | string                         | Bắt buộc             | Game id dùng ở frontend và backend                                           |
 | `VITE_REPLAY_SECRET` | string                         | Bắt buộc             | Secret replay — phải khớp `GAME_CONFIG[gameId].replaySecret` trên `game-api` |
 
 Preset API URL trong code:

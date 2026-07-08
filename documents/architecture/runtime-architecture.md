@@ -80,7 +80,7 @@ Platform controllers sẽ nhận event:
 
 | Event                   | Handler                                                                                                                |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `coin:add`              | `bindAppEvents()` → `usePlatformStore.addCoins()`                                                                        |
+| `coin:add`              | `bindAppEvents()` → `usePlatformStore.addCoins()`                                                                      |
 | `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                              |
 | `app:resume`            | Flush pending results; mission reset; daily reward checks; guest name flush; push heartbeat + local schedule reconcile |
 | `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets)    |
@@ -98,15 +98,15 @@ Platform controllers sẽ nhận event:
 
 Zustand store là runtime state in-memory. Durable persistence do services quản lý:
 
-| Data                                                                                             | Owner                    | Storage key                                                                  |
-| ------------------------------------------------------------------------------------------------ | ------------------------ | ---------------------------------------------------------------------------- |
-| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`            | `game-save`                                                                  |
-| Guest identity/session                                                                           | `GuestRepository`        | `guest` → `gsk:guest` trên Preferences/localStorage                          |
-| Pending game results                                                                             | `GameSyncRepository`     | `game-sync:pending`                                                          |
-| Leaderboard page cache                                                                           | `LeaderboardRepository`  | `leaderboard:cache:{gameId}:p{page}`                                         |
-| IAP entitlements                                                                                 | `PurchaseStorage`        | `iap-entitlements`                                                           |
+| Data                                                                                             | Owner                    | Storage key                                                                             |
+| ------------------------------------------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------------------------------- |
+| Save state (`user`, `currency`, `inventory`, `progress`, `settings`, `missions`, `dailyRewards`) | `SaveService`            | `game-save`                                                                             |
+| Guest identity/session                                                                           | `GuestRepository`        | `guest` → `gsk:guest` trên Preferences/localStorage                                     |
+| Pending game results                                                                             | `GameSyncRepository`     | `game-sync:pending`                                                                     |
+| Leaderboard page cache                                                                           | `LeaderboardRepository`  | `leaderboard:cache:{gameId}:p{page}`                                                    |
+| IAP entitlements                                                                                 | `PurchaseStorage`        | `iap-entitlements`                                                                      |
 | Daily reward model                                                                               | `DailyRewardRepository`  | `daily-reward-v2` (Capacitor Preferences trực tiếp; ngày local qua `getLocalDateKey()`) |
-| Notification client state                                                                        | `NotificationRepository` | `notification-state-v1`                                                      |
+| Notification client state                                                                        | `NotificationRepository` | `notification-state-v1`                                                                 |
 
 Durable provider (`StorageService`):
 

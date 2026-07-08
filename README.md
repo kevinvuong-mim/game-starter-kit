@@ -133,7 +133,7 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 | i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                 |
 | shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                       |
 | missions      | Daily missions (`missions.json`); WATCH_AD progress via rewarded ads           |
-| leaderboard   | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)           |
+| leaderboard   | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)             |
 | daily-reward  | 7-day streak calendar, local persistence                                       |
 | save          | Single `game-save` key — hydrates Zustand store on boot                        |
 | settings      | Language, sound, vibration, graphics — part of store state                     |

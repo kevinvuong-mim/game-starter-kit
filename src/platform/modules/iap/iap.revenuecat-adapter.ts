@@ -1,4 +1,4 @@
-import type { ProductType, IAPProvider, ProviderProduct, ProviderPurchase } from './iap.types';
+import { IapError } from './iap.types';
 import {
   Purchases,
   LOG_LEVEL,
@@ -7,9 +7,9 @@ import {
   PURCHASES_ERROR_CODE,
 } from '@revenuecat/purchases-capacitor';
 import { logger } from '@platform/core/error';
-import { IapError } from './iap.types';
 import { PRODUCTS, getProductById, getAllProductIds } from './iap.config';
 import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
+import type { ProductType, IAPProvider, ProviderProduct, ProviderPurchase } from './iap.types';
 
 export interface RevenueCatAdapterConfig {
   apiKey: string;

@@ -2,8 +2,8 @@ export type {
   MissionReward,
   MissionProgress,
   MissionDefinition,
-  MissionBehaviorType,
   MissionResetPolicy,
+  MissionBehaviorType,
 } from './mission.model';
 export { missions, MissionService } from './mission.service';
 export { missionTracker, MissionTracker } from './mission.tracker';
