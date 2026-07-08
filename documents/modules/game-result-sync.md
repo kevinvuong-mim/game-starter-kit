@@ -51,6 +51,8 @@ Header: `Authorization: Bearer <secretToken>`
 
 ## Response
 
+Flat JSON từ `POST /api/results` (không bọc envelope — client đọc trực tiếp, không qua `unwrapSuccessEnvelope()`):
+
 ```json
 {
   "success": true,

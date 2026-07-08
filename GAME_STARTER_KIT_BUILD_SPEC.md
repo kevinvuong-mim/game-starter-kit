@@ -716,6 +716,8 @@ gameScenes:
 ];
 ```
 
+`ShopScene`, `MissionsScene`, `LeaderboardScene`, `DailyRewardScene`, `HowToPlayScene`, `LegalScene` extend `BasePanelScene` (shared title/close/`app:back` shell).
+
 ---
 
 # 6. Game layer (src/game/)
@@ -880,6 +882,9 @@ iap:*
 auth:*
 ```
 
+> `coin:spend`, `level:complete`: có trong `PlatformEventMap` nhưng chưa wired trong `bindAppEvents()`.
+> `game:synced`: emit sau batch upload thành công; chưa có listener mặc định.
+
 AnalyticsEvents:
 
 ```text
@@ -895,6 +900,20 @@ shop_open
 daily_claim
 mission_complete
 ```
+
+Analytics helpers (`src/platform/core/analytics/events.ts`):
+
+```text
+trackSessionEnd
+trackGameStart
+trackGameOver
+trackPurchase
+trackAdReward
+trackDailyClaim
+trackMissionComplete
+```
+
+Game layer có thể emit trực tiếp qua `eventBus.emit('analytics', { event: AnalyticsEvents.… })` (ví dụ `SESSION_START` trong `BootScene`).
 
 ---
 
@@ -938,7 +957,6 @@ Exports:
 
 ```text
 usePlatformStore
-getStoreState
 ```
 
 ---
@@ -1208,7 +1226,7 @@ Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificati
 
 Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
-Storage: `notification-state-v1` (`lastRegisteredToken`, `permissionGranted`).
+Storage: `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, `pendingNotificationsEnabled`, …).
 
 Chi tiết: `documents/modules/notifications.md`, `documents/setup/firebase-native.md`.
 
@@ -1328,7 +1346,7 @@ result kể cả khi request trước đó thật ra đã thành công phía ser
 
 ### Leaderboard
 
-Hybrid offline-first: cache theo page (TTL 60s), stale-while-revalidate, `myBestScore` từ `progress.highScore` local.
+Hybrid offline-first: cache theo page (TTL 60s), client `LEADERBOARD_LIMIT` = 10/page, stale-while-revalidate, `myBestScore` từ `progress.highScore` local.
 
 Events: `leaderboard:refresh`, `leaderboard:page`, `leaderboard:update` (không còn `leaderboard:request`).
 
@@ -1351,7 +1369,7 @@ PATCH /api/devices/preferences
   Body: { enabled: boolean }
 
 DELETE /api/devices
-  (unregister)
+  (unregister khi user tắt push trong Settings)
 ```
 
 ---

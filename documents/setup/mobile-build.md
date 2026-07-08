@@ -99,6 +99,7 @@ Các event/lifecycle chính:
 - Bật push: copy Firebase native config files + `VITE_FIREBASE_*` + backend `FIREBASE_*` (xem [firebase-native.md](./firebase-native.md)).
 - Chọn API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`.
 - Đảm bảo `VITE_GAME_ID` / `src/game/config.ts` khớp `GameId` enum trên `game-api`.
+- Đảm bảo `VITE_REPLAY_SECRET` khớp `GAME_CONFIG[gameId].replaySecret` trên `game-api`.
 
 ---
 

@@ -44,6 +44,7 @@ src/
 │       ├── HomeScene.ts
 │       ├── GameplayScene.ts
 │       ├── GameOverScene.ts
+│       ├── BasePanelScene.ts    # Shared shell for panel scenes
 │       ├── ShopScene.ts
 │       ├── MissionsScene.ts
 │       ├── LeaderboardScene.ts
@@ -239,7 +240,7 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | `HUD`                           | Score, coins — subscribes to store                                                                      |
 | `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                                   |
 | `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`                             |
-| `ShopPanel`                     | Shop UI embedded in `ShopScene`                                                                         |
+| `ShopPanel`                     | Shop UI embedded in `ShopScene` (extends `BasePanelScene`)                                            |
 | `MissionsPanel`                 | Mission list UI; WATCH_AD missions show a “Watch ad” button (`ad:reward:request`)                       |
 | `LeaderboardPanel`              | Paginated leaderboard UI                                                                                |
 | `DailyRewardPopup`              | Daily reward claim UI                                                                                   |
@@ -259,7 +260,7 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 | `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                             |
 | `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()` |
 | `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                     |
-| `app-events.ts` | `bindAppEvents()` (coins, game:over, ads) + `bindAppLifecycle()` (web visibility)                    |
+| `app-events.ts` | `bindAppEvents()` (`coin:add`, `game:over`, `shop:purchase`, `mission:complete`, ads) + `bindAppLifecycle()` (web visibility) |
 | `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                               |
 | `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                           |
 
@@ -313,7 +314,7 @@ eventBus.emit('game:over', { score, duration })
     ↓
 App.ts → trackGameOver + saveLocal + GAME_OVER ad placement
 gameSyncController → recordResult (local queue) → flush when online/guest ready
-gameSyncService → emit game:synced on successful batch upload
+gameSyncService → emit `game:synced` on successful batch upload (extension hook; no default listener)
 ```
 
 ### Settings → persistence
@@ -349,7 +350,8 @@ Notification tap dùng **in-app navigation** (`type` + `route` trong FCM `data` 
 
 - **Dev:** Console provider only (`analyticsEnabled: false` in `ENV_CONFIGS.dev`).
 - **Staging / production:** Console + `FirebaseAnalyticsProvider` when `VITE_FIREBASE_*` env vars are set.
-- **Game layer:** `eventBus.emit('analytics', { event: AnalyticsEvents.… })` or helpers in `@platform/core/analytics/events` from bootstrap/App handlers.
+- **Game layer:** `eventBus.emit('analytics', { event: AnalyticsEvents.… })` (ví dụ `SESSION_START` trong `BootScene`).
+- **Bootstrap helpers** (`@platform/core/analytics/events`): `trackSessionEnd`, `trackGameStart`, `trackGameOver`, `trackPurchase`, `trackAdReward`, `trackDailyClaim`, `trackMissionComplete`.
 
 Firebase DebugView: run a staging build with analytics enabled and use the Firebase console.
 

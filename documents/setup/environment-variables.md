@@ -20,7 +20,7 @@ VITE_REPLAY_SECRET=<64-char-sha256-hex>
 | -------------------- | ------------------------------ | -------------------- | ------------------------------------------------------------- |
 | `VITE_APP_ENV`       | `dev`, `staging`, `production` | `dev` khi chạy local | Chọn preset runtime trong `src/platform/core/config/index.ts` |
 | `VITE_GAME_ID`       | string                         | Bắt buộc             | Game id dùng ở frontend và backend                            |
-| `VITE_REPLAY_SECRET` | string                         | Bắt buộc             | Secret replay dùng để xác thực với backend                    |
+| `VITE_REPLAY_SECRET` | string                         | Bắt buộc             | Secret replay — phải khớp `GAME_CONFIG[gameId].replaySecret` trên `game-api` |
 
 Preset API URL trong code:
 
