@@ -141,7 +141,6 @@ export class NotificationService {
       if (
         state.pendingNotificationsEnabled !== null ||
         deviceSyncNeeded(state) ||
-        state.heartbeatPending ||
         state.unregisterPending
       ) {
         return 'pending';

@@ -1219,10 +1219,10 @@ iap
 
 Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificationsEnabled`, `localNotificationsEnabled`).
 
-| Loại                    | Trigger client                             | API                                                                                         |
-| ----------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH /api/devices`, `PATCH /api/devices/heartbeat`, `PATCH /api/devices/preferences` |
-| Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                                                           |
+| Loại                    | Trigger client                             | API                                                                |
+| ----------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| Push Top 100 / Saturday | Backend FCM                                | `POST/PATCH/DELETE /api/devices`, `PATCH /api/devices/preferences` |
+| Local daily reward      | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                                  |
 
 Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
@@ -1358,18 +1358,17 @@ GET /api/leaderboards?gameId=&page=&limit=&guestId=
 
 POST /api/devices
   Body: { token, platform: IOS|ANDROID, locale: EN|VI }
+  Response data: { guestId }
 
 PATCH /api/devices
   Body: { token, locale }
-
-PATCH /api/devices/heartbeat
-  (app resume)
+  Response data: { guestId }
 
 PATCH /api/devices/preferences
   Body: { enabled: boolean }
 
 DELETE /api/devices
-  (unregister khi user tắt push trong Settings)
+  (unregister — backend clear fcmToken / devicePlatform / notificationLocale)
 ```
 
 ---
@@ -1581,13 +1580,13 @@ Verify
 
 # 18. Backend integration summary
 
-| Feature      | Endpoint                                                                                     | Auth   |
-| ------------ | -------------------------------------------------------------------------------------------- | ------ |
-| Guest init   | POST /api/guest/init                                                                         | Không  |
-| Guest rename | PATCH /api/guest/name                                                                        | Bearer |
-| Game sync    | POST /api/results                                                                            | Bearer |
-| Leaderboard  | GET /api/leaderboards                                                                        | Không  |
-| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/heartbeat, PATCH /api/devices/preferences | Bearer |
+| Feature      | Endpoint                                                       | Auth   |
+| ------------ | -------------------------------------------------------------- | ------ |
+| Guest init   | POST /api/guest/init                                           | Không  |
+| Guest rename | PATCH /api/guest/name                                          | Bearer |
+| Game sync    | POST /api/results                                              | Bearer |
+| Leaderboard  | GET /api/leaderboards                                          | Không  |
+| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/preferences | Bearer |
 
 Lưu ý:
 
@@ -1610,12 +1609,13 @@ secretToken
 → mất khi uninstall/clear data → tạo guest mới
 
 deviceId
-→ KHÔNG gửi lên server
-→ mỗi lần install = guest mới, behavior đồng nhất iOS/Android
+→ KHÔNG gửi trong guest init / results — mỗi lần install = guest mới
 
 FCM token
 → đăng ký qua POST /api/devices sau guest.onReady + permission granted
+→ response POST/PATCH devices: { guestId } (không có deviceId/status)
 → locale EN|VI sync khi đổi ngôn ngữ (PATCH /api/devices)
+→ app resume: refresh token + flush pending sync (không heartbeat)
 → push tap: in-app scene navigation (không deeplink URL)
 
 signature

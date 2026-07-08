@@ -47,7 +47,6 @@ export interface NotificationState {
   lastAttemptAt?: string;
   lastErrorCode?: string;
   nextAttemptAt?: string;
-  heartbeatPending: boolean;
   unregisterPending: boolean;
   pendingToken: string | null;
   lastSyncedToken: string | null;
@@ -70,7 +69,6 @@ export function createDefaultNotificationState(): NotificationState {
     pendingLocale: null,
     lastSyncedToken: null,
     lastSyncedLocale: null,
-    heartbeatPending: false,
     unregisterPending: false,
     pendingNotificationsEnabled: null,
   };
@@ -85,7 +83,6 @@ export function normalizeNotificationState(value: unknown): NotificationState {
   const lastSyncedToken = raw.lastSyncedToken ?? raw.lastRegisteredToken ?? null;
 
   return {
-    heartbeatPending: Boolean(raw.heartbeatPending),
     unregisterPending: Boolean(raw.unregisterPending),
     syncAttempts: typeof raw.syncAttempts === 'number' ? raw.syncAttempts : 0,
     pendingToken: typeof raw.pendingToken === 'string' ? raw.pendingToken : null,

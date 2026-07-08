@@ -87,7 +87,6 @@ export class PushNotificationService {
     const locale = mapLocaleToDeviceLocale(i18n.getCurrentLanguage());
     const platform = this.repository.resolvePlatform();
     await deviceSyncService.enqueueRegister(token, platform, locale);
-    await deviceSyncService.enqueueHeartbeat();
     void deviceSyncService.flush().catch(() => undefined);
   }
 

@@ -78,17 +78,17 @@ eventBus.emit('game:over', { score: 100, duration: 30000 });
 
 Platform controllers sẽ nhận event:
 
-| Event                   | Handler                                                                                                                |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `coin:add`              | `bindAppEvents()` → `usePlatformStore.addCoins()`                                                                      |
-| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                              |
-| `app:resume`            | Flush pending results; mission reset; daily reward checks; guest name flush; push heartbeat + local schedule reconcile |
-| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets)    |
-| `leaderboard:refresh`   | Load leaderboard cache/network (emit từ `LeaderboardPanel` khi mở)                                                     |
-| `ad:reward:request`     | Show rewarded ad and grant reward (`MissionsPanel` emits for WATCH_AD missions)                                        |
-| `ad:context:change`     | Hide banner in gameplay; re-show on HOME/SHOP/LEADERBOARD via `applyBannerForContext`                                  |
-| `settings:change`       | Save local; notifications module sync locale/preferences (tắt push → `DELETE /api/devices`)                            |
-| `shop:purchase`         | Track purchase and save local                                                                                          |
+| Event                   | Handler                                                                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `coin:add`              | `bindAppEvents()` → `usePlatformStore.addCoins()`                                                                                |
+| `game:over`             | Track analytics, show game-over ad, save local; `gameSyncController` queue + flush result                                        |
+| `app:resume`            | Flush pending results; mission reset; daily reward checks; guest name flush; push token refresh/flush + local schedule reconcile |
+| `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets)              |
+| `leaderboard:refresh`   | Load leaderboard cache/network (emit từ `LeaderboardPanel` khi mở)                                                               |
+| `ad:reward:request`     | Show rewarded ad and grant reward (`MissionsPanel` emits for WATCH_AD missions)                                                  |
+| `ad:context:change`     | Hide banner in gameplay; re-show on HOME/SHOP/LEADERBOARD via `applyBannerForContext`                                            |
+| `settings:change`       | Save local; notifications module sync locale/preferences (tắt push → `DELETE /api/devices`)                                      |
+| `shop:purchase`         | Track purchase and save local                                                                                                    |
 
 > `coin:spend`, `level:complete`: có trong `PlatformEventMap` nhưng **chưa** có handler trong `bindAppEvents()`.
 
