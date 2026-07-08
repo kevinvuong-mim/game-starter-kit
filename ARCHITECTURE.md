@@ -23,7 +23,8 @@ The Game Starter Kit is a **clone-per-game starter template**. Each game is a se
 │  services (locator)                          │
 ├─────────────────────────────────────────────┤
 │     BOOTSTRAP (src/platform/bootstrap/)      │
-│  App / GameEngine / analytics / ads / capacitor│
+│  App / GameEngine / providers / app-events     │
+│  capacitor / fonts                             │
 └─────────────────────────────────────────────┘
 ```
 
@@ -51,33 +52,34 @@ src/
 │       ├── HowToPlayScene.ts
 │       └── LegalScene.ts
 └── platform/
-    ├── index.ts
     ├── core/
     │   ├── analytics/           # AnalyticsService + Console/Firebase providers
     │   ├── advertising/         # AdsService, AdStateMachine, Mock/AdMob providers
     │   ├── api/                 # ApiClient, envelope types
     │   ├── config/              # ENV_CONFIGS, Firebase/AdMob resolution
     │   ├── error/               # Logger, error boundary, global handlers
-    │   ├── events/              # Typed EventBus + PlatformEventMap
+    │   ├── events/              # EventBus, boot navigation resolver, PlatformEventMap
     │   ├── services/            # Service locator (`services.events`, etc.)
     │   ├── state/               # Zustand vanilla store (in-memory)
     │   ├── storage/             # StorageService + providers
-    │   └── utils/
+    │   └── utils/               # generateId, formatNumber, now, getLocalDateKey
     ├── modules/
+    │   ├── index.ts             # Sole modules barrel
     │   ├── i18n/                # i18n.service.ts + locales/en.json, vi.json
     │   ├── shop/                # shop.service.ts + catalog.json
-    │   ├── missions/            # mission.service.ts + missions.json
+    │   ├── missions/            # mission.service.ts + missions.json + mission.tracker
     │   ├── leaderboard/         # service + repository + controller + model
-    │   ├── daily-reward/          # service + repository + controller + model
+    │   ├── daily-reward/        # service + repository + controller + model
     │   ├── save/                # save.service.ts
     │   ├── settings/            # settings.service.ts
-    │   ├── guest/               # guest.service.ts, guest.repository.ts, guest.controller.ts
+    │   ├── guest/               # guest.service, repository, controller, guest-store-sync
     │   ├── game-sync/           # offline queue + controller
-    │   ├── notifications/       # services/ (push, local, device-sync) + controller
+    │   ├── notifications/       # push, local, device-sync services + controller (flat)
     │   ├── navigation/          # navigation.service.ts — scene routing + pending queue
-    │   ├── ads/                 # static placement config module + controller
-    │   └── iap/                 # purchase flow, entitlements, ads integration
+    │   ├── ads/                 # placement config module + controller
+    │   └── iap/                 # iap.service, adapters, config, events, types (flat)
     ├── ui/
+    │   ├── fonts.ts             # FREDOKA_FONT, NUNITO_FONT constants
     │   ├── button/UIButton.ts   # createUIButton() — optional sound on pointerdown
     │   ├── hud/HUD.ts
     │   ├── screen/ScreenManager.ts
@@ -88,19 +90,17 @@ src/
     │   ├── missions/MissionsPanel.ts
     │   ├── leaderboard/LeaderboardPanel.ts
     │   ├── daily-reward/DailyRewardPopup.ts
-    │   ├── settings/LanguageSettingsPanel.ts
-    │   ├── settings/SoundSettingsPanel.ts
+    │   ├── settings/            # Language, Sound, Name, Notifications, HelpAndLegal panels
     │   ├── how-to-play/HowToPlayPanel.ts
     │   ├── legal/LegalPanel.ts
-    │   ├── modal/ModalScreen.ts
-    │   └── index.ts             # FREDOKA_FONT, NUNITO_FONT + barrel exports
+    │   └── index.ts             # Game-facing UI barrel
     └── bootstrap/
         ├── App.ts               # Module wiring, event handlers, lifecycle
-        ├── GameEngine.ts        # Phaser bootstrap, fonts, toast + sound init
-        ├── analytics.ts         # registerAnalyticsProviders()
-        ├── ads.ts               # registerAdsProvider()
-        ├── iap.ts               # registerIapProvider()
-        └── capacitor.ts         # Native plugins, splash, appStateChange
+        ├── GameEngine.ts        # Phaser bootstrap, toast + sound init
+        ├── providers.ts         # registerAnalytics/Ads/Iap providers
+        ├── app-events.ts        # bindAppEvents + bindAppLifecycle
+        ├── capacitor.ts         # Native plugins, splash, appStateChange
+        └── fonts.ts             # @fontsource CSS + loadGameFonts()
 
 native/                          # Templates applied on build:android / build:ios
                                  # (immersive UI, FCM, AdMob only — not RevenueCat/IAP/Preferences)
@@ -114,14 +114,17 @@ public/assets/                   # Static assets (per-game)
 
 | Alias                   | Resolves to                              |
 | ----------------------- | ---------------------------------------- |
+| `@platform/ui`          | `src/platform/ui/index.ts`               |
+| `@platform/ui/*`        | `src/platform/ui/*`                      |
+| `@platform/core`        | `src/platform/core` (directory)          |
 | `@platform/core/*`      | `src/platform/core/*`                    |
 | `@platform/modules`     | `src/platform/modules/index.ts` (barrel) |
 | `@platform/modules/*`   | `src/platform/modules/*`                 |
-| `@platform/ui/*`        | `src/platform/ui/*`                      |
+| `@platform/bootstrap`   | `src/platform/bootstrap` (directory)     |
 | `@platform/bootstrap/*` | `src/platform/bootstrap/*`               |
 | `@game/*`               | `src/game/*`                             |
 
-Vite also exposes bare aliases (`@game`, `@platform/ui`, …) for directory imports.
+Vite exposes bare directory aliases (`@game`, `@platform/ui`, `@platform/core`, …). Import font constants from `@platform/ui/fonts` inside UI components to avoid circular imports via `@platform/ui/index`.
 
 ## Design Principles
 
@@ -237,7 +240,7 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | `ToastManager`                  | Queued toasts; bound to `Phaser.Game` in `GameEngine`                                                   |
 | `SoundManager`                  | SFX singleton (`playPop`, `playCoinDrop`); respects `settings.soundEnabled`                             |
 | `ShopPanel`                     | Shop UI embedded in `ShopScene`                                                                         |
-| `MissionsPanel`                 | Mission list UI                                                                                         |
+| `MissionsPanel`                 | Mission list UI; WATCH_AD missions show a “Watch ad” button (`ad:reward:request`)                       |
 | `LeaderboardPanel`              | Paginated leaderboard UI                                                                                |
 | `DailyRewardPopup`              | Daily reward claim UI                                                                                   |
 | `LanguageSettingsPanel`         | Language picker                                                                                         |
@@ -255,21 +258,22 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 | --------------- | ---------------------------------------------------------------------------------------------------- |
 | `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                             |
 | `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()` |
-| `analytics.ts`  | Registers Console + Firebase analytics providers                                                     |
-| `ads.ts`        | Registers Mock or AdMob provider based on platform + env                                             |
+| `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                     |
+| `app-events.ts` | `bindAppEvents()` (coins, game:over, ads) + `bindAppLifecycle()` (web visibility)                    |
 | `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                               |
+| `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                           |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
 ### App initialization order
 
 ```
-1. Ensure user id in store (generateId if missing)
-2. registerAnalyticsProviders()
-3. registerAdsProvider()
-4. apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized())
-5. Parallel (Promise.allSettled): i18n, ads, guest, analytics, leaderboard init
-6. guest.onReady → analytics.setUserId when guest becomes ready
+1. Ensure displayName in store (default 'Player')
+2. registerAnalyticsProviders() + registerAdsProvider()  (providers.ts)
+3. apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized())
+4. Parallel (Promise.allSettled): i18n, ads, guest, analytics, leaderboard init
+5. guest.onReady → analytics.setUserId + iap.linkGuestUser (RevenueCat logIn)
+6. bindGuestStoreSync()
 7. registerIapProvider(analyticsUserId) + iap.initialize()
 8. adsModule.init() (static ad placement config)
 9. analytics.setUserId() + setUserProperty('game_id')
@@ -278,14 +282,15 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 12. dailyRewards.init()
 13. settings.init()
 14. missions.init()
-15. bindPlatformEvents()
-16. Bind controllers: guest, dailyReward, leaderboard, gameSync, ads, IAP, missions, **notifications**
-17. bindLifecycle() (web visibility)
+15. bindAppEvents() + bindAppLifecycle()
+16. Bind controllers: guest, dailyReward, leaderboard, gameSync, ads, IAP, missions, notifications
 ```
 
-`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Audio files are preloaded in `PreloadScene`. When assets finish loading, `PreloadScene.create()` reads the pending boot destination via `getBootNavigationTarget()`, emits `boot:preload-complete` (which calls `navigationService.markBootComplete()`), then starts the target scene. `SoundManager` reads `settings.soundEnabled` from the store before playing.
+`GameEngine.bootstrap()` calls `setConfig(createConfig({ gameId: gameConfig.id, replaySecret: gameConfig.replaySecret }))`, `refreshServicesFromConfig()`, then `app.init()` **before** creating the Phaser game. After `new Phaser.Game()`, `navigationService.setGame(game)` runs so notification tap can navigate. `toast.init(game)` and `soundManager.init(game)` run next. Fonts load via `loadGameFonts()` from `bootstrap/fonts.ts`. Audio files are preloaded in `PreloadScene`. When assets finish loading, `PreloadScene.create()` reads the pending boot destination via `getBootNavigationTarget()`, emits `boot:preload-complete` (which calls `navigationService.markBootComplete()`), then starts the target scene.
 
-`BootScene` emits `app:ready` → `App.ts` hides native splash and requests APP_START/HOME ads.
+`GameplayScene.shutdown()` calls `endSession()` so deep-link / notification navigation away from gameplay still emits `game:over` and syncs score.
+
+`BootScene` emits `app:ready` → `app-events.ts` hides native splash and requests APP_START/HOME ads.
 
 ## Data Flow
 
@@ -354,6 +359,7 @@ Firebase DebugView: run a staging build with analytics enabled and use the Fireb
 - **Native + `VITE_ADS_PROVIDER=admob`:** `AdMobAdsProvider` via `@capacitor-community/admob`.
 - **Missing `VITE_ADMOB_*_APP_ID` on a platform:** that platform uses Google's official test ad unit IDs (no real account needed).
 - **Placements:** `ad:show:request`, `ad:reward:request` — handled by `AdsService` + `ads` module controller.
+- **Banner restore:** `ad:context:change` with `HOME`, `SHOP`, or `LEADERBOARD` re-shows banner via `adsModule.applyBannerForContext()`; `GAMEPLAY` hides it.
 - **Ad placement config:** `adsModule` applies the bundled placement and reward rules. Add a backend config endpoint before treating ad rules as remotely managed.
 
 Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android-native.mjs` / `apply-ios-native.mjs` from `native/`.
@@ -385,7 +391,7 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 4. Call `init()` in `bootstrap/App.ts`
 5. Wire event bus subscriptions (service or controller)
 6. Add i18n keys to `src/platform/modules/i18n/locales/en.json` and `vi.json`
-7. Export from `src/platform/modules/index.ts`
+7. Export from `src/platform/modules/index.ts` (sole modules barrel)
 
 ## Technical Decisions
 

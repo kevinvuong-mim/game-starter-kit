@@ -1,3 +1,5 @@
+import { getLocalDateKey } from '@platform/core/utils';
+
 export const DAILY_REWARD_MODEL_VERSION = 2;
 export const DAILY_REWARD_STORAGE_KEY = 'daily-reward-v2';
 export const LEGACY_DAILY_REWARD_STORAGE_KEY = 'daily-rewards';
@@ -59,14 +61,7 @@ export function createDefaultModel(): DailyRewardModel {
   };
 }
 
-export function getLocalDateString(date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export function hasClaimedToday(model: DailyRewardModel, now = new Date()): boolean {
+export function hasClaimedToday(model: DailyRewardModel, at: number = Date.now()): boolean {
   if (!model.lastClaimDate) return false;
-  return model.lastClaimDate === getLocalDateString(now);
+  return model.lastClaimDate === getLocalDateKey(at);
 }

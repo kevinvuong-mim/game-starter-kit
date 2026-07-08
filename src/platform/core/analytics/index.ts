@@ -2,13 +2,9 @@ export {
   trackAdReward,
   trackGameOver,
   trackPurchase,
-  trackShopOpen,
   trackGameStart,
   trackDailyClaim,
-  trackLevelStart,
   trackSessionEnd,
-  trackSessionStart,
-  trackLevelComplete,
   trackMissionComplete,
 } from './events';
 export { AnalyticsEvents } from './types';

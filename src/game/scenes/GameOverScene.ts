@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 
+import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class GameOverScene extends Phaser.Scene {

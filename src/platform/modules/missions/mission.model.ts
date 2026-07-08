@@ -1,4 +1,4 @@
-import { getLocalDateKey, now } from '@platform/core/utils/time';
+import { getLocalDateKey, now } from '@platform/core/utils';
 
 export type MissionBehaviorType = 'WATCH_AD';
 

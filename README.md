@@ -60,10 +60,10 @@ game-starter-kit/
 ├── src/
 │   ├── main.ts                # Entry → GameEngine.bootstrap()
 │   ├── platform/              # Reusable platform (keep as-is across games)
-│   │   ├── core/              # events, state, storage, api, analytics, advertising, iap, error
-│   │   ├── modules/           # i18n, shop, missions, leaderboard, notifications, save, settings, guest, game-sync, ads
-│   │   ├── ui/                # Phaser UI: panels, HUD, toast, audio, screen stack, buttons
-│   │   └── bootstrap/         # App, GameEngine, analytics, ads, iap, capacitor
+│   │   ├── core/              # events, state, storage, api, analytics, advertising, error
+│   │   ├── modules/           # i18n, shop, missions, leaderboard, notifications, save, …
+│   │   ├── ui/                # Phaser UI: panels, HUD, toast, audio, screen stack, fonts
+│   │   └── bootstrap/         # App, GameEngine, providers, app-events, capacitor, fonts
 │   └── game/                  # YOUR game — customize per project
 │       ├── config.ts          # Game identity & screen size
 │       ├── utils/             # e.g. ObjectPool
@@ -77,17 +77,21 @@ game-starter-kit/
 └── capacitor.config.ts
 ```
 
-`android/` and `ios/` are generated locally via Capacitor and are **gitignored**.
+`android/` and `ios/` are generated locally via Capacitor and are **gitignored**. `build:android` / `build:ios` auto-add the platform when missing via `scripts/native-ops.mjs`.
 
 ## Path Aliases
 
-| Alias                   | Path                       |
-| ----------------------- | -------------------------- |
-| `@platform/core/*`      | `src/platform/core/*`      |
-| `@platform/modules/*`   | `src/platform/modules/*`   |
-| `@platform/ui/*`        | `src/platform/ui/*`        |
-| `@platform/bootstrap/*` | `src/platform/bootstrap/*` |
-| `@game/*`               | `src/game/*`               |
+| Alias                   | Path                            |
+| ----------------------- | ------------------------------- |
+| `@platform/ui`          | `src/platform/ui/index.ts`      |
+| `@platform/ui/*`        | `src/platform/ui/*`             |
+| `@platform/core`        | `src/platform/core`             |
+| `@platform/core/*`      | `src/platform/core/*`           |
+| `@platform/modules`     | `src/platform/modules/index.ts` |
+| `@platform/modules/*`   | `src/platform/modules/*`        |
+| `@platform/bootstrap`   | `src/platform/bootstrap`        |
+| `@platform/bootstrap/*` | `src/platform/bootstrap/*`      |
+| `@game/*`               | `src/game/*`                    |
 
 ## Architecture Layers
 
@@ -124,22 +128,22 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 
 ## Platform Modules
 
-| Module        | Description                                                               |
-| ------------- | ------------------------------------------------------------------------- |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON            |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                  |
-| missions      | Daily / weekly / permanent missions (`missions.json`)                     |
-| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                        |
-| daily-reward  | 7-day streak calendar, local persistence                                  |
-| save          | Single `game-save` key — hydrates Zustand store on boot                   |
-| settings      | Language, sound, vibration, graphics — part of store state                |
-| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`) |
-| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)           |
-| notifications | Push (FCM) + local daily reward; device token sync (`/devices`)           |
-| ads (module)  | Static placement config, reward flow, controller wired to event bus       |
-| analytics     | Provider interface — Console + Firebase                                   |
-| advertising   | AdMob / mock providers, placement state machines                          |
-| IAP           | Provider interface — purchase, restore, client-side entitlement state     |
+| Module        | Description                                                                    |
+| ------------- | ------------------------------------------------------------------------------ |
+| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                 |
+| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                       |
+| missions      | Daily missions (`missions.json`); WATCH_AD progress via rewarded ads           |
+| leaderboard   | Offline cache, TTL, paginated leaderboard via REST                             |
+| daily-reward  | 7-day streak calendar, local persistence                                       |
+| save          | Single `game-save` key — hydrates Zustand store on boot                        |
+| settings      | Language, sound, vibration, graphics — part of store state                     |
+| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)      |
+| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)                |
+| notifications | Push (FCM) + local daily reward; device token sync (`/devices`)                |
+| ads (module)  | Placement config, banner context restore, reward flow, controller on event bus |
+| IAP (module)  | Purchase, restore, entitlements; RevenueCat `logIn` on `guest.onReady`         |
+| analytics     | Provider interface — Console + Firebase (core)                                 |
+| advertising   | AdMob / mock providers, placement state machines (core)                        |
 
 ## UI Framework
 
@@ -218,14 +222,7 @@ npm run cap:ios        # open Xcode
 
 ### Capacitor Setup
 
-`android/` and `ios/` are gitignored, so a fresh clone has no native projects. `build:android` / `build:ios` now **auto-add the platform when missing** through `scripts/native-ops.mjs`, so no manual step is required. To add a platform explicitly:
-
-```bash
-npm run cap:add:android   # idempotent — no-op if android/ exists
-npm run cap:add:ios       # idempotent — no-op if ios/ exists
-```
-
-`build:android` / `build:ios` then run `capacitor-assets generate` and apply templates from `native/` (AdMob manifest snippets, Firebase FCM, MainActivity, iOS storyboard).
+`android/` and `ios/` are gitignored, so a fresh clone has no native projects. `build:android` / `build:ios` auto-add the platform when missing through `scripts/native-ops.mjs` (no separate `cap add` script required).
 
 ## Documentation
 
@@ -247,26 +244,23 @@ npm run cap:add:ios       # idempotent — no-op if ios/ exists
 
 ## Scripts
 
-| Command                      | Description                                                 |
-| ---------------------------- | ----------------------------------------------------------- |
-| `npm run dev`                | Vite dev server (`:5173`)                                   |
-| `npm run build`              | Typecheck + production build → `dist/`                      |
-| `npm run preview`            | Preview production build                                    |
-| `npm run lint`               | `tsc --noEmit` + ESLint on `src/`                           |
-| `npm run game:verify-config` | Validate `VITE_GAME_ID` / `VITE_REPLAY_SECRET` + API probe  |
-| `npm run lint:fix`           | ESLint with auto-fix                                        |
-| `npm run format`             | Prettier write                                              |
-| `npm run format:check`       | Prettier check                                              |
-| `npm run cap:sync`           | `cap sync`                                                  |
-| `npm run cap:add:android`    | Ensure Android platform exists (idempotent, via native-ops) |
-| `npm run cap:add:ios`        | Ensure iOS platform exists (idempotent, via native-ops)     |
-| `npm run cap:android`        | Open Android Studio                                         |
-| `npm run cap:ios`            | Open Xcode                                                  |
-| `npm run assets:generate`    | Generate app icons/splash from `resources/`                 |
-| `npm run build:android`      | Full Android pipeline via `scripts/native-ops.mjs`          |
-| `npm run build:ios`          | Full iOS pipeline via `scripts/native-ops.mjs`              |
-| `npm run run:android`        | Build + compile APK + boot emulator + install + launch      |
-| `npm run run:ios`            | Build + xcodebuild simulator + install + launch             |
+| Command                      | Description                                                |
+| ---------------------------- | ---------------------------------------------------------- |
+| `npm run dev`                | Vite dev server (`:5173`)                                  |
+| `npm run build`              | Typecheck + production build → `dist/`                     |
+| `npm run preview`            | Preview production build                                   |
+| `npm run lint`               | `tsc --noEmit` + ESLint on `src/`                          |
+| `npm run game:verify-config` | Validate `VITE_GAME_ID` / `VITE_REPLAY_SECRET` + API probe |
+| `npm run lint:fix`           | ESLint with auto-fix                                       |
+| `npm run format`             | Prettier write                                             |
+| `npm run format:check`       | Prettier check                                             |
+| `npm run cap:android`        | Open Android Studio                                        |
+| `npm run cap:ios`            | Open Xcode                                                 |
+| `npm run assets:generate`    | Generate app icons/splash from `resources/`                |
+| `npm run build:android`      | Full Android pipeline via `scripts/native-ops.mjs`         |
+| `npm run build:ios`          | Full iOS pipeline via `scripts/native-ops.mjs`             |
+| `npm run run:android`        | Build + compile APK + boot emulator + install + launch     |
+| `npm run run:ios`            | Build + xcodebuild simulator + install + launch            |
 
 ## Platform Updates
 

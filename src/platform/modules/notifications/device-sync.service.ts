@@ -6,11 +6,11 @@ import {
   MAX_DEVICE_SYNC_ATTEMPTS,
   MAX_DEVICE_SYNC_BACKOFF_MS,
   BASE_DEVICE_SYNC_BACKOFF_MS,
-} from '../notification.model';
+} from './notification.model';
 import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';
 import { guest, type GuestService } from '@platform/modules/guest';
-import { notificationRepository, type NotificationRepository } from '../notification.repository';
+import { notificationRepository, type NotificationRepository } from './notification.repository';
 
 /**
  * Offline-first FCM device token sync.

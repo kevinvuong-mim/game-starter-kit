@@ -30,7 +30,7 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 3. `refreshServicesFromConfig()`.
 4. `app.init()`.
 5. `initCapacitorPlugins()`.
-6. Load fonts `Fredoka` và `Nunito Sans`.
+6. `loadGameFonts()` from `bootstrap/fonts.ts` (`@fontsource` + canvas font probe).
 7. Create Phaser game với `gameScenes`.
 8. `navigationService.setGame(game)`.
 9. `toast.init(game)`.
@@ -49,16 +49,17 @@ Entry point: `src/main.ts` → `gameEngine.bootstrap()`.
 3. Register ads provider.
 4. Đăng ký `apiClient.setAuthRecoveryHandler` → `guest.recoverFromUnauthorized()`.
 5. Parallel init (`Promise.allSettled`): `i18n`, ads core, `guest`, analytics, leaderboard cache.
-6. `guest.onReady` → set analytics user id khi guest sẵn sàng.
-7. Register IAP provider (dùng `guestId` hoặc fallback local user id) và initialize IAP.
-8. Init ads module placement config (`adsModule.init()`).
-9. Set analytics user id và user property `game_id`.
-10. Load local save.
-11. `syncGuestToStore()` — hydrate display name từ guest credentials.
+6. `guest.onReady` → set analytics user id + `iap.linkGuestUser(guestId)` (RevenueCat `Purchases.logIn`).
+7. `bindGuestStoreSync()` — hydrate store from guest credentials.
+8. Register IAP provider (dùng `guestId` hoặc fallback local user id) và initialize IAP.
+9. Init ads module placement config (`adsModule.init()`).
+10. Set analytics user id và user property `game_id`.
+11. Load local save.
 12. Init daily rewards, settings, missions.
-13. Bind platform event handlers.
-14. Bind controllers: **guest**, daily reward, leaderboard, game sync, ads, IAP, missions, **notifications**.
-15. Bind lifecycle events (web: `visibilitychange` → `app:pause` / `app:resume`; native: `capacitor.ts` `appStateChange`).
+13. `bindAppEvents()` + `bindAppLifecycle()` (platform event handlers).
+14. Bind controllers: guest, daily reward, leaderboard, game sync, ads, IAP, missions, notifications.
+
+Web lifecycle: `bindAppLifecycle()` trong `app-events.ts`. Native: `capacitor.ts` `appStateChange`.
 
 ---
 
@@ -83,7 +84,8 @@ Platform controllers sẽ nhận event:
 | `app:resume`            | Flush pending results; mission reset; daily reward checks; guest name flush; push heartbeat + local schedule reconcile |
 | `boot:preload-complete` | **Boot complete signal** — `navigationService` gọi `markBootComplete()` (emit từ `PreloadScene` sau preload assets)    |
 | `leaderboard:refresh`   | Load leaderboard cache/network (emit từ `LeaderboardPanel` khi mở)                                                     |
-| `ad:reward:request`     | Show rewarded ad and grant reward                                                                                      |
+| `ad:reward:request`     | Show rewarded ad and grant reward (`MissionsPanel` emits for WATCH_AD missions)                                        |
+| `ad:context:change`     | Hide banner in gameplay; re-show on HOME/SHOP/LEADERBOARD via `applyBannerForContext`                                  |
 | `settings:change`       | Save local                                                                                                             |
 | `shop:purchase`         | Track purchase and save local                                                                                          |
 

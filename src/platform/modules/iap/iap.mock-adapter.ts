@@ -1,6 +1,6 @@
 import { logger } from '@platform/core/error';
-import { getAllProductIds, getProductById } from '../config/iap.config';
-import type { IAPProvider, ProviderProduct, ProviderPurchase } from '../types/iap.types';
+import { getAllProductIds, getProductById } from './iap.config';
+import type { IAPProvider, ProviderProduct, ProviderPurchase } from './iap.types';
 
 const MOCK_PRODUCTS: ProviderProduct[] = [
   {

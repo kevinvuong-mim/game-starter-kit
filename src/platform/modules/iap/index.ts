@@ -1,9 +1,4 @@
 export type {
-  IapProviderName,
-  RevenueCatAdapterConfig,
-  CreateIapProviderOptions,
-} from './adapters';
-export type {
   ProductType,
   IAPProvider,
   IapInitState,
@@ -12,24 +7,24 @@ export type {
   ProviderProduct,
   ProviderPurchase,
   ProductDefinition,
-} from './types/iap.types';
-export {
-  PRODUCTS,
-  getProductById,
-  getProductByKey,
-  ENTITLEMENT_REMOVE_ADS,
-} from './config/iap.config';
+} from './iap.types';
+export type {
+  IapProviderName,
+  RevenueCatAdapterConfig,
+  CreateIapProviderOptions,
+} from './iap.adapters';
 export type {
   IapPurchaseFailedPayload,
   IapRestoreSuccessPayload,
   IapPurchaseSuccessPayload,
   IapEntitlementChangedPayload,
-} from './events/iap.events';
-export { IapError } from './types/iap.types';
-export { IAP_EVENTS } from './events/iap.events';
+} from './iap.events';
+export { IapError } from './iap.types';
+export { IAP_EVENTS } from './iap.events';
+export type { ProductKey } from './iap.config';
+export { iap, IapService } from './iap.service';
+export type { IapServiceDeps } from './iap.service';
 export { bindIapController } from './iap.controller';
-export type { ProductKey } from './config/iap.config';
-export { iap, IapService } from './services/iap.service';
-export type { IapServiceDeps } from './services/iap.service';
-export { purchaseStorage, PurchaseStorage } from './storage/purchase.storage';
-export { MockIapAdapter, createIapProvider, RevenueCatAdapter } from './adapters';
+export { purchaseStorage, PurchaseStorage } from './purchase.storage';
+export { MockIapAdapter, createIapProvider, RevenueCatAdapter } from './iap.adapters';
+export { PRODUCTS, getProductById, getProductByKey, ENTITLEMENT_REMOVE_ADS } from './iap.config';

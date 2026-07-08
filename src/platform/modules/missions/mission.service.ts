@@ -7,8 +7,8 @@ import {
 import missionsData from './missions.json';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
+import { getLocalDateKey } from '@platform/core/utils';
 import { usePlatformStore } from '@platform/core/state';
-import { getLocalDateKey } from '@platform/core/utils/time';
 import { saveService } from '@platform/modules/save/save.service';
 
 export class MissionService {

@@ -2,13 +2,13 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { guest } from '@platform/modules/guest';
 import { getConfig } from '@platform/core/config';
-import { settings } from '@platform/modules/settings';
 import type { IEventBus } from '@platform/core/events';
+import { deviceSyncService } from './device-sync.service';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { notificationService } from './notification.service';
 import { dailyRewards } from '@platform/modules/daily-reward';
-import { navigationService } from '@platform/modules/navigation';
-import { deviceSyncService } from './services/device-sync.service';
+import { settings } from '@platform/modules/settings/settings.service';
+import { navigationService } from '@platform/modules/navigation/navigation.service';
 import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
 
 export class NotificationController {

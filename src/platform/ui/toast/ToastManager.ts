@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import type { UIToastType, ToastOptions, ToastPosition } from '@platform/ui/types';
 
 const TOAST_EDGE_MARGIN = 80;

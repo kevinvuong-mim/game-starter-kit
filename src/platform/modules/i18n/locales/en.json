@@ -95,7 +95,8 @@
     "claimSuccess": "Claimed {{coins}} coins!",
     "claimFailed": "Cannot claim yet",
     "dailyMission": "Daily mission",
-    "watchAd3": "Watch 3 rewarded ads"
+    "watchAd3": "Watch 3 rewarded ads",
+    "watchAd": "Watch ad"
   },
   "dailyReward": {
     "title": "Daily Reward",

@@ -10,7 +10,7 @@ import type {
   UIButtonOptions,
   UIButtonTextStyle,
 } from '../types';
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { soundManager } from '@platform/ui/audio/SoundManager';
 
 export const UIButtonBackgroundKey = {

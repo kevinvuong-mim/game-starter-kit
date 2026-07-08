@@ -1,8 +1,8 @@
-import { iap } from './services/iap.service';
-import { IAP_EVENTS } from './events/iap.events';
+import { iap } from './iap.service';
+import { IAP_EVENTS } from './iap.events';
 import { services } from '@platform/core/services';
 import type { IEventBus } from '@platform/core/events';
-import { ENTITLEMENT_REMOVE_ADS } from './config/iap.config';
+import { ENTITLEMENT_REMOVE_ADS } from './iap.config';
 
 const { ads } = services;
 

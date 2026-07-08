@@ -15,17 +15,18 @@ import {
   leaderboardController,
   notificationController,
 } from '@platform/modules';
+import {
+  registerAdsProvider,
+  registerIapProvider,
+  registerAnalyticsProviders,
+} from '@platform/bootstrap/providers';
 import { logger } from '@platform/core/error';
 import { apiClient } from '@platform/core/api';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
-import { registerAdsProvider } from '@platform/bootstrap/ads';
-import { registerIapProvider } from '@platform/bootstrap/iap';
 import { trackSessionEnd } from '@platform/core/analytics/events';
-import { bindAppEvents } from '@platform/bootstrap/bind-app-events';
-import { bindAppLifecycle } from '@platform/bootstrap/bind-app-lifecycle';
-import { registerAnalyticsProviders } from '@platform/bootstrap/analytics';
-import { syncGuestToStore, bindGuestStoreSync } from '@platform/bootstrap/sync-guest-store';
+import { bindAppEvents, bindAppLifecycle } from '@platform/bootstrap/app-events';
+import { syncGuestToStore, bindGuestStoreSync } from '@platform/modules/guest/guest-store-sync';
 
 const { ads, iap, config, events, analytics } = services;
 
@@ -72,6 +73,9 @@ export class App {
     this.unsubscribers.push(
       guest.onReady((guestId) => {
         analytics.setUserId(guestId);
+        void iap.linkGuestUser(guestId).catch((error) => {
+          logger.warn('[App] IAP guest link failed', error);
+        });
       }),
       bindGuestStoreSync()
     );

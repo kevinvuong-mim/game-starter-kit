@@ -45,7 +45,7 @@ Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts
 │  advertising error services utils            │
 ├─────────────────────────────────────────────┤
 │     BOOTSTRAP (src/platform/bootstrap/)      │
-│  App GameEngine analytics ads iap capacitor  │
+│  App GameEngine providers app-events capacitor fonts │
 └─────────────────────────────────────────────┘
 ```
 
@@ -144,18 +144,15 @@ Scripts:
 
 ```text
 dev
-build              # tsc + vite only; không chain game:verify-config
+build              # tsc + vite only
 preview
-cap:sync
-cap:add:android  # via scripts/native-ops.mjs ensure android
-cap:add:ios      # via scripts/native-ops.mjs ensure ios
-cap:android
-cap:ios
+cap:android        # open Android Studio
+cap:ios            # open Xcode
 assets:generate
-build:android    # via scripts/native-ops.mjs build android
-build:ios        # via scripts/native-ops.mjs build ios
-run:android      # build + emulator install + launch
-run:ios          # build + simulator install + launch
+build:android      # via scripts/native-ops.mjs build android (auto cap add if missing)
+build:ios          # via scripts/native-ops.mjs build ios (auto cap add if missing)
+run:android
+run:ios
 lint
 game:verify-config
 lint:fix
@@ -245,9 +242,13 @@ lib: ["DOM","ES2022","DOM.Iterable"]
 
 ```text
 @game/* → src/game/*
+@platform/ui → src/platform/ui/index.ts
 @platform/ui/* → src/platform/ui/*
+@platform/core → src/platform/core
 @platform/core/* → src/platform/core/*
+@platform/modules → src/platform/modules/index.ts
 @platform/modules/* → src/platform/modules/*
+@platform/bootstrap → src/platform/bootstrap
 @platform/bootstrap/* → src/platform/bootstrap/*
 ```
 
@@ -484,13 +485,17 @@ VITE_FIREBASE_MEASUREMENT_ID=
 
 ## 4. Path aliases
 
-| Alias (tsconfig /\*)   | Vite bare alias     | Path                      |
-| ---------------------- | ------------------- | ------------------------- |
-| @game/\*               | @game               | src/game/\*               |
-| @platform/ui/\*        | @platform/ui        | src/platform/ui/\*        |
-| @platform/core/\*      | @platform/core      | src/platform/core/\*      |
-| @platform/modules/\*   | @platform/modules   | src/platform/modules/\*   |
-| @platform/bootstrap/\* | @platform/bootstrap | src/platform/bootstrap/\* |
+| Alias (tsconfig /\*)   | Vite bare alias     | Path                          |
+| ---------------------- | ------------------- | ----------------------------- |
+| @game/\*               | @game               | src/game/\*                   |
+| @platform/ui           | @platform/ui        | src/platform/ui/index.ts      |
+| @platform/ui/\*        | —                   | src/platform/ui/\*            |
+| @platform/core         | @platform/core      | src/platform/core             |
+| @platform/core/\*      | —                   | src/platform/core/\*          |
+| @platform/modules      | @platform/modules   | src/platform/modules/index.ts |
+| @platform/modules/\*   | —                   | src/platform/modules/\*       |
+| @platform/bootstrap    | @platform/bootstrap | src/platform/bootstrap        |
+| @platform/bootstrap/\* | —                   | src/platform/bootstrap/\*     |
 
 ---
 
@@ -533,11 +538,7 @@ await app.init()
 
 await initCapacitorPlugins()
 
-Load fonts:
-- 16px "Fredoka"
-- 16px "Nunito Sans"
-
-await document.fonts.ready
+Load fonts via `loadGameFonts()` from `@platform/bootstrap/fonts` (`@fontsource` CSS + canvas probe)
 
 Create Phaser game với gameScenes từ @game/scenes
 
@@ -565,13 +566,10 @@ banner: config.debug
 ## 5.3 App.init() sequence
 
 ```text
-Ensure user.id in store
-→ generateId('user')
-→ displayName = Player
+Ensure displayName in store (default 'Player' if empty)
 
-registerAnalyticsProviders()
-
-registerAdsProvider()
+registerAnalyticsProviders()    # providers.ts
+registerAdsProvider()           # providers.ts
 
 apiClient.setAuthRecoveryHandler(() => guest.recoverFromUnauthorized())
 
@@ -589,13 +587,14 @@ Promise.allSettled([
 
 guest.onReady((guestId) => {
   analytics.setUserId(guestId);
+  iap.linkGuestUser(guestId);   // RevenueCat Purchases.logIn when provider supports it
 });
 
-analyticsUserId =
-guest.getGuestId() ?? store.user.id
+bindGuestStoreSync()
+
+analyticsUserId = guest.getGuestId() ?? store.user.id
 
 registerIapProvider(analyticsUserId)
-...
 ```
 
 ### Xử lý lỗi `guest.init()` — degraded mode + auto-retry khi có mạng
@@ -658,7 +657,8 @@ dailyRewards.init()
 settings.init()
 missions.init()
 
-bindPlatformEvents()
+bindAppEvents()
+bindAppLifecycle()
 
 Push unsubscribers:
 guestController.bind
@@ -670,10 +670,10 @@ bindIapController
 missionController.bind
 notificationController.bind
 
-bindLifecycle()
+(bindAppLifecycle handles web visibility; native uses capacitor.ts appStateChange)
 ```
 
-`guest.onReady` → `notificationService.initialize()` (native only, khi push/local enabled).
+`notificationController.bind()` khởi tạo local ngay khi bind; push init qua `guest.onReady` → `notificationService.initializePush()` (xem `documents/modules/notifications.md`).
 
 ---
 
@@ -779,15 +779,15 @@ Getters:
 
 ## 6.3 Scenes — hành vi mẫu
 
-| Scene             | Key      | Hành vi                            |
-| ----------------- | -------- | ---------------------------------- |
-| BootScene         | Boot     | Particle → SESSION_START → Preload |
-| PreloadScene      | Preload  | Progress → images + audio → Home   |
-| HomeScene         | Home     | Background + navigation            |
-| GameplayScene     | Gameplay | Tap-to-jump + HUD + events         |
-| GameOverScene     | GameOver | Score + Retry/Home                 |
-| Shop/Missions/... | wrapper  | Panel + Close                      |
-| SettingsScene     | Settings | Language + sound + navigation      |
+| Scene             | Key      | Hành vi                                                   |
+| ----------------- | -------- | --------------------------------------------------------- |
+| BootScene         | Boot     | Particle → SESSION_START → Preload                        |
+| PreloadScene      | Preload  | Progress → images + audio → Home                          |
+| HomeScene         | Home     | Background + navigation                                   |
+| GameplayScene     | Gameplay | Tap-to-jump + HUD + events; shutdown() calls endSession() |
+| GameOverScene     | GameOver | Score + Retry/Home                                        |
+| Shop/Missions/... | wrapper  | Panel + Close                                             |
+| SettingsScene     | Settings | Language + sound + navigation                             |
 
 ### Rules
 
@@ -1158,7 +1158,8 @@ services = {
 ```text
 generateId()
 formatNumber()
-time.ts
+now()
+getLocalDateKey()
 ```
 
 ---
@@ -1182,6 +1183,19 @@ navigation
 ads
 iap
 ```
+
+**Cấu trúc phẳng (không subfolder):**
+
+- `modules/iap/` — `iap.service.ts`, `iap.controller.ts`, `iap.config.ts`, `iap.events.ts`, `iap.types.ts`, `iap.adapters.ts`, `iap.mock-adapter.ts`, `iap.revenuecat-adapter.ts`, `purchase.storage.ts`
+- `modules/notifications/` — `push-notification.service.ts`, `local-notification.service.ts`, `device-sync.service.ts` (cùng cấp với `notification.service.ts`)
+- `modules/guest/guest-store-sync.ts` — sync guest id/name vào Zustand store
+- `modules/index.ts` — barrel duy nhất; các module mỏng (`save`, `settings`, `shop`, `navigation`) không có `index.ts` riêng
+
+**Bootstrap gộp:**
+
+- `bootstrap/providers.ts` — analytics + ads + IAP provider registration
+- `bootstrap/app-events.ts` — `bindAppEvents()` + `bindAppLifecycle()`
+- `bootstrap/fonts.ts` — font loading cho Phaser canvas
 
 ### Notifications (native)
 
@@ -1347,8 +1361,8 @@ DELETE /api/devices
 Fonts:
 
 ```text
-FREDOKA_FONT
-NUNITO_FONT
+FREDOKA_FONT / NUNITO_FONT  → src/platform/ui/fonts.ts
+Import from @platform/ui/fonts inside UI panels (avoid circular import via ui/index)
 ```
 
 Components:
@@ -1479,15 +1493,15 @@ interface ImportMeta {
 
 # 14. Conventions & patterns
 
-| Pattern            | Quy tắc                             |
-| ------------------ | ----------------------------------- |
-| Singleton services | export const ...                    |
-| Module structure   | service/repository/controller/model |
-| Controller         | bind() trả unsub                    |
-| Barrel exports     | index.ts                            |
-| Game↔Platform      | eventBus                            |
-| Persistence        | SaveService                         |
-| i18n import        | @platform/ui                        |
+| Pattern            | Quy tắc                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Singleton services | export const ...                                                                      |
+| Module structure   | service/repository/controller/model (multi-file modules); thin modules = service only |
+| Controller         | bind() trả unsub                                                                      |
+| Barrel exports     | modules/index.ts only (per-module index.ts removed for thin modules)                  |
+| Game↔Platform      | eventBus                                                                              |
+| Persistence        | SaveService                                                                           |
+| i18n import        | @platform/ui                                                                          |
 
 ---
 

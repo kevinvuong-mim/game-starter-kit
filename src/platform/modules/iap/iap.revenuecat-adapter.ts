@@ -1,9 +1,4 @@
-import type {
-  ProductType,
-  IAPProvider,
-  ProviderProduct,
-  ProviderPurchase,
-} from '../types/iap.types';
+import type { ProductType, IAPProvider, ProviderProduct, ProviderPurchase } from './iap.types';
 import {
   Purchases,
   LOG_LEVEL,
@@ -12,8 +7,8 @@ import {
   PURCHASES_ERROR_CODE,
 } from '@revenuecat/purchases-capacitor';
 import { logger } from '@platform/core/error';
-import { IapError } from '../types/iap.types';
-import { PRODUCTS, getProductById, getAllProductIds } from '../config/iap.config';
+import { IapError } from './iap.types';
+import { PRODUCTS, getProductById, getAllProductIds } from './iap.config';
 import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
 
 export interface RevenueCatAdapterConfig {
@@ -100,6 +95,14 @@ export class RevenueCatAdapter implements IAPProvider {
 
     const { customerInfo } = await Purchases.getCustomerInfo();
     return extractKnownEntitlements(customerInfo);
+  }
+
+  async linkAppUser(appUserId: string): Promise<void> {
+    await this.ensureConfigured();
+    if (!appUserId) return;
+
+    await Purchases.logIn({ appUserID: appUserId });
+    logger.info('[IAP] RevenueCat user linked', { appUserId });
   }
 
   private async ensureConfigured(): Promise<void> {

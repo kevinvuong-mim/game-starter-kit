@@ -39,9 +39,22 @@ export class AdsModuleService {
     }
   }
 
-  async hideBannerForContext(context: string): Promise<void> {
+  async applyBannerForContext(context: string): Promise<void> {
     if (context === 'GAMEPLAY' || context === 'CUTSCENE' || context === 'COMBAT') {
       await ads.hideBanner();
+      return;
+    }
+
+    const contextToPlacement: Record<string, string> = {
+      HOME: 'HOME',
+      SHOP: 'SHOP',
+      LEADERBOARD: 'LEADERBOARD',
+      GAME_OVER: 'GAME_OVER',
+    };
+
+    const placement = contextToPlacement[context];
+    if (placement && ads.resolveFormat(placement) === 'banner') {
+      await ads.showBanner(placement);
     }
   }
 

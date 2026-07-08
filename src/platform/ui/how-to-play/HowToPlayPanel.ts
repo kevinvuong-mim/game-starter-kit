@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 

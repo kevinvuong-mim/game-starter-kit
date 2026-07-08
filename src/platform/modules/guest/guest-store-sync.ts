@@ -1,4 +1,4 @@
-import { guest } from '@platform/modules/guest';
+import { guest } from './guest.service';
 import { usePlatformStore } from '@platform/core/state';
 
 export function syncGuestToStore(): void {

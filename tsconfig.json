@@ -22,7 +22,10 @@
     "paths": {
       "@game/*": ["src/game/*"],
       "@platform/ui/*": ["src/platform/ui/*"],
+      "@platform/core": ["src/platform/core"],
       "@platform/core/*": ["src/platform/core/*"],
+      "@platform/ui": ["src/platform/ui/index.ts"],
+      "@platform/bootstrap": ["src/platform/bootstrap"],
       "@platform/modules/*": ["src/platform/modules/*"],
       "@platform/bootstrap/*": ["src/platform/bootstrap/*"],
       "@platform/modules": ["src/platform/modules/index.ts"]

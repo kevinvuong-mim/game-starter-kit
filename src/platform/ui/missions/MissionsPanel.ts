@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { toast } from '../toast/ToastManager';
 import { eventBus } from '@platform/core/events';
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { t } from '@platform/modules/i18n/i18n.service';
 import type { MissionProgress } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
@@ -11,6 +11,8 @@ import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 
 const ROW_GAP = 8;
 const ROW_HEIGHT = 72;
+/** Rewarded placement used for WATCH_AD mission progress. */
+const MISSION_AD_PLACEMENT = 'DOUBLE_COIN';
 
 /**
  * Missions list UI — lives in platform/ui so game scenes stay event-driven.
@@ -42,7 +44,16 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
   private bindEvents(): void {
     this.unsubscribers.push(
       eventBus.on('mission:update', () => this.renderMissions()),
-      eventBus.on('mission:complete', () => this.renderMissions())
+      eventBus.on('mission:complete', () => this.renderMissions()),
+      eventBus.on('ad:reward:result', ({ success, message }) => {
+        if (success) {
+          this.renderMissions();
+          return;
+        }
+        if (message) {
+          toast.show({ message, type: 'error' });
+        }
+      })
     );
   }
 
@@ -174,6 +185,23 @@ export class MissionsPanel extends Phaser.GameObjects.Container {
       });
 
       container.add([claimBtn, claimLabel]);
+    } else if (mission.status === 'active' && def?.type === 'WATCH_AD') {
+      const watchBtn = this.scene.add.rectangle(rowHalf - 58, 46, 100, 30, 0x6c5ce7);
+      watchBtn.setStrokeStyle(1, 0xffffff);
+      watchBtn.setInteractive({ useHandCursor: true });
+
+      const watchLabel = this.scene.add.text(rowHalf - 58, 46, t('missions.watchAd'), {
+        fontSize: '12px',
+        color: '#ffffff',
+        fontFamily: FREDOKA_FONT,
+      });
+      watchLabel.setOrigin(0.5);
+
+      watchBtn.on('pointerdown', () => {
+        eventBus.emit('ad:reward:request', { placement: MISSION_AD_PLACEMENT });
+      });
+
+      container.add([watchBtn, watchLabel]);
     } else if (mission.status === 'claimed') {
       const claimedText = this.scene.add.text(rowHalf - 14, 46, t('missions.claimed'), {
         fontSize: '13px',

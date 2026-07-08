@@ -25,6 +25,10 @@ Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry kh
 
 `init()` và `recoverFromUnauthorized()` dùng mutex để tránh race khi retry song song.
 
+## IAP linking
+
+Khi guest trở thành `ready` (kể cả sau offline retry), `App.ts` gọi `iap.linkGuestUser(guestId)` → RevenueCat adapter `Purchases.logIn({ appUserID })` và sync entitlements từ server.
+
 ## Offline name sync
 
 Đổi tên qua `guest.updateName()`:

@@ -1,19 +1,13 @@
-import type {
-  IAPProvider,
-  IapInitState,
-  RestoreResult,
-  PurchaseResult,
-  ProductDefinition,
-} from '../types/iap.types';
-import { IapError } from '../types/iap.types';
+import { IapError } from './iap.types';
+import { IAP_EVENTS } from './iap.events';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { getConfig } from '@platform/core/config';
-import { IAP_EVENTS } from '../events/iap.events';
+import { MockIapAdapter } from './iap.mock-adapter';
 import type { IEventBus } from '@platform/core/events';
-import { MockIapAdapter } from '../adapters/mock.adapter';
-import { purchaseStorage, type PurchaseStorage } from '../storage/purchase.storage';
-import { PRODUCTS, getProductById, IAP_PURCHASE_TIMEOUT_MS } from '../config/iap.config';
+import { purchaseStorage, type PurchaseStorage } from './purchase.storage';
+import { PRODUCTS, getProductById, IAP_PURCHASE_TIMEOUT_MS } from './iap.config';
+import type { IAPProvider, RestoreResult, PurchaseResult, ProductDefinition } from './iap.types';
 
 export interface IapServiceDeps {
   emit?: IEventBus['emit'];
@@ -32,7 +26,6 @@ export class IapService {
   private entitlements = new Set<string>();
   private provider: IAPProvider | null = null;
   private initPromise: Promise<void> | null = null;
-  private initState: IapInitState = { loading: false, ready: false, error: null };
 
   constructor(deps: IapServiceDeps = {}) {
     this.storage = deps.storage ?? purchaseStorage;
@@ -51,16 +44,11 @@ export class IapService {
     return this.enabled && getConfig().iapEnabled;
   }
 
-  getInitState(): IapInitState {
-    return { ...this.initState };
-  }
-
   /** Initialize IAP once — safe to call multiple times. */
   async initialize(): Promise<void> {
     if (this.ready) return;
     if (this.initPromise) return this.initPromise;
 
-    this.initState = { loading: true, ready: false, error: null };
     this.initPromise = this.doInitialize();
 
     try {
@@ -99,11 +87,8 @@ export class IapService {
       }
 
       this.ready = true;
-      this.initState = { loading: false, ready: true, error: null };
       logger.info('[IAP] Ready', { provider: this.provider.name, entitlements: stored });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'IAP initialization failed';
-      this.initState = { loading: false, ready: false, error: message };
       logger.error('[IAP] Initialization failed', error);
       throw error;
     }
@@ -220,6 +205,22 @@ export class IapService {
 
   isRestoring(): boolean {
     return this.restoring;
+  }
+
+  /** Associates the IAP provider with the guest id when it becomes available. */
+  async linkGuestUser(guestId: string): Promise<void> {
+    if (!guestId || !this.ready || !this.provider?.linkAppUser) {
+      return;
+    }
+
+    await this.provider.linkAppUser(guestId);
+
+    const remoteEntitlements = await this.provider.fetchEntitlements();
+    for (const entitlement of remoteEntitlements) {
+      if (!this.has(entitlement)) {
+        await this.grantEntitlement(entitlement, { emitChange: true });
+      }
+    }
   }
 
   private async grantEntitlement(

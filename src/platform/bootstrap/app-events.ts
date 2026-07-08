@@ -3,9 +3,10 @@ import {
   trackGameOver,
   trackPurchase,
   trackGameStart,
-  trackLevelComplete,
+  trackSessionEnd,
   trackMissionComplete,
 } from '@platform/core/analytics/events';
+import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
@@ -31,10 +32,6 @@ export function bindAppEvents(): () => void {
       usePlatformStore.getState().addCoins(amount);
     }),
 
-    events.on('coin:spend', ({ amount }) => {
-      usePlatformStore.getState().spendCoins(amount);
-    }),
-
     events.on('score:update', ({ score }) => {
       usePlatformStore.getState().setHighScore(score);
     }),
@@ -48,10 +45,6 @@ export function bindAppEvents(): () => void {
       trackGameOver({ score, duration, jumps });
       events.emit('ad:show:request', { placement: 'GAME_OVER' });
       await saveService.saveLocal();
-    }),
-
-    events.on('level:complete', ({ level, stars }) => {
-      trackLevelComplete({ level, stars });
     }),
 
     events.on('mission:complete', ({ missionId }) => {
@@ -82,5 +75,28 @@ export function bindAppEvents(): () => void {
 
   return () => {
     for (const unsub of unsubs) unsub();
+  };
+}
+
+export function bindAppLifecycle(): () => void {
+  if (typeof document === 'undefined' || Capacitor.isNativePlatform()) {
+    return () => {};
+  }
+
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      trackSessionEnd();
+      events.emit('app:pause', undefined);
+      void saveService.saveLocal();
+      void analytics.flush();
+    } else {
+      events.emit('app:resume', undefined);
+    }
+  };
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
+
+  return () => {
+    document.removeEventListener('visibilitychange', onVisibilityChange);
   };
 }

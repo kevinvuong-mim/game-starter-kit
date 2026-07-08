@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { Capacitor } from '@capacitor/core';
 
 import { getConfig } from '@platform/core/config';
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { settings } from '@platform/modules/settings/settings.service';
 

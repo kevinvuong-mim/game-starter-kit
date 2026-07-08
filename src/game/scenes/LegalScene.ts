@@ -1,65 +1,16 @@
-import Phaser from 'phaser';
-
-import { eventBus } from '@platform/core/events';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { BasePanelScene } from './BasePanelScene';
 import { LegalPanel } from '@platform/ui/legal/LegalPanel';
-import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
-interface LegalSceneData {
-  returnTo?: string;
-  returnData?: Record<string, unknown>;
-}
-
-export class LegalScene extends Phaser.Scene {
-  private returnTo = 'Settings';
-  private returnData?: Record<string, unknown>;
-  private unsubscribers: Array<() => void> = [];
-
+export class LegalScene extends BasePanelScene {
   constructor() {
-    super({ key: 'Legal' });
-  }
-
-  init(data: LegalSceneData = {}): void {
-    this.returnTo = data.returnTo ?? 'Settings';
-    this.returnData = data.returnData;
-  }
-
-  create(): void {
-    const { width, height } = this.cameras.main;
-
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
-
-    this.add
-      .text(width / 2, height * 0.12, t('legal.title'), {
-        fontSize: '28px',
-        color: '#ffffff',
-        fontStyle: 'bold',
-        fontFamily: FREDOKA_FONT,
-      })
-      .setOrigin(0.5);
-
-    new LegalPanel(this);
-
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.9 },
-      size: { width: 200, height: 48 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
-        content: t('common.close'),
-      },
-      onClick: () => this.goBack(),
+    super({
+      sceneKey: 'Legal',
+      titleKey: 'legal.title',
+      defaultReturnTo: 'Settings',
     });
-
-    this.unsubscribers.push(eventBus.on('app:back', () => this.goBack()));
   }
 
-  shutdown(): void {
-    for (const unsub of this.unsubscribers) unsub();
-    this.unsubscribers = [];
-  }
-
-  private goBack(): void {
-    this.scene.start(this.returnTo, this.returnData);
+  protected createPanel(): void {
+    new LegalPanel(this);
   }
 }

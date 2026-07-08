@@ -11,14 +11,13 @@
 | Command                   | Description                                                                                              |
 | ------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `npm run build`           | Typecheck bằng `tsc --noEmit` rồi Vite build vào `dist/`                                                 |
-| `npm run cap:add:android` | Ensure Android platform tồn tại, qua `scripts/native-ops.mjs`                                            |
-| `npm run cap:add:ios`     | Ensure iOS platform tồn tại, qua `scripts/native-ops.mjs`                                                |
-| `npm run cap:sync`        | Chạy `cap sync`                                                                                          |
 | `npm run cap:android`     | Mở Android Studio                                                                                        |
 | `npm run cap:ios`         | Mở Xcode                                                                                                 |
 | `npm run assets:generate` | Generate icon/splash bằng `capacitor-assets`                                                             |
 | `npm run build:android`   | Full Android pipeline: build web, ensure platform, generate assets, sync Android, apply native templates |
 | `npm run build:ios`       | Full iOS pipeline: build web, ensure platform, generate assets, sync iOS, apply native templates         |
+| `npm run run:android`     | Build + emulator install + launch (`scripts/run-android-emulator.sh`)                                    |
+| `npm run run:ios`         | Build + simulator install + launch (`scripts/run-ios-simulator.sh`)                                      |
 
 ---
 

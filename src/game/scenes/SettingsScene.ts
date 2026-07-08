@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 
+import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { NameSettingsPanel } from '@platform/ui/settings/NameSettingsPanel';
 import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';

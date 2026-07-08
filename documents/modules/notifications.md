@@ -26,25 +26,27 @@ Preset trong `src/platform/core/config/notification-env.json`, merge vào `ENV_C
 
 ## File chính
 
-| File                                     | Vai trò                                                                |
-| ---------------------------------------- | ---------------------------------------------------------------------- |
-| `notification.service.ts`                | Orchestrator: init, tap handler, daily reward reconcile                |
-| `services/push-notification.service.ts`  | Capacitor PushNotifications, đăng ký token lên API                     |
-| `services/local-notification.service.ts` | Schedule/cancel daily reward reminder                                  |
-| `services/device-sync.service.ts`        | Token refresh, heartbeat, preferences sync                             |
-| `notification.repository.ts`             | `POST/PATCH/DELETE /devices`, heartbeat, `PATCH /devices/preferences`  |
-| `notification.controller.ts`             | Bind lifecycle: `guest.onReady`, `app:resume`, `daily:claim`, settings |
-| `notification.model.ts`                  | Types, routes, `resolveNotificationRoute()`                            |
-| `navigation/navigation.service.ts`       | In-app navigation + pending queue (cold start)                         |
+| File                               | Vai trò                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `notification.service.ts`          | Orchestrator: init, tap handler, daily reward reconcile                |
+| `push-notification.service.ts`     | Capacitor PushNotifications, đăng ký token lên API                     |
+| `local-notification.service.ts`    | Schedule/cancel daily reward reminder                                  |
+| `device-sync.service.ts`           | Token refresh, heartbeat, preferences sync                             |
+| `android-notification-channel.ts`  | Android high-importance notification channel setup                     |
+| `notification.repository.ts`       | `POST/PATCH/DELETE /devices`, heartbeat, `PATCH /devices/preferences`  |
+| `notification.controller.ts`       | Bind lifecycle: `guest.onReady`, `app:resume`, `daily:claim`, settings |
+| `notification.model.ts`            | Types, routes, `resolveNotificationRoute()`                            |
+| `navigation/navigation.service.ts` | In-app navigation + pending queue (cold start)                         |
 
 ## Init flow
 
 1. `App.init()` → `notificationController.bind(events)`.
-2. `guest.onReady` → `notificationService.initialize()`.
-3. Push: xin quyền → `PushNotifications.register()` → listener `registration` → `POST /api/devices`.
-4. Local: `LocalNotifications.requestPermissions()`.
+2. Nếu `localNotificationsEnabled` → `notificationService.initializeLocal()` ngay khi bind (khi settings bật notifications).
+3. `guest.onReady` → `notificationService.initializePush()` (push only, khi `pushNotificationsEnabled` + settings bật).
+4. Push: xin quyền → `PushNotifications.register()` → listener `registration` → `POST /api/devices`.
+5. Local: `LocalNotifications.requestPermissions()`.
 
-`initialize()` chỉ chạy trên `Capacitor.isNativePlatform()`.
+Chỉ chạy trên `Capacitor.isNativePlatform()`.
 
 ## Device token lifecycle (client)
 
@@ -54,10 +56,16 @@ Permission granted → FCM token
   → PATCH /api/devices (token refresh hoặc đổi locale)
   → PATCH /api/devices/heartbeat (app resume)
   → PATCH /api/devices/preferences (bật/tắt push)
-  → DELETE /api/devices (unregister — API có sẵn, chưa gọi từ UI)
+  → DELETE /api/devices (unregister khi user tắt push trong Settings)
 ```
 
-State local: key `notification-state-v1` (`lastRegisteredToken`, `permissionGranted`).
+Khi tắt notifications (`settings:change` → `notificationsEnabled: false`):
+
+1. `notificationService.setNotificationsEnabled(false)` → `deviceSyncService.enqueuePreference(false)` + `PATCH /api/devices/preferences`.
+2. `pushNotificationService.unregister()` → `deviceSyncService.enqueueUnregister()` → `DELETE /api/devices` (offline-first queue).
+3. `PushNotifications.unregister()` + clear listeners/token local.
+
+State local: key `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, `pendingNotificationsEnabled`, …).
 
 ## Tap notification → màn trong app
 
@@ -93,7 +101,7 @@ Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bin
 | `app:resume`                        | Push: refresh token + heartbeat; local: reconcile daily schedule        |
 | `daily:claim`                       | Schedule local reminder ngày hôm sau                                    |
 | `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                               |
-| `settings:change` (`notifications`) | Push: `PATCH /api/devices/preferences` với `enabled`                    |
+| `settings:change` (`notifications`) | Bật: `PATCH /api/devices/preferences` (`enabled: true`); tắt: preferences + `DELETE /api/devices` unregister |
 | `boot:preload-complete`             | `markBootComplete()` + clear pending (PreloadScene navigate tới target) |
 
 ## API backend

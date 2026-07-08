@@ -201,7 +201,3 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
 
   reset: () => set(DEFAULT_STATE),
 }));
-
-export function getStoreState(): PlatformState {
-  return usePlatformStore.getState();
-}

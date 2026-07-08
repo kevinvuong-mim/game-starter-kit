@@ -32,7 +32,7 @@ export function bindAdsController(events: IEventBus): () => void {
     }),
 
     events.on('ad:context:change', ({ context }) => {
-      void adsModule.hideBannerForContext(context);
+      void adsModule.applyBannerForContext(context);
     }),
   ];
 

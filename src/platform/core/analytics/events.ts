@@ -8,10 +8,6 @@ function emitAnalytics(
   eventBus.emit('analytics', { event, params });
 }
 
-export function trackSessionStart(params?: AnalyticsParams): void {
-  emitAnalytics(AnalyticsEvents.SESSION_START, params);
-}
-
 export function trackSessionEnd(params?: AnalyticsParams): void {
   emitAnalytics(AnalyticsEvents.SESSION_END, params);
 }
@@ -24,24 +20,12 @@ export function trackGameOver(params?: AnalyticsParams): void {
   emitAnalytics(AnalyticsEvents.GAME_OVER, params);
 }
 
-export function trackLevelStart(params?: AnalyticsParams): void {
-  emitAnalytics(AnalyticsEvents.LEVEL_START, params);
-}
-
-export function trackLevelComplete(params?: AnalyticsParams): void {
-  emitAnalytics(AnalyticsEvents.LEVEL_COMPLETE, params);
-}
-
 export function trackPurchase(params?: AnalyticsParams): void {
   emitAnalytics(AnalyticsEvents.PURCHASE, params);
 }
 
 export function trackAdReward(params?: AnalyticsParams): void {
   emitAnalytics(AnalyticsEvents.AD_REWARD, params);
-}
-
-export function trackShopOpen(params?: AnalyticsParams): void {
-  emitAnalytics(AnalyticsEvents.SHOP_OPEN, params);
 }
 
 export function trackDailyClaim(params?: AnalyticsParams): void {

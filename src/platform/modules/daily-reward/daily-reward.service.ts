@@ -2,12 +2,12 @@ import {
   hasClaimedToday,
   type ClaimResult,
   createDefaultModel,
-  getLocalDateString,
   type RewardProgress,
   type DailyRewardModel,
 } from './daily-reward.model';
 import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
+import { getLocalDateKey } from '@platform/core/utils';
 import { usePlatformStore } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
 import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
@@ -62,7 +62,7 @@ export class DailyRewardService {
     this.applyReward(resolved);
 
     const now = Date.now();
-    this.model.lastClaimDate = getLocalDateString();
+    this.model.lastClaimDate = getLocalDateKey();
     this.model.lastClaimWallClock = now;
     this.model.lastSessionTimestamp = now;
     this.model.currentDay = rewardDay >= 7 ? 1 : rewardDay + 1;

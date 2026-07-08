@@ -1,7 +1,7 @@
 import { logger } from '@platform/core/error';
+import { IAP_STORAGE_KEY } from './iap.config';
 import { storage } from '@platform/core/storage';
-import { IAP_STORAGE_KEY } from '../config/iap.config';
-import type { StoredEntitlements } from '../types/iap.types';
+import type { StoredEntitlements } from './iap.types';
 
 const STORAGE_VERSION = 1;
 

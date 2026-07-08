@@ -1,6 +1,5 @@
 import {
   createDefaultModel,
-  getLocalDateString,
   type DailyRewardModel,
   DAILY_REWARD_STORAGE_KEY,
   DAILY_REWARD_MODEL_VERSION,
@@ -9,6 +8,7 @@ import {
 } from './daily-reward.model';
 import { storage } from '@platform/core/storage';
 import { Preferences } from '@capacitor/preferences';
+import { getLocalDateKey } from '@platform/core/utils';
 import type { DailyRewardState } from '@platform/core/state';
 
 export class DailyRewardRepository {
@@ -121,8 +121,7 @@ function clampDay(day: number): number {
 
 function migrateLegacyState(legacy: LegacyDailyRewardState): DailyRewardModel {
   const currentDay = clampDay(legacy.currentDay || 1);
-  const lastClaimDate =
-    legacy.lastClaimAt > 0 ? getLocalDateString(new Date(legacy.lastClaimAt)) : null;
+  const lastClaimDate = legacy.lastClaimAt > 0 ? getLocalDateKey(legacy.lastClaimAt) : null;
 
   return {
     currentDay,

@@ -56,6 +56,8 @@ export interface IAPProvider {
   restore(): Promise<ProviderPurchase[]>;
   getProducts(): Promise<ProviderProduct[]>;
   purchase(productId: string): Promise<ProviderPurchase>;
+  /** Link store account to app user id (RevenueCat logIn). */
+  linkAppUser?(appUserId: string): Promise<void>;
 }
 
 export class IapError extends Error {

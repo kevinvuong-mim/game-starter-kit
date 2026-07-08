@@ -1,6 +1,6 @@
-import { MockIapAdapter } from './mock.adapter';
-import type { IAPProvider } from '../types/iap.types';
-import { RevenueCatAdapter, type RevenueCatAdapterConfig } from './revenuecat.adapter';
+import type { IAPProvider } from './iap.types';
+import { MockIapAdapter } from './iap.mock-adapter';
+import { RevenueCatAdapter, type RevenueCatAdapterConfig } from './iap.revenuecat-adapter';
 
 export type IapProviderName = 'mock' | 'revenuecat';
 
@@ -24,6 +24,6 @@ export function createIapProvider(
   }
 }
 
-export { MockIapAdapter } from './mock.adapter';
-export { RevenueCatAdapter } from './revenuecat.adapter';
-export type { RevenueCatAdapterConfig } from './revenuecat.adapter';
+export { MockIapAdapter } from './iap.mock-adapter';
+export { RevenueCatAdapter } from './iap.revenuecat-adapter';
+export type { RevenueCatAdapterConfig } from './iap.revenuecat-adapter';

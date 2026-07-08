@@ -1,4 +1,4 @@
-import type { ProductDefinition } from '../types/iap.types';
+import type { ProductDefinition } from './iap.types';
 
 /**
  * Product registry — add new products here without changing IapService logic.

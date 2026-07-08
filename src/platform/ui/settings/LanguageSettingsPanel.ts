@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { toast } from '../toast/ToastManager';
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { t, i18n } from '@platform/modules/i18n/i18n.service';
 import { settings } from '@platform/modules/settings/settings.service';
 

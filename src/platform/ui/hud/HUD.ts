@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { FREDOKA_FONT } from '@platform/ui/index';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { formatNumber } from '@platform/core/utils';
 
 export class HUD extends Phaser.GameObjects.Container {

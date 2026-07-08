@@ -95,7 +95,8 @@
     "claimSuccess": "Đã nhận {{coins}} xu!",
     "claimFailed": "Chưa thể nhận thưởng",
     "dailyMission": "Nhiệm vụ hàng ngày",
-    "watchAd3": "Xem 3 quảng cáo thưởng"
+    "watchAd3": "Xem 3 quảng cáo thưởng",
+    "watchAd": "Xem quảng cáo"
   },
   "dailyReward": {
     "title": "Phần thưởng hàng ngày",

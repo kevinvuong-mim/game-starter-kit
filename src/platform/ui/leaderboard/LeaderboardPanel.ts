@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 
+import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
+import { FREDOKA_FONT } from '@platform/ui/fonts';
 import type { UIButton } from '@platform/ui/types';
-import { t, FREDOKA_FONT } from '@platform/ui/index';
 import { getPanelLayoutMetrics } from '@platform/ui/layout/panelLayout';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import type { LeaderboardEntry, LeaderboardView } from '@platform/modules/leaderboard';

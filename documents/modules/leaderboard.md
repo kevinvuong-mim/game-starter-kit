@@ -1,6 +1,6 @@
 # Leaderboard
 
-Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo page (TTL 60s, limit 20/page), stale-while-revalidate khi offline.
+Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo page (TTL 60s, `LEADERBOARD_LIMIT` = 10/page), stale-while-revalidate khi offline.
 
 ## Events
 
@@ -21,7 +21,7 @@ Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo pa
 
 ## Endpoint
 
-`GET /api/leaderboards?gameId=FRULOOP&page=1&limit=20&guestId=<optional>`
+`GET /api/leaderboards?gameId=FRULOOP&page=1&limit=10&guestId=<optional>`
 
 ## Response (`data`)
 
@@ -30,7 +30,7 @@ Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo pa
   "gameId": "FRULOOP",
   "total": 150,
   "page": 1,
-  "limit": 20,
+  "limit": 10,
   "items": [{ "rank": 1, "guestId": "uuid", "name": "PlayerOne", "bestScore": 9999 }],
   "self": { "rank": 12, "bestScore": 5000 }
 }

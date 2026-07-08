@@ -11,5 +11,5 @@ export type {
   DailyRewardState,
 } from './types';
 export { DEFAULT_STATE } from './types';
+export { usePlatformStore } from './store';
 export type { PlatformStore } from './store';
-export { getStoreState, usePlatformStore } from './store';

@@ -95,7 +95,7 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    this.gameActive = false;
+    this.endSession();
     this.spawnTimer?.destroy();
     for (const obj of this.activeObjects) {
       this.pool.release(obj);

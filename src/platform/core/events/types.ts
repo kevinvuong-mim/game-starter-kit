@@ -7,7 +7,7 @@ import type {
   IapRestoreSuccessPayload,
   IapPurchaseSuccessPayload,
   IapEntitlementChangedPayload,
-} from '@platform/modules/iap/events/iap.events';
+} from '@platform/modules/iap/iap.events';
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
 import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';

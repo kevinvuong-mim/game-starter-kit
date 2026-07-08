@@ -37,13 +37,3 @@ export function unwrapSuccessEnvelope<T>(envelope: ApiEnvelope<T>): T {
   }
   return envelope.data;
 }
-
-/** Type guard for the backend error envelope (used when inspecting `ApiError.body`). */
-export function isApiErrorEnvelope(value: unknown): value is ApiErrorEnvelope {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'success' in value &&
-    (value as { success: unknown }).success === false
-  );
-}
