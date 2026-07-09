@@ -8,8 +8,8 @@ export class LeaderboardScene extends BasePanelScene {
   constructor() {
     super({
       closeButtonY: 0.94,
-      sceneKey: 'Leaderboard',
       defaultReturnTo: 'Home',
+      sceneKey: 'Leaderboard',
       titleKey: 'leaderboard.title',
     });
   }
