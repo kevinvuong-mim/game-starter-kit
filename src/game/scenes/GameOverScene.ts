@@ -6,6 +6,9 @@ import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class GameOverScene extends Phaser.Scene {
+  private rankText?: Phaser.GameObjects.Text;
+  private unsubscribeSyncCompleted?: () => void;
+
   constructor() {
     super({ key: 'GameOver' });
   }
@@ -34,6 +37,19 @@ export class GameOverScene extends Phaser.Scene {
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
+
+    this.rankText = this.add
+      .text(width / 2, height * 0.48, '', {
+        color: '#ffd54f',
+        fontSize: '22px',
+        fontFamily: FREDOKA_FONT,
+      })
+      .setOrigin(0.5)
+      .setVisible(false);
+
+    this.unsubscribeSyncCompleted = eventBus.on('game:sync:completed', ({ rank }) => {
+      this.showRank(rank);
+    });
 
     createUIButton({
       scene: this,
@@ -77,5 +93,20 @@ export class GameOverScene extends Phaser.Scene {
         this.scene.start('Home');
       },
     });
+  }
+
+  shutdown(): void {
+    this.unsubscribeSyncCompleted?.();
+    this.unsubscribeSyncCompleted = undefined;
+    this.rankText = undefined;
+  }
+
+  private showRank(rank: number): void {
+    if (!this.rankText) {
+      return;
+    }
+
+    this.rankText.setText(t('leaderboard.rank', { rank }));
+    this.rankText.setVisible(true);
   }
 }

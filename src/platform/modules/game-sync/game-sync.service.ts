@@ -12,6 +12,7 @@ import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { generateId } from '@platform/core/utils';
 import { getConfig } from '@platform/core/config';
+import { leaderboard } from '@platform/modules/leaderboard';
 import { guest, type GuestService } from '@platform/modules/guest';
 import { gameSyncRepository, type GameSyncRepository } from './game-sync.repository';
 
@@ -128,6 +129,7 @@ export class GameSyncService {
         );
 
         queue = this.applyBatchSyncResults(queue, batch, response, gameId, guestId);
+        this.handleSyncRank(response);
         queue = this.pruneQueue(queue);
         await this.repository.saveQueue(queue);
       } catch (error) {
@@ -148,6 +150,18 @@ export class GameSyncService {
     if (error instanceof ApiError && error.status === 401) {
       logger.error('[GameSync] Guest auth failed — credentials may be invalid', error);
     }
+  }
+
+  private handleSyncRank(response: SyncResponse): void {
+    if (typeof response.rank !== 'number' || typeof response.bestScore !== 'number') {
+      return;
+    }
+
+    leaderboard.updateSelfRank(response.rank, response.bestScore);
+    eventBus.emit('game:sync:completed', {
+      rank: response.rank,
+      bestScore: response.bestScore,
+    });
   }
 
   private applyBatchSyncResults(

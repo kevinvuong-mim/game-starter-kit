@@ -201,8 +201,6 @@ export class NotificationService {
 
   private resolveForegroundMessage(payload: PushNotificationPayload): string | null {
     switch (payload.type) {
-      case NOTIFICATION_TYPES.TOP_100_ENTERED:
-        return t('notifications.top100Entered.body');
       case NOTIFICATION_TYPES.TOP_100_EXITED:
         return t('notifications.top100Exited.body');
       case NOTIFICATION_TYPES.RANK_PUSH:

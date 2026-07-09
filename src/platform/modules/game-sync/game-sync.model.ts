@@ -42,8 +42,10 @@ export interface GameResultBatchRequest {
 }
 
 export interface SyncResponse {
+  rank?: number;
   message: string;
   success: boolean;
+  bestScore?: number;
   insertedCount: number;
   rejectedCount?: number;
   rejected?: Array<{ clientResultId: string; reason: string }>;

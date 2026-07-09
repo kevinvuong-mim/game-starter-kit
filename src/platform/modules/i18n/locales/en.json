@@ -156,10 +156,6 @@
       "title": "Daily Reward Ready",
       "body": "Your daily reward is waiting. Come back and claim it!"
     },
-    "top100Entered": {
-      "title": "Congratulations!",
-      "body": "You made it to Top 100!"
-    },
     "top100Exited": {
       "title": "Top 100",
       "body": "You left Top 100. Come back to improve your rank."

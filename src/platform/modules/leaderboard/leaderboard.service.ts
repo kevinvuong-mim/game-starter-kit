@@ -83,6 +83,17 @@ export class LeaderboardService {
     return this.fetchLeaderboard({ force: true, page });
   }
 
+  updateSelfRank(rank: number, bestScore: number): void {
+    const view = {
+      ...this.view,
+      myRank: rank,
+      isStale: true,
+      myBestScore: bestScore,
+    };
+    this.view = view;
+    this.emit(view);
+  }
+
   private async serveCachedPage(page: number): Promise<boolean> {
     const gameId = getConfig().gameId;
     const cache = await this.repository.loadCache(gameId, page);

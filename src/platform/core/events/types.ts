@@ -73,6 +73,7 @@ export interface PlatformEventMap {
   'leaderboard:refresh': { page?: number } | undefined;
   'iap:entitlement:changed': IapEntitlementChangedPayload;
   'mission:update': { missionId: string; progress: number };
+  'game:sync:completed': { rank: number; bestScore: number };
   analytics: { event: AnalyticsEvent; params?: AnalyticsParams };
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'game:sync:dropped': { clientResultId: string; attempts: number };

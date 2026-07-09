@@ -31,7 +31,6 @@ export type NotificationRoute = (typeof NOTIFICATION_ROUTES)[keyof typeof NOTIFI
 export const NOTIFICATION_TYPES = {
   RANK_PUSH: 'rank_push',
   TOP_100_EXITED: 'top_100_exited',
-  TOP_100_ENTERED: 'top_100_entered',
 } as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES];
@@ -139,7 +138,6 @@ export function resolveNotificationRoute(
   if (route === NOTIFICATION_ROUTES.DAILY_REWARD) return NOTIFICATION_ROUTES.DAILY_REWARD;
 
   switch (type) {
-    case NOTIFICATION_TYPES.TOP_100_ENTERED:
     case NOTIFICATION_TYPES.TOP_100_EXITED:
     case NOTIFICATION_TYPES.RANK_PUSH:
       return NOTIFICATION_ROUTES.LEADERBOARD;

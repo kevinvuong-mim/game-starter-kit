@@ -1218,7 +1218,7 @@ Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificati
 
 Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
-Foreground push (`pushNotificationReceived`): toast i18n qua `notification.service.ts` cho `top_100_entered`, `top_100_exited`, `rank_push`.
+Foreground push (`pushNotificationReceived`): toast i18n qua `notification.service.ts` cho `rank_push`.
 
 Storage: `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, `pendingNotificationsEnabled`, …).
 
@@ -1308,7 +1308,7 @@ Endpoint:
 POST /api/results
   Header: Authorization: Bearer <secretToken>
   Body: { gameId, items: [{ clientResultId, score, playedAt, metadata, signature }] }
-  Response: { success, insertedCount, rejectedCount?, rejected?, message }
+  Response: { success, insertedCount, rejectedCount?, rejected?, message, rank?, bestScore? }
 ```
 
 Limits:

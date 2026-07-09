@@ -330,7 +330,7 @@ Boot → Preload → Home (hoặc scene từ notification tap nếu có pending)
                   ├→ Gameplay → GameOver → Home / Gameplay
                   ├→ Shop
                   ├→ Missions
-                  ├→ Leaderboard   ← push: Top 100, scheduled rank (`rank_push`)
+                  ├→ Leaderboard   ← push: scheduled rank (`rank_push`); rank từ `POST /results`
                   ├→ DailyReward   ← local: daily reward reminder
                   ├→ Settings → HowToPlay / Legal
 ```
@@ -363,7 +363,7 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 
 - **Push (FCM):** `@capacitor/push-notifications` — staging/production native when `pushNotificationsEnabled` + đủ `VITE_FIREBASE_*`. Token sync qua `POST/PATCH /api/devices`.
 - **Local:** `@capacitor/local-notifications` — daily reward reminder 07:00 ngày hôm sau (`localNotificationsEnabled`; bật cả trên `dev`).
-- **Backend triggers:** Top 100 entered/exited, scheduled rank push (`rank_push` via API `rankPushCron`).
+- **Backend triggers:** Scheduled rank push (`rank_push` via API `rankPushCron`). Rank sau submit score từ `POST /api/results`.
 - **Foreground:** Push nhận khi app mở → toast i18n (`notification.service.ts`).
 - **Tap handling:** FCM `data` / local `extra` → `resolveNotificationRoute()` → `navigationService.navigateToScene()`. Không dùng deeplink URL.
 - **Cold start:** Pending navigation queue cho đến `boot:preload-complete`. `PreloadScene` emit event sau khi assets load; `navigationService` subscribe event để `markBootComplete()` và clear pending.
