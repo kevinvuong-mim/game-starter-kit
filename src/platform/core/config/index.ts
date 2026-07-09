@@ -64,7 +64,7 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     adsEnabled: true,
     iapEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'https://staging-api.studio.games/api',
+    apiUrl: 'https://game-api-s5kn.onrender.com/api',
   },
   production: {
     ...notificationEnvConfigs.production,
@@ -72,7 +72,7 @@ const ENV_CONFIGS: Record<Environment, Partial<RuntimeConfig>> = {
     adsEnabled: true,
     iapEnabled: true,
     analyticsEnabled: true,
-    apiUrl: 'https://api.studio.games/api',
+    apiUrl: 'https://game-api-s5kn.onrender.com/api',
   },
 };
 
