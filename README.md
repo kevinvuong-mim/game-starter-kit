@@ -168,7 +168,7 @@ Built-in scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyRew
 
 ## Environment Config
 
-Copy `.env.example` to `.env` and adjust per environment:
+Copy `.env.example` to `.env` and adjust per environment. `.env.example` includes a dev sample `VITE_REPLAY_SECRET` matching `GAME_CONFIG.FRULOOP` on `game-api`; use your own secret in production.
 
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production

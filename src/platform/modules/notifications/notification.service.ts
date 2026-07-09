@@ -1,11 +1,14 @@
 import {
   deviceSyncNeeded,
+  NOTIFICATION_TYPES,
   resolveNotificationRoute,
   type PushNotificationPayload,
 } from './notification.model';
+import { t } from '@platform/modules/i18n';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
+import { toast } from '@platform/ui/toast/ToastManager';
 import { deviceSyncService } from './device-sync.service';
 import { dailyRewards } from '@platform/modules/daily-reward';
 import { pushNotificationService } from './push-notification.service';
@@ -141,7 +144,6 @@ export class NotificationService {
       if (
         state.pendingNotificationsEnabled !== null ||
         deviceSyncNeeded(state) ||
-        state.heartbeatPending ||
         state.unregisterPending
       ) {
         return 'pending';
@@ -190,6 +192,24 @@ export class NotificationService {
 
   private handleForegroundNotification(payload: PushNotificationPayload): void {
     logger.info('[Notification] Received in foreground', payload);
+
+    const message = this.resolveForegroundMessage(payload);
+    if (message) {
+      toast.show({ message, type: 'info', duration: 4000 });
+    }
+  }
+
+  private resolveForegroundMessage(payload: PushNotificationPayload): string | null {
+    switch (payload.type) {
+      case NOTIFICATION_TYPES.TOP_100_ENTERED:
+        return t('notifications.top100Entered.body');
+      case NOTIFICATION_TYPES.TOP_100_EXITED:
+        return t('notifications.top100Exited.body');
+      case NOTIFICATION_TYPES.RANK_PUSH:
+        return t('notifications.rankPush.body');
+      default:
+        return null;
+    }
   }
 
   private isNotificationsEnabledInSettings(): boolean {

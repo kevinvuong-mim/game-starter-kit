@@ -56,25 +56,12 @@ export class DeviceSyncService {
     logger.debug('[DeviceSync] Device registration queued', { platform, locale });
   }
 
-  async enqueueHeartbeat(): Promise<void> {
-    const state = await this.loadState();
-    if (!state.lastSyncedToken && !state.pendingToken) {
-      return;
-    }
-
-    await this.repository.saveState({
-      ...state,
-      heartbeatPending: true,
-    });
-  }
-
   async enqueueUnregister(): Promise<void> {
     const state = await this.repository.loadState();
 
     await this.repository.saveState({
       ...state,
       syncAttempts: 0,
-      heartbeatPending: false,
       unregisterPending: true,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
@@ -128,8 +115,7 @@ export class DeviceSyncService {
     return (
       state.pendingNotificationsEnabled !== null ||
       state.unregisterPending ||
-      deviceSyncNeeded(state) ||
-      state.heartbeatPending
+      deviceSyncNeeded(state)
     );
   }
 
@@ -149,10 +135,6 @@ export class DeviceSyncService {
       if (deviceSyncNeeded(current)) {
         current = await this.flushDeviceRegistration(current);
       }
-
-      if (current.heartbeatPending && current.lastSyncedToken) {
-        current = await this.flushHeartbeat(current);
-      }
     } catch (error) {
       current = await this.markAttemptFailed(current, error);
       logger.warn('[DeviceSync] Flush failed, will retry later', error);
@@ -170,7 +152,6 @@ export class DeviceSyncService {
       pendingLocale: null,
       lastSyncedToken: null,
       lastSyncedLocale: null,
-      heartbeatPending: false,
       lastAttemptAt: undefined,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
@@ -223,23 +204,6 @@ export class DeviceSyncService {
 
     await this.repository.saveState(updated);
     logger.debug('[DeviceSync] Notification preference synced', { enabled });
-    return updated;
-  }
-
-  private async flushHeartbeat(state: NotificationState): Promise<NotificationState> {
-    await this.repository.heartbeat();
-
-    const updated: NotificationState = {
-      ...state,
-      syncAttempts: 0,
-      heartbeatPending: false,
-      lastAttemptAt: undefined,
-      lastErrorCode: undefined,
-      nextAttemptAt: undefined,
-    };
-
-    await this.repository.saveState(updated);
-    logger.debug('[DeviceSync] Heartbeat synced');
     return updated;
   }
 

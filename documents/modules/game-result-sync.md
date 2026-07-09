@@ -76,4 +76,4 @@ Item trong `rejected[]` (signature invalid, v.v.) bị **loại khỏi queue** t
 2. `GameplayScene.shutdown()` cũng gọi `endSession()` → `game:over` khi navigate away giữa chừng.
 3. `flush()` khi online / `app:resume` / guest ready / native network reconnect.
 4. Batch tối đa 50 items, Bearer auth.
-5. Chỉ đánh dấu synced các item có trong `insertedCount` (loại trừ `rejected`).
+5. Đánh dấu `synced: true` khi `response.success` và item không nằm trong `rejected[]` (kể cả server dedup — `insertedCount` có thể là 0).

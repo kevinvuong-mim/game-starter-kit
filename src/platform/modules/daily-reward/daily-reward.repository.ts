@@ -3,12 +3,8 @@ import {
   type DailyRewardModel,
   DAILY_REWARD_STORAGE_KEY,
   DAILY_REWARD_MODEL_VERSION,
-  type LegacyDailyRewardState,
-  LEGACY_DAILY_REWARD_STORAGE_KEY,
 } from './daily-reward.model';
-import { storage } from '@platform/core/storage';
 import { Preferences } from '@capacitor/preferences';
-import { getLocalDateKey } from '@platform/core/utils';
 import type { DailyRewardState } from '@platform/core/state';
 
 export class DailyRewardRepository {
@@ -19,27 +15,7 @@ export class DailyRewardRepository {
 
   async load(): Promise<DailyRewardModel> {
     const stored = await this.readModel(DAILY_REWARD_STORAGE_KEY);
-    if (stored) return stored;
-
-    const legacyStored = await this.readLegacyFromPreferences();
-    if (legacyStored) {
-      const migrated = migrateLegacyState(legacyStored);
-      await this.save(migrated);
-      await this.removeLegacy();
-      return migrated;
-    }
-
-    const legacyStorage = await storage.load<LegacyDailyRewardState>(
-      LEGACY_DAILY_REWARD_STORAGE_KEY
-    );
-    if (legacyStorage) {
-      const migrated = migrateLegacyState(legacyStorage);
-      await this.save(migrated);
-      await storage.remove(LEGACY_DAILY_REWARD_STORAGE_KEY);
-      return migrated;
-    }
-
-    return createDefaultModel();
+    return stored ?? createDefaultModel();
   }
 
   async save(model: DailyRewardModel): Promise<void> {
@@ -51,8 +27,6 @@ export class DailyRewardRepository {
 
   async reset(): Promise<void> {
     await Preferences.remove({ key: DAILY_REWARD_STORAGE_KEY });
-    await Preferences.remove({ key: LEGACY_DAILY_REWARD_STORAGE_KEY });
-    await storage.remove(LEGACY_DAILY_REWARD_STORAGE_KEY);
   }
 
   migrateFromStoreState(state: DailyRewardState | undefined): DailyRewardModel | null {
@@ -95,42 +69,12 @@ export class DailyRewardRepository {
       return null;
     }
   }
-
-  private async readLegacyFromPreferences(): Promise<LegacyDailyRewardState | null> {
-    const { value } = await Preferences.get({ key: LEGACY_DAILY_REWARD_STORAGE_KEY });
-    if (!value) return null;
-
-    try {
-      return JSON.parse(value) as LegacyDailyRewardState;
-    } catch {
-      return null;
-    }
-  }
-
-  private async removeLegacy(): Promise<void> {
-    await Preferences.remove({ key: LEGACY_DAILY_REWARD_STORAGE_KEY });
-    await storage.remove(LEGACY_DAILY_REWARD_STORAGE_KEY);
-  }
 }
 
 function clampDay(day: number): number {
   if (!Number.isFinite(day) || day < 1) return 1;
   if (day > 7) return ((day - 1) % 7) + 1;
   return Math.floor(day);
-}
-
-function migrateLegacyState(legacy: LegacyDailyRewardState): DailyRewardModel {
-  const currentDay = clampDay(legacy.currentDay || 1);
-  const lastClaimDate = legacy.lastClaimAt > 0 ? getLocalDateKey(legacy.lastClaimAt) : null;
-
-  return {
-    currentDay,
-    lastClaimDate,
-    timeManipulated: false,
-    version: DAILY_REWARD_MODEL_VERSION,
-    lastClaimWallClock: legacy.lastClaimAt ?? 0,
-    lastSessionTimestamp: legacy.lastClaimAt ?? 0,
-  };
 }
 
 export const dailyRewardRepository = new DailyRewardRepository();

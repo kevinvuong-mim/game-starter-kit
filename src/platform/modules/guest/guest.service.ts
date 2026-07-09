@@ -5,6 +5,7 @@ import { getConfig } from '@platform/core/config';
 import { usePlatformStore } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
 import { guestRepository, type GuestRepository } from './guest.repository';
+import { gameSyncRepository } from '@platform/modules/game-sync/game-sync.repository';
 import { notificationRepository } from '@platform/modules/notifications/notification.repository';
 import { createDefaultNotificationState } from '@platform/modules/notifications/notification.model';
 
@@ -211,6 +212,8 @@ export class GuestService {
     this.playerName = null;
 
     await notificationRepository.saveState(createDefaultNotificationState());
+    await gameSyncRepository.clear();
+    logger.info('[Guest] Cleared pending game-sync queue after auth recovery');
 
     await this.init();
     return this.getStatus() === 'ready';

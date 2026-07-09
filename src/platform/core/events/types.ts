@@ -9,7 +9,6 @@ import type {
   IapEntitlementChangedPayload,
 } from '@platform/modules/iap/iap.events';
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
-import type { SyncResponse } from '@platform/modules/game-sync/game-sync.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-reward/daily-reward.model';
 
@@ -26,7 +25,6 @@ export interface PlatformEventMap {
   collect: { itemId: string; count?: number };
   'coin:add': { amount: number; source?: string };
   'coin:spend': { amount: number; reason?: string };
-  'level:complete': { level: number; stars?: number };
 
   // Lifecycle
   'app:back': void;
@@ -41,7 +39,6 @@ export interface PlatformEventMap {
   'shop:restore': void;
   'ad:banner:hide': void;
   'daily:claim:request': void;
-  'game:synced': SyncResponse;
   'daily:status:request': void;
   'boot:preload-complete': void;
   'daily:progress:request': void;
@@ -86,6 +83,7 @@ export interface IEventBus {
   clear(): void;
   off<T extends PlatformEvent>(event: T, handler: EventHandler<T>): void;
   emit<T extends PlatformEvent>(event: T, payload: PlatformEventMap[T]): void;
+  emitAsync<T extends PlatformEvent>(event: T, payload: PlatformEventMap[T]): Promise<void>;
   on<T extends PlatformEvent>(event: T, handler: EventHandler<T>): () => void;
   once<T extends PlatformEvent>(event: T, handler: EventHandler<T>): () => void;
 }

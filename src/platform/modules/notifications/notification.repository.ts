@@ -13,8 +13,7 @@ import type { ApiEnvelope } from '@platform/core/api';
 import { apiClient, unwrapSuccessEnvelope } from '@platform/core/api';
 
 interface RegisterDeviceResponse {
-  status: string;
-  deviceId: string;
+  guestId: string;
 }
 
 export class NotificationRepository {
@@ -76,10 +75,6 @@ export class NotificationRepository {
 
   async unregisterDevice() {
     await apiClient.delete('/devices');
-  }
-
-  async heartbeat() {
-    await apiClient.patch('/devices/heartbeat', {});
   }
 
   async setNotificationPreference(enabled: boolean) {

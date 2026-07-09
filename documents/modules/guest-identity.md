@@ -21,7 +21,13 @@ Guest identity quản lý anonymous player cho `game-api`.
 3. Nếu không → `POST /api/guest/init` body `{ gameId }`.
 4. Lưu `{ guestId, secretToken }`, gọi `setAuthToken`.
 
-Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry khi network online (`@capacitor/network` trên native, `window.online` trên web). Khi API trả 401, `guest.recoverFromUnauthorized()` xóa credentials cũ và tạo guest mới.
+Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry khi network online (`@capacitor/network` trên native, `window.online` trên web).
+
+Khi API trả 401, `guest.recoverFromUnauthorized()`:
+
+- Xóa credentials cũ (`gsk:guest`) và reset notification state (`notification-state-v1`)
+- Clear queue `game-sync:pending` (scores offline của identity cũ không sync sang guest mới)
+- Tạo guest mới qua `init()`
 
 `init()` và `recoverFromUnauthorized()` dùng mutex để tránh race khi retry song song.
 

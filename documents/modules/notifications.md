@@ -4,11 +4,11 @@ Module quản lý **push notification** (FCM) và **local notification** (daily 
 
 ## Phạm vi
 
-| Loại                          | Nguồn              | Khi nào                                                           |
-| ----------------------------- | ------------------ | ----------------------------------------------------------------- |
-| Push — Top 100 entered/exited | Backend FCM        | User vào/ra Top 100 sau submit score                              |
-| Push — Saturday rank          | Backend FCM (cron) | 9:00 Thứ 7 (Asia/Ho_Chi_Minh), chỉ guest có rank trên leaderboard |
-| Local — Daily reward          | Client schedule    | 07:00 ngày hôm sau sau khi claim; hủy nếu có thể claim            |
+| Loại                          | Nguồn                       | Khi nào                                                                                          |
+| ----------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| Push — Top 100 entered/exited | Backend FCM                 | User vào/ra Top 100 sau submit score                                                             |
+| Push — scheduled rank         | Backend FCM (cron per-game) | Theo `GAME_CONFIG.rankPushCron` trên API (FRULOOP mặc định: 9:00 Thứ 7 VN); FCM type `rank_push` |
+| Local — Daily reward          | Client schedule             | 07:00 ngày hôm sau sau khi claim; hủy nếu có thể claim                                           |
 
 Push cần Firebase native + backend `FIREBASE_*`. Local chỉ cần `@capacitor/local-notifications`.
 
@@ -31,9 +31,9 @@ Preset trong `src/platform/core/config/notification-env.json`, merge vào `ENV_C
 | `notification.service.ts`          | Orchestrator: init, tap handler, daily reward reconcile                |
 | `push-notification.service.ts`     | Capacitor PushNotifications, đăng ký token lên API                     |
 | `local-notification.service.ts`    | Schedule/cancel daily reward reminder                                  |
-| `device-sync.service.ts`           | Token refresh, heartbeat, preferences sync                             |
+| `device-sync.service.ts`           | Offline-first token / preference / unregister sync                     |
 | `android-notification-channel.ts`  | Android high-importance notification channel setup                     |
-| `notification.repository.ts`       | `POST/PATCH/DELETE /devices`, heartbeat, `PATCH /devices/preferences`  |
+| `notification.repository.ts`       | `POST/PATCH/DELETE /devices`, `PATCH /devices/preferences`             |
 | `notification.controller.ts`       | Bind lifecycle: `guest.onReady`, `app:resume`, `daily:claim`, settings |
 | `notification.model.ts`            | Types, routes, `resolveNotificationRoute()`                            |
 | `navigation/navigation.service.ts` | In-app navigation + pending queue (cold start)                         |
@@ -52,11 +52,10 @@ Chỉ chạy trên `Capacitor.isNativePlatform()`.
 
 ```
 Permission granted → FCM token
-  → POST /api/devices (lần đầu)
-  → PATCH /api/devices (token refresh hoặc đổi locale)
-  → PATCH /api/devices/heartbeat (app resume)
+  → POST /api/devices (lần đầu)        → data: { guestId }
+  → PATCH /api/devices (token/locale)  → data: { guestId }
   → PATCH /api/devices/preferences (bật/tắt push)
-  → DELETE /api/devices (unregister khi user tắt push trong Settings)
+  → DELETE /api/devices (unregister — backend clear fcmToken fields)
 ```
 
 Khi tắt notifications (`settings:change` → `notificationsEnabled: false`):
@@ -65,17 +64,19 @@ Khi tắt notifications (`settings:change` → `notificationsEnabled: false`):
 2. `pushNotificationService.unregister()` → `deviceSyncService.enqueueUnregister()` → `DELETE /api/devices` (offline-first queue).
 3. `PushNotifications.unregister()` + clear listeners/token local.
 
+App resume: refresh FCM token + flush pending sync (không còn heartbeat endpoint).
+
 State local: key `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, `pendingNotificationsEnabled`, …).
 
 ## Tap notification → màn trong app
 
 **Không dùng deeplink URL.** Backend gửi FCM `data: { type, route }`; local notification gắn `extra: { type, route }`.
 
-| `type`                                                 | Scene mở      |
-| ------------------------------------------------------ | ------------- |
-| `top_100_entered` / `top_100_exited` / `saturday_rank` | `Leaderboard` |
-| `daily_reward`                                         | `DailyReward` |
-| (mặc định)                                             | `Home`        |
+| Nguồn / payload                                                | Scene mở      |
+| -------------------------------------------------------------- | ------------- |
+| FCM `type`: `top_100_entered` / `top_100_exited` / `rank_push` | `Leaderboard` |
+| Local notification `extra.route`: `DailyReward`                | `DailyReward` |
+| (mặc định)                                                     | `Home`        |
 
 Luồng:
 
@@ -83,6 +84,16 @@ Luồng:
 2. Local: `localNotificationActionPerformed` → `navigationService.navigateToScene()`.
 3. `resolveNotificationRoute(type, route)` → scene key Phaser.
 4. Navigate với `{ returnTo: 'Home' }`.
+
+### Foreground push (app đang mở)
+
+Khi nhận push trong foreground (`pushNotificationReceived`), `notificationService` hiển thị toast i18n:
+
+| `type`            | Toast key                          |
+| ----------------- | ---------------------------------- |
+| `top_100_entered` | `notifications.top100Entered.body` |
+| `top_100_exited`  | `notifications.top100Exited.body`  |
+| `rank_push`       | `notifications.rankPush.body`      |
 
 ### Cold start (pending navigation)
 
@@ -98,7 +109,7 @@ Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bin
 
 | Event                               | Handler                                                                                                      |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `app:resume`                        | Push: refresh token + heartbeat; local: reconcile daily schedule                                             |
+| `app:resume`                        | Push: refresh token + flush pending sync; local: reconcile daily schedule                                    |
 | `daily:claim`                       | Schedule local reminder ngày hôm sau                                                                         |
 | `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                                                                    |
 | `settings:change` (`notifications`) | Bật: `PATCH /api/devices/preferences` (`enabled: true`); tắt: preferences + `DELETE /api/devices` unregister |

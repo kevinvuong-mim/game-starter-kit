@@ -67,7 +67,6 @@ export class LocalNotificationService {
             schedule: { at: scheduleAt },
             extra: {
               route: 'DailyReward',
-              type: 'daily_reward',
             },
           },
         ],

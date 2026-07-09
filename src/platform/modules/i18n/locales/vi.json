@@ -155,6 +155,18 @@
     "dailyReward": {
       "title": "Phần thưởng hàng ngày",
       "body": "Phần thưởng hàng ngày đã sẵn sàng. Quay lại và nhận thưởng nhé!"
+    },
+    "top100Entered": {
+      "title": "Chúc mừng!",
+      "body": "Bạn đã lọt Top 100."
+    },
+    "top100Exited": {
+      "title": "Top 100",
+      "body": "Bạn đã rời Top 100. Hãy quay lại để cải thiện thứ hạng."
+    },
+    "rankPush": {
+      "title": "Cập nhật thứ hạng",
+      "body": "Xem thứ hạng leaderboard hiện tại của bạn."
     }
   }
 }

@@ -247,7 +247,7 @@ Phaser-native UI building blocks. Most features are **full scenes** in `src/game
 | `LanguageSettingsPanel`         | Language picker                                                                                         |
 | `SoundSettingsPanel`            | Sound on/off toggle in `SettingsScene`                                                                  |
 | `HowToPlayPanel` / `LegalPanel` | Help and legal copy                                                                                     |
-| `ModalScreen`                   | Reusable overlay (registered on `HomeScene`)                                                            |
+| `ModalScreen`                   | Reusable overlay (demo trên `HomeScene` — đang comment)                                                 |
 
 Import from `@platform/ui` or `@platform/ui/<component>`.
 
@@ -255,14 +255,14 @@ Import from `@platform/ui` or `@platform/ui/<component>`.
 
 **Location:** `src/platform/bootstrap/`
 
-| File            | Role                                                                                                                          |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                                                      |
-| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()`                          |
-| `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                                              |
-| `app-events.ts` | `bindAppEvents()` (`coin:add`, `game:over`, `shop:purchase`, `mission:complete`, ads) + `bindAppLifecycle()` (web visibility) |
-| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                                                        |
-| `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                                                    |
+| File            | Role                                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `App.ts`        | Initializes modules, binds event bus handlers, lifecycle                                                                                    |
+| `GameEngine.ts` | Sets config from `gameConfig`, runs `app.init()`, creates Phaser game, `navigationService.setGame()`                                        |
+| `providers.ts`  | `registerAnalyticsProviders()`, `registerAdsProvider()`, `registerIapProvider()`                                                            |
+| `app-events.ts` | `bindAppEvents()` (`coin:add`, `coin:spend`, `game:over`, `shop:purchase`, `mission:complete`, ads) + `bindAppLifecycle()` (web visibility) |
+| `capacitor.ts`  | Status bar, back button, `appStateChange` → `app:pause` / `app:resume`                                                                      |
+| `fonts.ts`      | Loads `@fontsource` CSS and primes fonts for Phaser canvas (iOS WKWebView)                                                                  |
 
 **Entry point:** `src/main.ts` → `gameEngine.bootstrap()`
 
@@ -314,7 +314,6 @@ eventBus.emit('game:over', { score, duration })
     ↓
 App.ts → trackGameOver + saveLocal + GAME_OVER ad placement
 gameSyncController → recordResult (local queue) → flush when online/guest ready
-gameSyncService → emit `game:synced` on successful batch upload (extension hook; no default listener)
 ```
 
 ### Settings → persistence
@@ -336,15 +335,14 @@ Boot → Preload → Home (hoặc scene từ notification tap nếu có pending)
                   ├→ Gameplay → GameOver → Home / Gameplay
                   ├→ Shop
                   ├→ Missions
-                  ├→ Leaderboard   ← push: Top 100, Saturday rank
+                  ├→ Leaderboard   ← push: Top 100, scheduled rank (`rank_push`)
                   ├→ DailyReward   ← local: daily reward reminder
                   ├→ Settings → HowToPlay / Legal
-                  └→ (modal overlay via screenManager on Home)
 ```
 
 Notification tap dùng **in-app navigation** (`type` + `route` trong FCM `data` / local `extra`), không dùng deeplink URL. Cold start: `navigationService` defer cho đến `boot:preload-complete` (listener trong `navigation.service.ts` gọi `markBootComplete()`).
 
-`HomeScene` registers `ModalScreen` with `screenManager` and calls `screenManager.unregisterForScene(this)` on shutdown.
+`HomeScene` có thể bật `ModalScreen` demo (đang comment trong source).
 
 ## Analytics
 
@@ -370,7 +368,8 @@ Native AdMob app IDs and manifest snippets are applied by `scripts/apply-android
 
 - **Push (FCM):** `@capacitor/push-notifications` — staging/production native when `pushNotificationsEnabled` + đủ `VITE_FIREBASE_*`. Token sync qua `POST/PATCH /api/devices`.
 - **Local:** `@capacitor/local-notifications` — daily reward reminder 07:00 ngày hôm sau (`localNotificationsEnabled`; bật cả trên `dev`).
-- **Backend triggers:** Top 100 entered/exited, Saturday rank broadcast (xem `game-api` Devices API).
+- **Backend triggers:** Top 100 entered/exited, scheduled rank push (`rank_push` via API `rankPushCron`).
+- **Foreground:** Push nhận khi app mở → toast i18n (`notification.service.ts`).
 - **Tap handling:** FCM `data` / local `extra` → `resolveNotificationRoute()` → `navigationService.navigateToScene()`. Không dùng deeplink URL.
 - **Cold start:** Pending navigation queue cho đến `boot:preload-complete`. `PreloadScene` emit event sau khi assets load; `navigationService` subscribe event để `markBootComplete()` và clear pending.
 - **Setup:** [documents/setup/firebase-native.md](./documents/setup/firebase-native.md), [documents/modules/notifications.md](./documents/modules/notifications.md).
