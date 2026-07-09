@@ -33,12 +33,16 @@ export class GameplayScene extends Phaser.Scene {
   private spawnTimer?: Phaser.Time.TimerEvent;
   private unsubscribers: Array<() => void> = [];
   private activeObjects = new Set<FallingObject>();
+  private readonly onPointerDown = () => this.jump();
+  private readonly onSpaceKeyDown = () => this.jump();
 
   constructor() {
     super({ key: 'Gameplay' });
   }
 
   create(): void {
+    this.cleanupEventListeners();
+
     const { width, height } = this.cameras.main;
     this.startTime = Date.now();
     this.score = 0;
@@ -72,8 +76,8 @@ export class GameplayScene extends Phaser.Scene {
       20
     );
 
-    this.input.on('pointerdown', () => this.jump());
-    this.input.keyboard?.on('keydown-SPACE', () => this.jump());
+    this.input.on('pointerdown', this.onPointerDown);
+    this.input.keyboard?.on('keydown-SPACE', this.onSpaceKeyDown);
 
     this.spawnTimer = this.time.addEvent({
       delay: 1200,
@@ -101,6 +105,12 @@ export class GameplayScene extends Phaser.Scene {
       this.pool.release(obj);
     }
     this.activeObjects.clear();
+    this.cleanupEventListeners();
+  }
+
+  private cleanupEventListeners(): void {
+    this.input.off('pointerdown', this.onPointerDown);
+    this.input.keyboard?.off('keydown-SPACE', this.onSpaceKeyDown);
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
   }

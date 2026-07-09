@@ -23,6 +23,8 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cleanupEventListeners();
+
     const { width, height } = this.cameras.main;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
@@ -73,6 +75,10 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.cleanupEventListeners();
+  }
+
+  private cleanupEventListeners(): void {
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
   }

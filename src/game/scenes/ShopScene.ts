@@ -3,6 +3,8 @@ import { BasePanelScene } from './BasePanelScene';
 import { ShopPanel } from '@platform/ui/shop/ShopPanel';
 
 export class ShopScene extends BasePanelScene {
+  private panel?: ShopPanel;
+
   constructor() {
     super({
       titleY: 0.1,
@@ -17,6 +19,11 @@ export class ShopScene extends BasePanelScene {
   }
 
   protected createPanel(): void {
-    new ShopPanel(this);
+    this.panel = new ShopPanel(this);
+  }
+
+  protected onPanelShutdown(): void {
+    this.panel?.destroy();
+    this.panel = undefined;
   }
 }

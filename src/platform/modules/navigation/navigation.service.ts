@@ -76,7 +76,9 @@ registerBootNavigationResolver(() => {
   return { sceneKey: pending?.sceneKey ?? 'Home', data: pending?.data };
 });
 
-eventBus.on('boot:preload-complete', () => {
-  navigationService.markBootComplete();
-  navigationService.consumePendingNavigation();
-});
+export function bindNavigationEvents(): () => void {
+  return eventBus.on('boot:preload-complete', () => {
+    navigationService.markBootComplete();
+    navigationService.consumePendingNavigation();
+  });
+}

@@ -14,6 +14,8 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data: { score?: number; jumps?: number } = {}): void {
+    this.cleanupEventListeners();
+
     eventBus.emit('ad:context:change', { context: 'HOME' });
 
     const score = data.score ?? 0;
@@ -96,9 +98,13 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.cleanupEventListeners();
+    this.rankText = undefined;
+  }
+
+  private cleanupEventListeners(): void {
     this.unsubscribeSyncCompleted?.();
     this.unsubscribeSyncCompleted = undefined;
-    this.rankText = undefined;
   }
 
   private showRank(rank: number): void {

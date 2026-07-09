@@ -26,6 +26,7 @@ import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
 import { trackSessionEnd } from '@platform/core/analytics/events';
 import { bindAppEvents, bindAppLifecycle } from '@platform/bootstrap/app-events';
+import { bindNavigationEvents } from '@platform/modules/navigation/navigation.service';
 import { syncGuestToStore, bindGuestStoreSync } from '@platform/modules/guest/guest-store-sync';
 
 const { ads, iap, config, events, analytics } = services;
@@ -103,6 +104,7 @@ export class App {
 
     this.unsubscribers.push(bindAppEvents());
     this.unsubscribers.push(bindAppLifecycle());
+    this.unsubscribers.push(bindNavigationEvents());
     this.dailyRewardUnsubscribe = dailyRewardController.bind(events);
     this.controllerUnsubscribers.push(
       guestController.bind(events),

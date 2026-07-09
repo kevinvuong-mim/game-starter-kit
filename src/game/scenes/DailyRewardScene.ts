@@ -2,6 +2,8 @@ import { BasePanelScene } from './BasePanelScene';
 import { DailyRewardPopup } from '@platform/ui/daily-reward/DailyRewardPopup';
 
 export class DailyRewardScene extends BasePanelScene {
+  private panel?: DailyRewardPopup;
+
   constructor() {
     super({
       sceneKey: 'DailyReward',
@@ -11,6 +13,11 @@ export class DailyRewardScene extends BasePanelScene {
   }
 
   protected createPanel(): void {
-    new DailyRewardPopup(this);
+    this.panel = new DailyRewardPopup(this);
+  }
+
+  protected onPanelShutdown(): void {
+    this.panel?.destroy();
+    this.panel = undefined;
   }
 }

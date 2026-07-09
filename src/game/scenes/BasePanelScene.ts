@@ -38,6 +38,8 @@ export abstract class BasePanelScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cleanupEventListeners();
+
     const { width, height } = this.cameras.main;
 
     this.onBeforePanel();
@@ -73,9 +75,13 @@ export abstract class BasePanelScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.cleanupEventListeners();
+    this.onPanelShutdown();
+  }
+
+  protected cleanupEventListeners(): void {
     for (const unsub of this.unsubscribers) unsub();
     this.unsubscribers = [];
-    this.onPanelShutdown();
   }
 
   protected resolveReturnData(data: PanelSceneData): Record<string, unknown> | undefined {

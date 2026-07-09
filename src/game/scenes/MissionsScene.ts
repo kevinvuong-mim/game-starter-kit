@@ -2,6 +2,8 @@ import { BasePanelScene } from './BasePanelScene';
 import { MissionsPanel } from '@platform/ui/missions/MissionsPanel';
 
 export class MissionsScene extends BasePanelScene {
+  private panel?: MissionsPanel;
+
   constructor() {
     super({
       sceneKey: 'Missions',
@@ -11,6 +13,11 @@ export class MissionsScene extends BasePanelScene {
   }
 
   protected createPanel(): void {
-    new MissionsPanel(this);
+    this.panel = new MissionsPanel(this);
+  }
+
+  protected onPanelShutdown(): void {
+    this.panel?.destroy();
+    this.panel = undefined;
   }
 }
