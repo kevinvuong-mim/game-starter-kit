@@ -28,25 +28,22 @@ Backend companion: `game-api` — `VITE_GAME_ID` (đọc qua `src/game/config.ts
 ## 1. Kiến trúc 5 lớp
 
 ```text
-┌─────────────────────────────────────────────┐
-│            GAME LAYER (src/game/)            │
-│  config / scenes / utils — gameplay only     │
-├─────────────────────────────────────────────┤
-│         PLATFORM UI (src/platform/ui/)       │
-│  panels / hud / toast / audio / button / screen │
-├─────────────────────────────────────────────┤
-│      PLATFORM MODULES (src/platform/modules/)│
-│  i18n shop missions leaderboard daily-reward│
-│  notifications navigation save settings guest│
-│  game-sync ads iap                           │
-├─────────────────────────────────────────────┤
-│        PLATFORM CORE (src/platform/core/)    │
-│  events state config storage api analytics   │
-│  advertising error services utils            │
-├─────────────────────────────────────────────┤
-│     BOOTSTRAP (src/platform/bootstrap/)      │
-│  App GameEngine providers app-events capacitor fonts │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  GAME LAYER (src/game/)                                                                                      │
+│  config / scenes / utils — gameplay only                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM UI (src/platform/ui/)                                                                              │
+│  panels / hud / toast / audio / button / screen                                                              │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM MODULES (src/platform/modules/)                                                                    │
+│  i18n shop missions leaderboard daily-reward notifications navigation save settings guest game-sync ads iap  │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM CORE (src/platform/core/)                                                                          │
+│  events state config storage api analytics advertising error services utils                                  │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  BOOTSTRAP (src/platform/bootstrap/)                                                                         │
+│  App GameEngine providers app-events capacitor fonts                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Nguyên tắc thiết kế

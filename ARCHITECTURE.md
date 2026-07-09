@@ -5,27 +5,22 @@
 The Game Starter Kit is a **clone-per-game starter template**. Each game is a separate repository cloned from this kit. Source code is organized into **`platform/`** (shared systems, do not modify often) and **`game/`** (your gameplay).
 
 ```
-┌─────────────────────────────────────────────┐
-│            GAME LAYER (src/game/)            │
-│  config / scenes / utils                     │
-├─────────────────────────────────────────────┤
-│         PLATFORM UI (src/platform/ui/)       │
-│  panels / hud / toast / audio / button / screen │
-├─────────────────────────────────────────────┤
-│      PLATFORM MODULES (src/platform/modules/)│
-│  i18n / shop / missions / leaderboard / save │
-│  settings / daily-reward / guest / game-sync│
-│  notifications / navigation / ads (module) / iap (module)    │
-├─────────────────────────────────────────────┤
-│        PLATFORM CORE (src/platform/core/)    │
-│  events / state / config / storage / api     │
-│  analytics / advertising / error             │
-│  services (locator)                          │
-├─────────────────────────────────────────────┤
-│     BOOTSTRAP (src/platform/bootstrap/)      │
-│  App / GameEngine / providers / app-events     │
-│  capacitor / fonts                             │
-└─────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  GAME LAYER (src/game/)                                                                                                                                │
+│  config / scenes / utils                                                                                                                               │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM UI (src/platform/ui/)                                                                                                                        │
+│  panels / hud / toast / audio / button / screen                                                                                                        │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM MODULES (src/platform/modules/)                                                                                                              │
+│  i18n / shop / missions / leaderboard / save / settings / daily-reward / guest / game-sync / notifications / navigation / ads (module) / iap (module)  │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  PLATFORM CORE (src/platform/core/)                                                                                                                    │
+│  events / state / config / storage / api  / analytics / advertising / error / services (locator)                                                       │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  BOOTSTRAP (src/platform/bootstrap/)                                                                                                                   │
+│  App / GameEngine / providers / app-events / capacitor / fonts                                                                                         │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Directory Layout
