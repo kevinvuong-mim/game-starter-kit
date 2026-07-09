@@ -51,17 +51,22 @@ Header: `Authorization: Bearer <secretToken>`
 
 ## Response
 
-Flat JSON từ `POST /api/results` (không bọc envelope — client đọc trực tiếp, không qua `unwrapSuccessEnvelope()`):
+Envelope qua `ResponseInterceptor` — client unwrap `.data` bằng `unwrapSuccessEnvelope()`:
 
 ```json
 {
   "success": true,
-  "insertedCount": 1,
-  "rejectedCount": 0,
-  "rejected": [],
-  "message": "Results submitted",
-  "rank": 42,
-  "bestScore": 1500
+  "statusCode": 201,
+  "message": "Resource created successfully",
+  "path": "/api/results",
+  "timestamp": "2026-07-09T12:00:00.000Z",
+  "data": {
+    "insertedCount": 1,
+    "rejectedCount": 0,
+    "rejected": [],
+    "rank": 42,
+    "bestScore": 1500
+  }
 }
 ```
 

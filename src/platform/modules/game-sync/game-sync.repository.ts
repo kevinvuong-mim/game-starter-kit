@@ -1,14 +1,15 @@
 import {
-  type SyncResponse,
   PENDING_RESULTS_KEY,
   MAX_PENDING_RESULTS,
+  type ResultSubmitData,
   type GameResultPayload,
   type PendingGameResult,
   type GameResultBatchRequest,
 } from './game-sync.model';
 import { logger } from '@platform/core/error';
-import { apiClient } from '@platform/core/api';
 import { storage } from '@platform/core/storage';
+import type { ApiEnvelope } from '@platform/core/api';
+import { apiClient, unwrapSuccessEnvelope } from '@platform/core/api';
 
 function isPendingGameResult(value: unknown): value is PendingGameResult {
   if (!value || typeof value !== 'object') return false;
@@ -47,13 +48,14 @@ export class GameSyncRepository {
     await storage.remove(PENDING_RESULTS_KEY);
   }
 
-  async sync(gameId: string, items: GameResultPayload[]): Promise<SyncResponse> {
+  async sync(gameId: string, items: GameResultPayload[]): Promise<ResultSubmitData> {
     const body: GameResultBatchRequest = {
       gameId,
       items,
     };
 
-    return apiClient.post<SyncResponse>('/results', body);
+    const envelope = await apiClient.post<ApiEnvelope<ResultSubmitData>>('/results', body);
+    return unwrapSuccessEnvelope(envelope);
   }
 
   private pruneQueue(queue: PendingGameResult[]): PendingGameResult[] {

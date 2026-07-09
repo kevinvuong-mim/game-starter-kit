@@ -41,10 +41,8 @@ export interface GameResultBatchRequest {
   items: GameResultPayload[];
 }
 
-export interface SyncResponse {
+export interface ResultSubmitData {
   rank?: number;
-  message: string;
-  success: boolean;
   bestScore?: number;
   insertedCount: number;
   rejectedCount?: number;

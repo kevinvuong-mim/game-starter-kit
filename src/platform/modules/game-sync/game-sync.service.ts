@@ -3,7 +3,7 @@ import {
   sanitizeMetadata,
   toNonNegativeInt,
   MAX_SYNC_ATTEMPTS,
-  type SyncResponse,
+  type ResultSubmitData,
   computeReplaySignature,
   type PendingGameResult,
 } from './game-sync.model';
@@ -152,7 +152,7 @@ export class GameSyncService {
     }
   }
 
-  private handleSyncRank(response: SyncResponse): void {
+  private handleSyncRank(response: ResultSubmitData): void {
     if (typeof response.rank !== 'number' || typeof response.bestScore !== 'number') {
       return;
     }
@@ -167,14 +167,10 @@ export class GameSyncService {
   private applyBatchSyncResults(
     queue: PendingGameResult[],
     batch: PendingGameResult[],
-    response: SyncResponse,
+    response: ResultSubmitData,
     gameId: string,
     guestId: string
   ): PendingGameResult[] {
-    if (!response.success) {
-      return queue;
-    }
-
     const rejectedIds = new Set((response.rejected ?? []).map((item) => item.clientResultId));
     const batchIds = new Set(batch.map((item) => item.localId));
 

@@ -1308,7 +1308,7 @@ Endpoint:
 POST /api/results
   Header: Authorization: Bearer <secretToken>
   Body: { gameId, items: [{ clientResultId, score, playedAt, metadata, signature }] }
-  Response: { success, insertedCount, rejectedCount?, rejected?, message, rank?, bestScore? }
+  Response envelope: { success, statusCode, message, path, timestamp, data: { insertedCount, rejectedCount?, rejected?, rank?, bestScore? } }
 ```
 
 Limits:
