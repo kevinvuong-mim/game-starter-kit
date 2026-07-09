@@ -130,7 +130,6 @@ export class GameSyncService {
         queue = this.applyBatchSyncResults(queue, batch, response, gameId, guestId);
         queue = this.pruneQueue(queue);
         await this.repository.saveQueue(queue);
-        eventBus.emit('game:synced', response);
       } catch (error) {
         this.logExpectedApiErrors(error);
         queue = this.incrementAttempts(queue, batch, gameId, error);

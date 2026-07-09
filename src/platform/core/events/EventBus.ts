@@ -11,6 +11,9 @@ type ListenerEntry = {
 export class EventBus implements IEventBus {
   private listeners = new Map<PlatformEvent, Set<ListenerEntry>>();
 
+  /**
+   * Fire-and-forget: sync handlers run immediately; async handlers run in background.
+   */
   emit<T extends PlatformEvent>(event: T, payload: PlatformEventMap[T]): void {
     const entries = this.listeners.get(event);
     if (!entries?.size) return;
@@ -19,11 +22,35 @@ export class EventBus implements IEventBus {
 
     for (const entry of entries) {
       try {
-        void Promise.resolve(entry.handler(payload as PlatformEventMap[PlatformEvent])).catch(
-          (error) => {
+        const result = entry.handler(payload as PlatformEventMap[PlatformEvent]);
+        if (result instanceof Promise) {
+          void result.catch((error) => {
             console.error(`[EventBus] Handler error for "${event}":`, error);
-          }
-        );
+          });
+        }
+      } catch (error) {
+        console.error(`[EventBus] Handler error for "${event}":`, error);
+      }
+      if (entry.once) toRemove.push(entry);
+    }
+
+    for (const entry of toRemove) {
+      entries.delete(entry);
+    }
+  }
+
+  /**
+   * Await all handlers in registration order. Use when the emitter depends on handler side effects.
+   */
+  async emitAsync<T extends PlatformEvent>(event: T, payload: PlatformEventMap[T]): Promise<void> {
+    const entries = this.listeners.get(event);
+    if (!entries?.size) return;
+
+    const toRemove: ListenerEntry[] = [];
+
+    for (const entry of entries) {
+      try {
+        await entry.handler(payload as PlatformEventMap[PlatformEvent]);
       } catch (error) {
         console.error(`[EventBus] Handler error for "${event}":`, error);
       }

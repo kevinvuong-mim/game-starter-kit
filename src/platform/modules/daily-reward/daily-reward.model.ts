@@ -2,7 +2,6 @@ import { getLocalDateKey } from '@platform/core/utils';
 
 export const DAILY_REWARD_MODEL_VERSION = 2;
 export const DAILY_REWARD_STORAGE_KEY = 'daily-reward-v2';
-export const LEGACY_DAILY_REWARD_STORAGE_KEY = 'daily-rewards';
 
 export interface DailyRewardModel {
   version: number;
@@ -16,13 +15,6 @@ export interface DailyRewardModel {
   lastClaimDate: string | null;
   /** `Date.now()` from the previous app session. */
   lastSessionTimestamp: number;
-}
-
-export interface LegacyDailyRewardState {
-  streak: number;
-  currentDay: number;
-  lastClaimAt: number;
-  claimedDays: number[];
 }
 
 export type RewardDayStatus = 'locked' | 'claimed' | 'current';

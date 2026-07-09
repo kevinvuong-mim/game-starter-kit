@@ -154,7 +154,7 @@ Kiểm tra:
 2. Notification được schedule lúc **07:00 ngày hôm sau** (local time)
 3. Tap notification → mở `DailyReward` scene
 
-### Push — Top 100 / Saturday rank
+### Push — Top 100 / scheduled rank (`rank_push`)
 
 1. Backend gửi FCM với `data: { type, route }` (ví dụ `top_100_entered`, `route: Leaderboard`)
 2. Tap notification → in-app navigation tới `Leaderboard` (không dùng deeplink URL)
@@ -166,10 +166,10 @@ Kiểm tra:
 
 Client **không dùng deeplink URL**. Flow:
 
-| Nguồn                   | Payload                      | Scene mở      |
-| ----------------------- | ---------------------------- | ------------- |
-| Push Top 100 / Saturday | `data.type` + `data.route`   | `Leaderboard` |
-| Local daily reward      | `extra.type` + `extra.route` | `DailyReward` |
+| Nguồn                         | Payload                      | Scene mở                               |
+| ----------------------------- | ---------------------------- | -------------------------------------- |
+| Push Top 100 / scheduled rank | `data.type` + `data.route`   | `Leaderboard`; foreground → toast i18n |
+| Local daily reward            | `extra.type` + `extra.route` | `DailyReward`                          |
 
 **Cold start:** Nếu user tap notification khi app bị kill, `navigationService` lưu pending destination. Sau preload assets, `PreloadScene` emit `boot:preload-complete` (listener gọi `markBootComplete()`) rồi navigate tới target scene.
 

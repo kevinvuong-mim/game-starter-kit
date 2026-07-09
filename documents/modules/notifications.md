@@ -4,11 +4,11 @@ Module quản lý **push notification** (FCM) và **local notification** (daily 
 
 ## Phạm vi
 
-| Loại                          | Nguồn              | Khi nào                                                           |
-| ----------------------------- | ------------------ | ----------------------------------------------------------------- |
-| Push — Top 100 entered/exited | Backend FCM        | User vào/ra Top 100 sau submit score                              |
-| Push — Saturday rank          | Backend FCM (cron) | 9:00 Thứ 7 (Asia/Ho_Chi_Minh), chỉ guest có rank trên leaderboard |
-| Local — Daily reward          | Client schedule    | 07:00 ngày hôm sau sau khi claim; hủy nếu có thể claim            |
+| Loại                          | Nguồn                       | Khi nào                                                                                          |
+| ----------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| Push — Top 100 entered/exited | Backend FCM                 | User vào/ra Top 100 sau submit score                                                             |
+| Push — scheduled rank         | Backend FCM (cron per-game) | Theo `GAME_CONFIG.rankPushCron` trên API (FRULOOP mặc định: 9:00 Thứ 7 VN); FCM type `rank_push` |
+| Local — Daily reward          | Client schedule             | 07:00 ngày hôm sau sau khi claim; hủy nếu có thể claim                                           |
 
 Push cần Firebase native + backend `FIREBASE_*`. Local chỉ cần `@capacitor/local-notifications`.
 
@@ -72,11 +72,11 @@ State local: key `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `un
 
 **Không dùng deeplink URL.** Backend gửi FCM `data: { type, route }`; local notification gắn `extra: { type, route }`.
 
-| Nguồn / payload                                                    | Scene mở      |
-| ------------------------------------------------------------------ | ------------- |
-| FCM `type`: `top_100_entered` / `top_100_exited` / `saturday_rank` | `Leaderboard` |
-| Local notification `extra.route`: `DailyReward`                    | `DailyReward` |
-| (mặc định)                                                         | `Home`        |
+| Nguồn / payload                                                | Scene mở      |
+| -------------------------------------------------------------- | ------------- |
+| FCM `type`: `top_100_entered` / `top_100_exited` / `rank_push` | `Leaderboard` |
+| Local notification `extra.route`: `DailyReward`                | `DailyReward` |
+| (mặc định)                                                     | `Home`        |
 
 Luồng:
 
@@ -84,6 +84,16 @@ Luồng:
 2. Local: `localNotificationActionPerformed` → `navigationService.navigateToScene()`.
 3. `resolveNotificationRoute(type, route)` → scene key Phaser.
 4. Navigate với `{ returnTo: 'Home' }`.
+
+### Foreground push (app đang mở)
+
+Khi nhận push trong foreground (`pushNotificationReceived`), `notificationService` hiển thị toast i18n:
+
+| `type`            | Toast key                          |
+| ----------------- | ---------------------------------- |
+| `top_100_entered` | `notifications.top100Entered.body` |
+| `top_100_exited`  | `notifications.top100Exited.body`  |
+| `rank_push`       | `notifications.rankPush.body`      |
 
 ### Cold start (pending navigation)
 

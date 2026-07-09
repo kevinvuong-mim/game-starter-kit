@@ -29,7 +29,7 @@ export type NotificationRoute = (typeof NOTIFICATION_ROUTES)[keyof typeof NOTIFI
 
 /** FCM push types sent by game-api — local-only notifications use `route` only. */
 export const NOTIFICATION_TYPES = {
-  SATURDAY_RANK: 'saturday_rank',
+  RANK_PUSH: 'rank_push',
   TOP_100_EXITED: 'top_100_exited',
   TOP_100_ENTERED: 'top_100_entered',
 } as const;
@@ -56,11 +56,6 @@ export interface NotificationState {
   pendingNotificationsEnabled: boolean | null;
 }
 
-/** @deprecated Use lastSyncedToken — kept for storage migration only. */
-export interface LegacyNotificationState {
-  lastRegisteredToken?: string | null;
-}
-
 export function createDefaultNotificationState(): NotificationState {
   return {
     platform: null,
@@ -79,14 +74,13 @@ export function normalizeNotificationState(value: unknown): NotificationState {
     return createDefaultNotificationState();
   }
 
-  const raw = value as Partial<NotificationState> & LegacyNotificationState;
-  const lastSyncedToken = raw.lastSyncedToken ?? raw.lastRegisteredToken ?? null;
+  const raw = value as Partial<NotificationState>;
 
   return {
     unregisterPending: Boolean(raw.unregisterPending),
     syncAttempts: typeof raw.syncAttempts === 'number' ? raw.syncAttempts : 0,
     pendingToken: typeof raw.pendingToken === 'string' ? raw.pendingToken : null,
-    lastSyncedToken: typeof lastSyncedToken === 'string' ? lastSyncedToken : null,
+    lastSyncedToken: typeof raw.lastSyncedToken === 'string' ? raw.lastSyncedToken : null,
     platform: raw.platform === 'IOS' || raw.platform === 'ANDROID' ? raw.platform : null,
     lastAttemptAt: typeof raw.lastAttemptAt === 'string' ? raw.lastAttemptAt : undefined,
     lastErrorCode: typeof raw.lastErrorCode === 'string' ? raw.lastErrorCode : undefined,
@@ -147,7 +141,7 @@ export function resolveNotificationRoute(
   switch (type) {
     case NOTIFICATION_TYPES.TOP_100_ENTERED:
     case NOTIFICATION_TYPES.TOP_100_EXITED:
-    case NOTIFICATION_TYPES.SATURDAY_RANK:
+    case NOTIFICATION_TYPES.RANK_PUSH:
       return NOTIFICATION_ROUTES.LEADERBOARD;
 
     default:

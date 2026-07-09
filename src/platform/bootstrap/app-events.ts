@@ -32,6 +32,10 @@ export function bindAppEvents(): () => void {
       usePlatformStore.getState().addCoins(amount);
     }),
 
+    events.on('coin:spend', ({ amount }) => {
+      usePlatformStore.getState().spendCoins(amount);
+    }),
+
     events.on('score:update', ({ score }) => {
       usePlatformStore.getState().setHighScore(score);
     }),

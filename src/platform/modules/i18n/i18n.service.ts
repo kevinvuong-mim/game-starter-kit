@@ -16,9 +16,9 @@ const LOCALE_LOADERS: Record<SupportedLanguage, () => Promise<{ default: Transla
 };
 
 export class LocalizationService {
-  private catalogs = new Map<string, TranslationNode>();
-  private fallbackLanguage: SupportedLanguage = 'en';
   private currentLanguage: SupportedLanguage = 'en';
+  private fallbackLanguage: SupportedLanguage = 'en';
+  private catalogs = new Map<string, TranslationNode>();
 
   async init(language?: string): Promise<void> {
     await this.loadLanguage(this.fallbackLanguage);

@@ -71,10 +71,13 @@ export class ShopService {
       return false;
     }
 
-    const store = usePlatformStore.getState();
-    const spent = item.currency === 'coins' ? store.spendCoins(item.price) : false;
-
-    if (!spent) return false;
+    if (item.currency === 'coins') {
+      const coinsBefore = usePlatformStore.getState().currency.coins;
+      await eventBus.emitAsync('coin:spend', { amount: item.price, reason: `shop:${itemId}` });
+      if (usePlatformStore.getState().currency.coins === coinsBefore) return false;
+    } else {
+      return false;
+    }
 
     this.grantItem(item);
     eventBus.emit('shop:purchase', { itemId, price: item.price });
