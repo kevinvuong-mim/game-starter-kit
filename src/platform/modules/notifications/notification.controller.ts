@@ -7,7 +7,6 @@ import { deviceSyncService } from './device-sync.service';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { notificationService } from './notification.service';
 import { dailyRewards } from '@platform/modules/daily-reward';
-import { settings } from '@platform/modules/settings/settings.service';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
 import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
 
@@ -34,13 +33,9 @@ export class NotificationController {
       })
     );
 
-    if (settings.getSettings().notificationsEnabled) {
-      if (config.localNotificationsEnabled) {
-        void notificationService.initializeLocal();
-      }
-    }
-
     if (config.localNotificationsEnabled) {
+      void notificationService.initializeLocal();
+
       unsubs.push(
         events.on('daily:claim', () => {
           void notificationService.scheduleDailyRewardReminder();
@@ -54,32 +49,18 @@ export class NotificationController {
 
     if (config.pushNotificationsEnabled) {
       guestReadyUnsub = guest.onReady(() => {
-        if (!settings.getSettings().notificationsEnabled) {
-          return;
-        }
-
         void notificationService.initializePush();
         void deviceSyncService.flush().catch(() => undefined);
       });
 
       this.bindDeviceSyncListeners();
-
-      if (settings.getSettings().notificationsEnabled) {
-        void deviceSyncService.flush().catch(() => undefined);
-      }
+      void deviceSyncService.flush().catch(() => undefined);
     }
 
     unsubs.push(
       events.on('settings:change', ({ key }) => {
         if (key === 'language') {
           void notificationService.onLocaleChanged();
-          return;
-        }
-
-        if (key === 'notificationsEnabled') {
-          void notificationService.setNotificationsEnabled(
-            settings.getSettings().notificationsEnabled
-          );
         }
       })
     );

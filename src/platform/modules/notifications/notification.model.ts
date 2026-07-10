@@ -52,7 +52,6 @@ export interface NotificationState {
   platform: DevicePlatform | null;
   pendingLocale: DeviceLocale | null;
   lastSyncedLocale: DeviceLocale | null;
-  pendingNotificationsEnabled: boolean | null;
 }
 
 export function createDefaultNotificationState(): NotificationState {
@@ -64,7 +63,6 @@ export function createDefaultNotificationState(): NotificationState {
     lastSyncedToken: null,
     lastSyncedLocale: null,
     unregisterPending: false,
-    pendingNotificationsEnabled: null,
   };
 }
 
@@ -88,8 +86,6 @@ export function normalizeNotificationState(value: unknown): NotificationState {
       raw.pendingLocale === 'EN' || raw.pendingLocale === 'VI' ? raw.pendingLocale : null,
     lastSyncedLocale:
       raw.lastSyncedLocale === 'EN' || raw.lastSyncedLocale === 'VI' ? raw.lastSyncedLocale : null,
-    pendingNotificationsEnabled:
-      typeof raw.pendingNotificationsEnabled === 'boolean' ? raw.pendingNotificationsEnabled : null,
   };
 }
 

@@ -77,10 +77,6 @@ export class NotificationRepository {
     await apiClient.delete('/devices');
   }
 
-  async setNotificationPreference(enabled: boolean) {
-    await apiClient.patch('/devices/preferences', { enabled });
-  }
-
   async clearState(): Promise<void> {
     await storage.save(NOTIFICATION_STORAGE_KEY, createDefaultNotificationState());
   }

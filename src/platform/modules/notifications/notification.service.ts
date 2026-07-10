@@ -10,9 +10,7 @@ import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { deviceSyncService } from './device-sync.service';
-import { dailyRewards } from '@platform/modules/daily-reward';
 import { pushNotificationService } from './push-notification.service';
-import { settings } from '@platform/modules/settings/settings.service';
 import { localNotificationService } from './local-notification.service';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
 
@@ -30,7 +28,7 @@ export class NotificationService {
       return;
     }
 
-    if (!config.localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
+    if (!config.localNotificationsEnabled) {
       return;
     }
 
@@ -47,7 +45,7 @@ export class NotificationService {
       return;
     }
 
-    if (!config.pushNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
+    if (!config.pushNotificationsEnabled) {
       return;
     }
 
@@ -68,7 +66,7 @@ export class NotificationService {
   }
 
   async scheduleDailyRewardReminder(): Promise<void> {
-    if (!getConfig().localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
+    if (!getConfig().localNotificationsEnabled) {
       return;
     }
 
@@ -76,54 +74,21 @@ export class NotificationService {
   }
 
   async reconcileDailyRewardSchedule(canClaim: boolean): Promise<void> {
-    if (!getConfig().localNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
-      if (getConfig().localNotificationsEnabled) {
-        await localNotificationService.cancelDailyRewardReminder();
-      }
+    const config = getConfig();
+
+    if (!config.localNotificationsEnabled) {
       return;
     }
 
     await localNotificationService.reconcileDailyRewardSchedule(canClaim);
   }
 
-  async setNotificationsEnabled(enabled: boolean): Promise<void> {
+  async getNotificationStatus(): Promise<NotificationStatus> {
     const config = getConfig();
 
-    if (enabled) {
-      if (config.localNotificationsEnabled) {
-        this.localInitialized = false;
-        await this.initializeLocal();
-        await this.reconcileDailyRewardSchedule(dailyRewards.canClaim());
-      }
-
-      if (config.pushNotificationsEnabled) {
-        await deviceSyncService.enqueuePreference(true);
-        this.pushInitialized = false;
-        await this.initializePush();
-        void deviceSyncService.flush().catch(() => undefined);
-      }
-
-      return;
-    }
-
-    if (config.localNotificationsEnabled) {
-      await localNotificationService.cancelDailyRewardReminder();
-    }
-
-    if (config.pushNotificationsEnabled) {
-      await deviceSyncService.enqueuePreference(false);
-      await pushNotificationService.unregister();
-      void deviceSyncService.flush().catch(() => undefined);
-      this.pushInitialized = false;
-    }
-  }
-
-  async getNotificationStatus(): Promise<NotificationStatus> {
-    if (!this.isNotificationsEnabledInSettings()) {
+    if (!config.pushNotificationsEnabled && !config.localNotificationsEnabled) {
       return 'off';
     }
-
-    const config = getConfig();
 
     if (config.pushNotificationsEnabled) {
       const pushGranted = await pushNotificationService.hasPermission();
@@ -141,11 +106,7 @@ export class NotificationService {
 
     if (config.pushNotificationsEnabled) {
       const state = await deviceSyncService.loadState();
-      if (
-        state.pendingNotificationsEnabled !== null ||
-        deviceSyncNeeded(state) ||
-        state.unregisterPending
-      ) {
+      if (deviceSyncNeeded(state) || state.unregisterPending) {
         return 'pending';
       }
 
@@ -158,10 +119,6 @@ export class NotificationService {
   }
 
   async onAppResume(canClaimDailyReward: boolean): Promise<void> {
-    if (!this.isNotificationsEnabledInSettings()) {
-      return;
-    }
-
     const config = getConfig();
 
     if (config.pushNotificationsEnabled) {
@@ -177,7 +134,7 @@ export class NotificationService {
   async onLocaleChanged(): Promise<void> {
     const config = getConfig();
 
-    if (!config.pushNotificationsEnabled || !this.isNotificationsEnabledInSettings()) {
+    if (!config.pushNotificationsEnabled) {
       return;
     }
 
@@ -208,10 +165,6 @@ export class NotificationService {
       default:
         return null;
     }
-  }
-
-  private isNotificationsEnabledInSettings(): boolean {
-    return settings.getSettings().notificationsEnabled;
   }
 }
 

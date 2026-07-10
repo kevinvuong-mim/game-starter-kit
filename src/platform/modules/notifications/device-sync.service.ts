@@ -57,7 +57,7 @@ export class DeviceSyncService {
   }
 
   async enqueueUnregister(): Promise<void> {
-    const state = await this.repository.loadState();
+    const state = await this.loadState();
 
     await this.repository.saveState({
       ...state,
@@ -65,18 +65,6 @@ export class DeviceSyncService {
       unregisterPending: true,
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
-      pendingNotificationsEnabled: false,
-    });
-  }
-
-  async enqueuePreference(enabled: boolean): Promise<void> {
-    const state = await this.loadState();
-    await this.repository.saveState({
-      ...state,
-      syncAttempts: 0,
-      lastErrorCode: undefined,
-      nextAttemptAt: undefined,
-      pendingNotificationsEnabled: enabled,
     });
   }
 
@@ -112,21 +100,13 @@ export class DeviceSyncService {
   }
 
   private hasPendingWork(state: NotificationState): boolean {
-    return (
-      state.pendingNotificationsEnabled !== null ||
-      state.unregisterPending ||
-      deviceSyncNeeded(state)
-    );
+    return state.unregisterPending || deviceSyncNeeded(state);
   }
 
   private async flushState(state: NotificationState): Promise<void> {
     let current = state;
 
     try {
-      if (current.pendingNotificationsEnabled !== null) {
-        current = await this.flushPreference(current, current.pendingNotificationsEnabled);
-      }
-
       if (current.unregisterPending) {
         current = await this.flushUnregister(current);
         return;
@@ -156,7 +136,6 @@ export class DeviceSyncService {
       lastErrorCode: undefined,
       nextAttemptAt: undefined,
       unregisterPending: false,
-      pendingNotificationsEnabled: null,
     };
 
     await this.repository.saveState(cleared);
@@ -185,26 +164,6 @@ export class DeviceSyncService {
     await this.repository.saveState(synced);
     logger.info('[DeviceSync] Device registration synced');
     return synced;
-  }
-
-  private async flushPreference(
-    state: NotificationState,
-    enabled: boolean
-  ): Promise<NotificationState> {
-    await this.repository.setNotificationPreference(enabled);
-
-    const updated: NotificationState = {
-      ...state,
-      syncAttempts: 0,
-      lastAttemptAt: undefined,
-      lastErrorCode: undefined,
-      nextAttemptAt: undefined,
-      pendingNotificationsEnabled: null,
-    };
-
-    await this.repository.saveState(updated);
-    logger.debug('[DeviceSync] Notification preference synced', { enabled });
-    return updated;
   }
 
   private async markAttemptFailed(

@@ -8,12 +8,10 @@ import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 import { HelpAndLegalSettingsPanel } from '@platform/ui/settings/HelpAndLegalSettingsPanel';
-import { NotificationsSettingsPanel } from '@platform/ui/settings/NotificationsSettingsPanel';
 
 const SETTINGS_PANEL_GAP = 40;
 const NAME_SECTION_HEIGHT = 134;
 const TWO_ROW_SECTION_HEIGHT = 140;
-const NOTIFICATIONS_SECTION_HEIGHT = 168;
 
 export class SettingsScene extends Phaser.Scene {
   private unsubscribers: Array<() => void> = [];
@@ -48,11 +46,6 @@ export class SettingsScene extends Phaser.Scene {
 
     new SoundSettingsPanel(this, 0, sectionY);
     sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
-
-    if (NotificationsSettingsPanel.isAvailable()) {
-      new NotificationsSettingsPanel(this, 0, sectionY);
-      sectionY += NOTIFICATIONS_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
-    }
 
     new HelpAndLegalSettingsPanel(this, 0, sectionY);
 

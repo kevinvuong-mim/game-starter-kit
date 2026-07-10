@@ -81,10 +81,7 @@
     "playerNameUpdated": "Name updated",
     "playerNameSavedLocally": "Name saved — will sync when online",
     "playerNameFailed": "Could not update name",
-    "playerNameOffline": "Create a guest profile when online first",
-    "notifications": "Notifications",
-    "notificationsOn": "On",
-    "notificationsOff": "Off"
+    "playerNameOffline": "Create a guest profile when online first"
   },
   "missions": {
     "title": "Missions",

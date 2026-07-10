@@ -81,10 +81,7 @@
     "playerNameUpdated": "Đã cập nhật tên",
     "playerNameSavedLocally": "Đã lưu tên — sẽ đồng bộ khi có mạng",
     "playerNameFailed": "Không thể cập nhật tên",
-    "playerNameOffline": "Hãy tạo hồ sơ guest khi có mạng trước",
-    "notifications": "Thông báo",
-    "notificationsOn": "Bật",
-    "notificationsOff": "Tắt"
+    "playerNameOffline": "Hãy tạo hồ sơ guest khi có mạng trước"
   },
   "missions": {
     "title": "Nhiệm vụ",

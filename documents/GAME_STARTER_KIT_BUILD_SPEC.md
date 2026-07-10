@@ -1211,16 +1211,16 @@ iap
 
 Feature flags: `src/platform/core/config/notification-env.json` (`pushNotificationsEnabled`, `localNotificationsEnabled`).
 
-| Loại                          | Trigger client                             | API                                                                |
-| ----------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
-| Push Top 100 / scheduled rank | Backend FCM                                | `POST/PATCH/DELETE /api/devices`, `PATCH /api/devices/preferences` |
-| Local daily reward            | Sau `daily:claim`, schedule 07:00 ngày sau | —                                                                  |
+| Loại                          | Trigger client                             | API                              |
+| ----------------------------- | ------------------------------------------ | -------------------------------- |
+| Push Top 100 / scheduled rank | Backend FCM                                | `POST/PATCH/DELETE /api/devices` |
+| Local daily reward            | Sau `daily:claim`, schedule 07:00 ngày sau | —                                |
 
 Tap notification → `resolveNotificationRoute(type, route)` → Phaser scene. **Không deeplink URL.** Cold start: defer tới `boot:preload-complete` (listener trong `navigation.service.ts`).
 
 Foreground push (`pushNotificationReceived`): toast i18n qua `notification.service.ts` cho `rank_push`.
 
-Storage: `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, `pendingNotificationsEnabled`, …).
+Storage: `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, …).
 
 Chi tiết: `documents/modules/notifications.md`, `documents/setup/firebase-native.md`.
 
@@ -1363,9 +1363,6 @@ POST /api/devices
 PATCH /api/devices
   Body: { token, locale }
   Response data: { guestId }
-
-PATCH /api/devices/preferences
-  Body: { enabled: boolean }
 
 DELETE /api/devices
   (unregister — backend clear fcmToken / devicePlatform / notificationLocale)
@@ -1580,13 +1577,13 @@ Verify
 
 # 18. Backend integration summary
 
-| Feature      | Endpoint                                                       | Auth   |
-| ------------ | -------------------------------------------------------------- | ------ |
-| Guest init   | POST /api/guest/init                                           | Không  |
-| Guest rename | PATCH /api/guest/name                                          | Bearer |
-| Game sync    | POST /api/results                                              | Bearer |
-| Leaderboard  | GET /api/leaderboards                                          | Không  |
-| FCM device   | POST/PATCH/DELETE /api/devices, PATCH /api/devices/preferences | Bearer |
+| Feature      | Endpoint                       | Auth   |
+| ------------ | ------------------------------ | ------ |
+| Guest init   | POST /api/guest/init           | Không  |
+| Guest rename | PATCH /api/guest/name          | Bearer |
+| Game sync    | POST /api/results              | Bearer |
+| Leaderboard  | GET /api/leaderboards          | Không  |
+| FCM device   | POST/PATCH/DELETE /api/devices | Bearer |
 
 Lưu ý:
 
