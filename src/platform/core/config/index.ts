@@ -1,6 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 
 import {
+  type DeepLinkConfig,
+  resolveDeepLinkConfig,
+} from '@platform/modules/deep-link/deep-link.config';
+import {
   type AppReviewConfig,
   resolveAppReviewConfig,
 } from '@platform/modules/app-review/app-review.config';
@@ -27,6 +31,7 @@ export interface RuntimeConfig {
   adsEnabled: boolean;
   iapEnabled: boolean;
   replaySecret: string;
+  deepLink: DeepLinkConfig;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
   appReview: AppReviewConfig;
@@ -248,6 +253,7 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   return {
     ads,
     iap,
+    deepLink: resolveDeepLinkConfig(),
     appReview: resolveAppReviewConfig(),
     apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,

@@ -10,6 +10,7 @@ import {
   bindAdsController,
   bindIapController,
   missionController,
+  deepLinkController,
   gameSyncController,
   dailyRewardController,
   leaderboardController,
@@ -113,7 +114,8 @@ export class App {
       bindAdsController(events),
       bindIapController(events),
       missionController.bind(events),
-      notificationController.bind(events)
+      notificationController.bind(events),
+      deepLinkController.bind(events)
     );
 
     this.initialized = true;

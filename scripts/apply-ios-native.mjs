@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import { resolvePushNotificationsEnabled } from './notification-config.mjs';
+import { resolveDeepLinkHosts, resolveDeepLinkScheme } from './deeplink-config.mjs';
 import { rmSync, existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -142,6 +143,64 @@ function patchAdMobPlist(plistPath, appId) {
 
   content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
   writeFileSync(plistPath, content);
+  return 'injected';
+}
+
+function patchDeepLinkInfoPlist(plistPath, scheme) {
+  let content = readFileSync(plistPath, 'utf8');
+  const marker = '<!-- deeplink-url-schemes -->';
+
+  if (content.includes('CFBundleURLTypes') && content.includes(scheme)) {
+    return 'present';
+  }
+
+  const snippet =
+    `\t<key>CFBundleURLTypes</key>\n` +
+    `\t<array>\n` +
+    `\t\t<dict>\n` +
+    `\t\t\t<key>CFBundleURLName</key>\n` +
+    `\t\t\t<string>${scheme}</string>\n` +
+    `\t\t\t<key>CFBundleURLSchemes</key>\n` +
+    `\t\t\t<array>\n` +
+    `\t\t\t\t<string>${scheme}</string>\n` +
+    `\t\t\t</array>\n` +
+    `\t\t</dict>\n` +
+    `\t</array>\n`;
+
+  if (!content.includes('CFBundleURLTypes')) {
+    content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
+    writeFileSync(plistPath, content);
+    return 'injected';
+  }
+
+  return 'present';
+}
+
+function patchDeepLinkEntitlements(entitlementsPath, hosts) {
+  if (!existsSync(entitlementsPath)) {
+    return 'missing';
+  }
+
+  let content = readFileSync(entitlementsPath, 'utf8');
+  const entries = hosts.map((host) => `\t\t<string>applinks:${host}</string>`).join('\n');
+  const snippet =
+    `\t<key>com.apple.developer.associated-domains</key>\n` +
+    `\t<array>\n${entries}\n\t</array>\n`;
+
+  if (content.includes('com.apple.developer.associated-domains')) {
+    const updated = content.replace(
+      /<key>com\.apple\.developer\.associated-domains<\/key>\s*<array>[\s\S]*?<\/array>/,
+      snippet.trimEnd()
+    );
+    if (updated !== content) {
+      writeFileSync(entitlementsPath, updated);
+      return 'updated';
+    }
+    return 'present';
+  }
+
+  content = content.replace('</dict>\n</plist>', `${snippet}</dict>\n</plist>`);
+  writeFileSync(entitlementsPath, content);
   return 'injected';
 }
 
@@ -294,5 +353,14 @@ if (adsProvider === 'admob') {
   const result = patchAdMobPlist(plistPath, admobAppId);
   console.log(`[ios-native] AdMob GADApplicationIdentifier ${result}: ${admobAppId}`);
 }
+
+const deeplinkScheme = resolveDeepLinkScheme();
+const deeplinkHosts = resolveDeepLinkHosts();
+const deeplinkPlistResult = patchDeepLinkInfoPlist(plistPath, deeplinkScheme);
+console.log(`[ios-native] Deeplink URL scheme ${deeplinkPlistResult}: ${deeplinkScheme}`);
+
+const entitlementsPath = join(iosAppDir, ENTITLEMENTS_FILE);
+const deeplinkEntitlementsResult = patchDeepLinkEntitlements(entitlementsPath, deeplinkHosts);
+console.log(`[ios-native] Associated domains ${deeplinkEntitlementsResult}`);
 
 console.log('[ios-native] Applied iOS native config');

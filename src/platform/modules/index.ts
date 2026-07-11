@@ -19,3 +19,4 @@ export { leaderboard, leaderboardController } from './leaderboard';
 export { navigationService } from './navigation/navigation.service';
 export { dailyRewards, dailyRewardController } from './daily-reward';
 export { iap, PRODUCTS, IAP_EVENTS, bindIapController } from './iap';
+export { initAppBridge, deepLinkService, deepLinkController } from './deep-link';

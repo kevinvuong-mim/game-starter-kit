@@ -1,0 +1,45 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "TEAM_ID.com.studio.gamestarterkit.dev"
+        ],
+        "paths": [
+          "/",
+          "/home",
+          "/leaderboard",
+          "/shop",
+          "/settings",
+          "/missions",
+          "/daily-reward",
+          "/play",
+          "/gameplay",
+          "/how-to-play",
+          "/legal",
+          "NOT /api/*"
+        ]
+      },
+      {
+        "appIDs": [
+          "TEAM_ID.com.studio.gamestarterkit.prod"
+        ],
+        "paths": [
+          "/",
+          "/home",
+          "/leaderboard",
+          "/shop",
+          "/settings",
+          "/missions",
+          "/daily-reward",
+          "/play",
+          "/gameplay",
+          "/how-to-play",
+          "/legal",
+          "NOT /api/*"
+        ]
+      }
+    ]
+  }
+}

@@ -9,6 +9,7 @@ import type {
   IapEntitlementChangedPayload,
 } from '@platform/modules/iap/iap.events';
 import type { AnalyticsEvent, AnalyticsParams } from '../analytics/types';
+import type { DeepLinkPayload } from '@platform/modules/deep-link/deep-link.model';
 import type { LeaderboardView } from '@platform/modules/leaderboard/leaderboard.model';
 import type { RewardProgress } from '@platform/modules/daily-reward/daily-reward.model';
 
@@ -43,6 +44,7 @@ export interface PlatformEventMap {
   'boot:preload-complete': void;
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
+  'deeplink:open': DeepLinkPayload;
   'daily:claim:result': {
     day?: number;
     coins?: number;
@@ -51,6 +53,7 @@ export interface PlatformEventMap {
     message?: string;
     rewardType?: 'coins' | 'chest';
   };
+  'deeplink:received': DeepLinkPayload;
   'leaderboard:page': { page: number };
   'leaderboard:update': LeaderboardView;
   'ad:show:request': { placement: string };

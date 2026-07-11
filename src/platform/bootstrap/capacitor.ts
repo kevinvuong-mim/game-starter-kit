@@ -4,14 +4,24 @@ import { eventBus } from '@platform/core/events';
 import { services } from '@platform/core/services';
 import { trackSessionEnd } from '@platform/core/analytics/events';
 import { saveService } from '@platform/modules/save/save.service';
+import { initAppBridge } from '@platform/modules/deep-link/app-bridge';
 
 let capacitorInitialized = false;
+let appBridgeTeardown: (() => void) | null = null;
 
 /**
  * Initialize native Capacitor plugins after platform bootstrap.
- * No-ops on web.
+ * Web still initializes AppBridge for HTTPS deeplink testing.
  */
 export async function initCapacitorPlugins(): Promise<void> {
+  try {
+    appBridgeTeardown?.();
+    appBridgeTeardown = await initAppBridge();
+    logger.info('[Capacitor] AppBridge initialized');
+  } catch (error) {
+    logger.warn('[Capacitor] AppBridge init failed', error);
+  }
+
   if (!Capacitor.isNativePlatform() || capacitorInitialized) return;
 
   try {

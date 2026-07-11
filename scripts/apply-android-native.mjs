@@ -5,6 +5,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolveDeepLinkHosts, resolveDeepLinkScheme } from './deeplink-config.mjs';
 import { readCapacitorAppId, resolveMainActivityPath } from './capacitor-config.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -179,6 +180,42 @@ function copyFirebaseAndroidConfig() {
   return true;
 }
 
+function injectDeepLinkIntentFilters(manifestPath, scheme, hosts) {
+  const markerStart = '<!-- deeplink-intent-filters:start -->';
+  const markerEnd = '<!-- deeplink-intent-filters:end -->';
+  const hostData = hosts
+    .map((host) => `<data android:scheme="https" android:host="${host}" />`)
+    .join('\n                ');
+
+  const block = `            ${markerStart}
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${scheme}" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                ${hostData}
+            </intent-filter>
+            ${markerEnd}`;
+
+  let manifest = readFileSync(manifestPath, 'utf8');
+  const blockRegex =
+    /<!-- deeplink-intent-filters:start -->[\s\S]*?<!-- deeplink-intent-filters:end -->/;
+
+  if (blockRegex.test(manifest)) {
+    manifest = manifest.replace(blockRegex, block.trim());
+  } else {
+    manifest = manifest.replace('        </activity>', `${block}\n        </activity>`);
+  }
+
+  writeFileSync(manifestPath, manifest);
+  return 'updated';
+}
+
 function applyMainActivityTemplate(appId) {
   const templatePath = join(root, 'native/android/MainActivity.java');
   const targetPath = resolveMainActivityPath(root, appId);
@@ -243,4 +280,13 @@ if (pushEnabled && existsSync(manifestPath)) {
   console.log(`[android-native] FCM notification channel ${channelResult}`);
   copyFirebaseAndroidConfig();
   injectGoogleServicesGradle();
+}
+
+if (existsSync(manifestPath)) {
+  const deeplinkResult = injectDeepLinkIntentFilters(
+    manifestPath,
+    resolveDeepLinkScheme(),
+    resolveDeepLinkHosts()
+  );
+  console.log(`[android-native] Deeplink intent filters ${deeplinkResult}`);
 }
