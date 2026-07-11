@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 
 import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
-// import { ModalScreen } from '@platform/ui/modal/ModalScreen';
-// import { screenManager } from '@platform/ui/screen/ScreenManager';
+import { screenManager } from '@platform/ui/screen/ScreenManager';
+import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class HomeScene extends Phaser.Scene {
@@ -23,7 +23,7 @@ export class HomeScene extends Phaser.Scene {
 
     this.addBackgroundImage(width, height);
 
-    // screenManager.register(new ModalScreen(this));
+    screenManager.register(new RateAppModalScreen(this));
 
     createUIButton({
       scene: this,
@@ -104,23 +104,21 @@ export class HomeScene extends Phaser.Scene {
       onClick: () => this.openScreen('DailyReward'),
     });
 
-    // ModalScreen demo — uncomment to try overlay UI:
-    // createUIButton({
-    //   scene: this,
-    //   position: { x: width / 2, y: height * 0.92 },
-    //   size: { width: 256, height: 78 },
-    //   background: { key: UIButtonBackgroundKey.Rounded },
-    //   text: {
-    //     content: t('home.modal'),
-    //     style: { fontSize: 36, fontStyle: 'bold' },
-    //   },
-    //   onClick: () =>
-    //     screenManager.open('modal', {
-    //       height: height / 2,
-    //       width: (2 * width) / 3,
-    //       message: t('home.modalMessage'),
-    //     }),
-    // });
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.92 },
+      size: { width: 256, height: 78 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.rateApp'),
+        style: { fontSize: 36, fontStyle: 'bold' },
+      },
+      onClick: () =>
+        screenManager.open('rate-app', {
+          height: height / 2,
+          width: (2 * width) / 3,
+        }),
+    });
   }
 
   private addBackgroundImage(width: number, height: number): void {

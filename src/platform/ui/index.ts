@@ -18,6 +18,7 @@ export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { NameSettingsPanel } from './settings/NameSettingsPanel';
 export { LeaderboardPanel } from './leaderboard/LeaderboardPanel';
 export { DailyRewardPopup } from './daily-reward/DailyRewardPopup';
+export { RateAppModalScreen } from './rate-app/RateAppModalScreen';
 export { SoundSettingsPanel } from './settings/SoundSettingsPanel';
 export { LanguageSettingsPanel } from './settings/LanguageSettingsPanel';
 export { HelpAndLegalSettingsPanel } from './settings/HelpAndLegalSettingsPanel';

@@ -1,5 +1,9 @@
 import { Capacitor } from '@capacitor/core';
 
+import {
+  type AppReviewConfig,
+  resolveAppReviewConfig,
+} from '@platform/modules/app-review/app-review.config';
 import notificationEnvConfigs from './notification-env.json';
 
 export type IapProvider = 'mock' | 'revenuecat';
@@ -25,6 +29,7 @@ export interface RuntimeConfig {
   replaySecret: string;
   firebase: FirebaseConfig;
   analyticsEnabled: boolean;
+  appReview: AppReviewConfig;
   pushNotificationsEnabled: boolean;
   localNotificationsEnabled: boolean;
   analyticsProvider: AnalyticsProvider;
@@ -243,6 +248,7 @@ export function createConfig(overrides?: Partial<RuntimeConfig>): RuntimeConfig 
   return {
     ads,
     iap,
+    appReview: resolveAppReviewConfig(),
     apiUrl: base.apiUrl ?? '',
     debug: base.debug ?? false,
     gameId: resolveGameId(),
