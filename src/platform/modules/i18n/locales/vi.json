@@ -21,7 +21,6 @@
     "gameOver": "Kết thúc",
     "retry": "Chơi lại",
     "home": "Trang chủ",
-    "leaderboard": "Bảng xếp hạng",
     "shareScore": "Chia sẻ điểm",
     "shareScoreTitle": "Điểm của tôi trong {{gameName}}",
     "shareScoreText": "Tôi đạt {{score}} điểm trong {{gameName}}! Bạn có vượt qua được không?",

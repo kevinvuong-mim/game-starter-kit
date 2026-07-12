@@ -72,22 +72,6 @@ export class GameOverScene extends Phaser.Scene {
       size: { width: 240, height: 52 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
-        content: t('game.leaderboard'),
-        style: { fontSize: 22 },
-      },
-      onClick: () =>
-        this.scene.start('Leaderboard', {
-          returnTo: 'GameOver',
-          returnData: { score },
-        }),
-    });
-
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.74 },
-      size: { width: 240, height: 52 },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
         content: t('game.shareScore'),
         style: { fontSize: 22 },
       },
@@ -96,7 +80,7 @@ export class GameOverScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.83 },
+      position: { x: width / 2, y: height * 0.74 },
       size: { width: 240, height: 52 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
