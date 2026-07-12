@@ -6,6 +6,7 @@ export {
   localNotificationService,
 } from './notifications';
 export { t, i18n } from './i18n';
+export { shareService } from './share';
 export { appReview } from './app-review';
 export { shop } from './shop/shop.service';
 export type { SupportedLanguage } from './i18n';

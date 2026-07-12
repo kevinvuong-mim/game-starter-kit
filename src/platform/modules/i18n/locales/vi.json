@@ -21,8 +21,14 @@
     "gameOver": "Kết thúc",
     "retry": "Chơi lại",
     "home": "Trang chủ",
-    "leaderboard": "Bảng xếp hạng"
+    "leaderboard": "Bảng xếp hạng",
+    "shareScore": "Chia sẻ điểm",
+    "shareScoreTitle": "Điểm của tôi trong {{gameName}}",
+    "shareScoreText": "Tôi đạt {{score}} điểm trong {{gameName}}! Bạn có vượt qua được không?",
+    "shareDialogTitle": "Chia sẻ điểm số",
+    "shareUnavailable": "Không thể chia sẻ trên thiết bị này"
   },
+
   "shop": {
     "title": "Cửa hàng",
     "buy": "Mua",

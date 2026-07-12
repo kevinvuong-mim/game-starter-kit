@@ -21,8 +21,14 @@
     "gameOver": "Game Over",
     "retry": "Retry",
     "home": "Home",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "shareScore": "Share Score",
+    "shareScoreTitle": "My score in {{gameName}}",
+    "shareScoreText": "I scored {{score}} in {{gameName}}! Can you beat me?",
+    "shareDialogTitle": "Share your score",
+    "shareUnavailable": "Sharing is not available"
   },
+
   "shop": {
     "title": "Shop",
     "buy": "Buy",

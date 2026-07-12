@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/index';
+import { gameConfig } from '../config';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
+import { t, toast, shareService } from '@platform/ui/index';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class GameOverScene extends Phaser.Scene {
@@ -55,7 +56,7 @@ export class GameOverScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.58 },
+      position: { x: width / 2, y: height * 0.56 },
       size: { width: 240, height: 52 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
@@ -67,7 +68,7 @@ export class GameOverScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.68 },
+      position: { x: width / 2, y: height * 0.65 },
       size: { width: 240, height: 52 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
@@ -83,7 +84,19 @@ export class GameOverScene extends Phaser.Scene {
 
     createUIButton({
       scene: this,
-      position: { x: width / 2, y: height * 0.78 },
+      position: { x: width / 2, y: height * 0.74 },
+      size: { width: 240, height: 52 },
+      background: { key: UIButtonBackgroundKey.Primary },
+      text: {
+        content: t('game.shareScore'),
+        style: { fontSize: 22 },
+      },
+      onClick: () => void this.handleShareScore(score),
+    });
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.83 },
       size: { width: 240, height: 52 },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
@@ -95,6 +108,17 @@ export class GameOverScene extends Phaser.Scene {
         this.scene.start('Home');
       },
     });
+  }
+
+  private async handleShareScore(score: number): Promise<void> {
+    const result = await shareService.shareScore({
+      score,
+      gameName: gameConfig.name,
+    });
+
+    if (result === 'unavailable') {
+      toast.show({ message: t('game.shareUnavailable'), type: 'warning' });
+    }
   }
 
   shutdown(): void {

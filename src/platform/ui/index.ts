@@ -10,6 +10,7 @@ export { ShopPanel } from './shop/ShopPanel';
 export { LegalPanel } from './legal/LegalPanel';
 export { createUIButton } from './button/UIButton';
 export { NUNITO_FONT, FREDOKA_FONT } from './fonts';
+export { shareService } from '@platform/modules/share';
 export { MissionsPanel } from './missions/MissionsPanel';
 export { UIButtonBackgroundKey } from './button/UIButton';
 export { toast, ToastManager } from './toast/ToastManager';
