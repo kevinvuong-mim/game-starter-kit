@@ -6,6 +6,16 @@ export function now(): number {
   return Date.now();
 }
 
+export enum DeviceType {
+  PHONE,
+  TABLET,
+}
+
+/** Classify by screen width (dp-like CSS pixels). Tablet if >= 600. */
+export function getDeviceType(): DeviceType {
+  return window.screen.width >= 600 ? DeviceType.TABLET : DeviceType.PHONE;
+}
+
 /** Local calendar day key (`YYYY-MM-DD`). */
 export function getLocalDateKey(at: number = now()): string {
   const date = new Date(at);

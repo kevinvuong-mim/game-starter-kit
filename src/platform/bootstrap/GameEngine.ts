@@ -6,11 +6,14 @@ import { app } from '@platform/bootstrap/App';
 import { toast } from '@platform/ui/toast/ToastManager';
 import { loadGameFonts } from '@platform/bootstrap/fonts';
 import { soundManager } from '@platform/ui/audio/SoundManager';
+import { DeviceType, getDeviceType } from '@platform/core/utils';
 import { refreshServicesFromConfig } from '@platform/core/services';
 import { initCapacitorPlugins } from '@platform/bootstrap/capacitor';
 import { getConfig, setConfig, createConfig } from '@platform/core/config';
 import { errorBoundary, setupGlobalErrorHandlers } from '@platform/core/error';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
+
+const TABLET_LETTERBOX_BG_ID = 'tablet-letterbox-bg';
 
 export class GameEngine {
   private game: Phaser.Game | null = null;
@@ -38,6 +41,11 @@ export class GameEngine {
 
     const config = getConfig();
     const PhaserLib = await import('phaser');
+    const isTablet = getDeviceType() === DeviceType.TABLET;
+
+    if (isTablet) {
+      this.setupTabletLetterboxBackground();
+    }
 
     const phaserConfig: Phaser.Types.Core.GameConfig = {
       scene: gameScenes,
@@ -63,8 +71,8 @@ export class GameEngine {
       height: gameConfig.height,
       backgroundColor: '#1a1a2e',
       scale: {
-        mode: PhaserLib.Scale.ENVELOP,
         autoCenter: PhaserLib.Scale.CENTER_BOTH,
+        mode: isTablet ? PhaserLib.Scale.FIT : PhaserLib.Scale.ENVELOP,
       },
     };
 
@@ -76,9 +84,25 @@ export class GameEngine {
     return this.game;
   }
 
+  /** Full-viewport blurred backdrop behind the FIT letterbox on tablets. */
+  private setupTabletLetterboxBackground(): void {
+    const container = document.getElementById('game-container');
+    if (!container || document.getElementById(TABLET_LETTERBOX_BG_ID)) return;
+
+    container.classList.add('tablet-layout');
+
+    const backdrop = document.createElement('div');
+    backdrop.id = TABLET_LETTERBOX_BG_ID;
+    backdrop.setAttribute('aria-hidden', 'true');
+    container.prepend(backdrop);
+  }
+
   destroy(): void {
     this.game?.destroy(true);
     this.game = null;
+
+    document.getElementById(TABLET_LETTERBOX_BG_ID)?.remove();
+    document.getElementById('game-container')?.classList.remove('tablet-layout');
 
     void app.destroy();
   }

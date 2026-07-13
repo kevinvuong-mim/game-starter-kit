@@ -15,6 +15,7 @@ export interface PanelSceneOptions {
   sceneKey: string;
   titleKey: string;
   closeButtonY?: number;
+  backgroundKey?: string;
   defaultReturnTo: string;
 }
 
@@ -44,7 +45,11 @@ export abstract class BasePanelScene extends Phaser.Scene {
 
     this.onBeforePanel();
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
+    if (this.options.backgroundKey) {
+      this.addBackgroundImage(width, height, this.options.backgroundKey);
+    } else {
+      this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
+    }
 
     const titleY = this.options.titleY ?? 0.12;
     this.add
@@ -97,6 +102,12 @@ export abstract class BasePanelScene extends Phaser.Scene {
   protected onAfterPanel(): void {}
 
   protected onPanelShutdown(): void {}
+
+  private addBackgroundImage(width: number, height: number, key: string): void {
+    const bg = this.add.image(width / 2, height / 2, key);
+    const scale = Math.max(width / bg.width, height / bg.height);
+    bg.setScale(scale).setDepth(-1);
+  }
 
   private goBack(): void {
     this.scene.start(this.returnTo, this.returnData);

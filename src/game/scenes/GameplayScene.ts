@@ -51,8 +51,7 @@ export class GameplayScene extends Phaser.Scene {
     this.gameActive = true;
     this.sessionEnded = false;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x16213e);
-    this.add.rectangle(width / 2, height - 40, width, 160, 0x0f3460);
+    this.addBackgroundImage(width, height);
 
     this.player = this.add.circle(120, height - 160, 24, 0x4a90d9);
     this.player.setStrokeStyle(3, 0xffffff);
@@ -199,6 +198,12 @@ export class GameplayScene extends Phaser.Scene {
     eventBus.emit('coin:add', { amount: 1, source: 'gameplay' });
     eventBus.emit('collect', { itemId: 'coin', count: 1 });
     this.releaseObject(obj);
+  }
+
+  private addBackgroundImage(width: number, height: number): void {
+    const bg = this.add.image(width / 2, height / 2, 'gameplay-screen-background');
+    const scale = Math.max(width / bg.width, height / bg.height);
+    bg.setScale(scale).setDepth(-1);
   }
 
   private gameOver(): void {

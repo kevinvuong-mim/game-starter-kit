@@ -26,6 +26,30 @@
       #game-container {
         width: 100%;
         height: 100%;
+        position: relative;
+      }
+      #game-container.tablet-layout > canvas {
+        z-index: 1;
+        position: relative;
+      }
+      #game-container.tablet-layout > div:not(#tablet-letterbox-bg) {
+        z-index: 1;
+      }
+      #tablet-letterbox-bg {
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        position: absolute;
+        pointer-events: none;
+        background: #1a1a2e;
+      }
+      #tablet-letterbox-bg::before {
+        content: '';
+        inset: -48px;
+        position: absolute;
+        transform: scale(1.08);
+        filter: blur(28px) brightness(0.72) saturate(1.15);
+        background: center / cover no-repeat url('/assets/images/home-screen-background.jpeg');
       }
     </style>
   </head>
