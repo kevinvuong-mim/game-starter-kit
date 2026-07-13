@@ -9,6 +9,8 @@ import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 const INPUT_ROW_Y = 56;
 const SAVE_ROW_Y = 112;
 const MAX_NAME_LENGTH = 32;
+const INPUT_WIDTH = 260;
+const INPUT_HEIGHT = 44;
 
 export class NameSettingsPanel extends Phaser.GameObjects.Container {
   private saving = false;
@@ -40,9 +42,11 @@ export class NameSettingsPanel extends Phaser.GameObjects.Container {
     input.maxLength = MAX_NAME_LENGTH;
     input.placeholder = t('settings.playerNamePlaceholder');
     input.value = guest.getName() ?? '';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
     input.style.cssText = [
-      'width: 260px',
-      'height: 44px',
+      `width: ${INPUT_WIDTH}px`,
+      `height: ${INPUT_HEIGHT}px`,
       'padding: 0 12px',
       'border: 2px solid #ffffff',
       'border-radius: 8px',
@@ -52,17 +56,24 @@ export class NameSettingsPanel extends Phaser.GameObjects.Container {
       'font-family: Fredoka, sans-serif',
       'outline: none',
       'box-sizing: border-box',
+      'caret-color: #ffffff',
+      '-webkit-user-select: text',
+      'user-select: text',
     ].join(';');
     this.inputElement = input;
 
-    this.domElement = this.scene.add.dom(centerX, INPUT_ROW_Y, input);
+    // Keep DOMElement on the Scene display list (not nested in this Container).
+    // Nested DOMElements frequently fail to size/position correctly across Scale modes.
+    const worldX = this.x + centerX;
+    const worldY = this.y + INPUT_ROW_Y;
+    this.domElement = this.scene.add.dom(worldX, worldY, input);
     this.domElement.setOrigin(0.5);
-    this.add(this.domElement);
+    this.domElement.updateSize();
 
     const saveButton = createUIButton({
       scene: this.scene,
       position: { x: centerX, y: SAVE_ROW_Y },
-      size: { width: 260, height: 44 },
+      size: { width: INPUT_WIDTH, height: INPUT_HEIGHT },
       background: { key: UIButtonBackgroundKey.Primary },
       text: {
         content: t('settings.playerNameSave'),

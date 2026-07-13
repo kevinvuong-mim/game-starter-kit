@@ -28,12 +28,18 @@
         height: 100%;
         position: relative;
       }
-      #game-container.tablet-layout > canvas {
+      /* Stack: letterbox (0) < canvas (1) < Phaser DOM overlay (2).
+         Canvas needs a non-static position so z-index beats the absolute letterbox.
+         DOM overlay must sit above canvas or HTML inputs (display name) stay invisible — especially on WKWebView. */
+      #game-container > canvas {
         z-index: 1;
-        position: relative;
       }
-      #game-container.tablet-layout > div:not(#tablet-letterbox-bg) {
+      #game-container.tablet-layout > canvas {
+        position: relative;
         z-index: 1;
+      }
+      #game-container > div:not(#tablet-letterbox-bg) {
+        z-index: 2;
       }
       #tablet-letterbox-bg {
         inset: 0;
