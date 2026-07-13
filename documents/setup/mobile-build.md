@@ -107,6 +107,5 @@ Các event/lifecycle chính:
 
 - [Firebase Native Setup](./firebase-native.md)
 - [Notifications](../modules/notifications.md)
-- [Emulator and Simulator](../build/emulator-and-simulator.md)
 - [Environment Variables](./environment-variables.md)
-- [Runtime Architecture](../architecture/runtime-architecture.md)
+- [Emulator / Simulator](../build/emulator-and-simulator.md)

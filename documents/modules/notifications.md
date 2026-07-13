@@ -116,4 +116,3 @@ Xem `game-api/documents/apis/devices.md`.
 
 - [Firebase Native Setup](../setup/firebase-native.md)
 - [Environment Variables](../setup/environment-variables.md)
-- [Runtime Architecture](../architecture/runtime-architecture.md)

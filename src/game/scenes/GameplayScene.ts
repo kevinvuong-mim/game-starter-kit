@@ -121,8 +121,9 @@ export class GameplayScene extends Phaser.Scene {
     this.spawnTimer?.destroy();
 
     const duration = Date.now() - this.startTime;
-    eventBus.emit('game:over', { score: this.score, duration, jumps: this.jumps });
+    // score:update before game:over so save handlers see the final highScore.
     eventBus.emit('score:update', { score: this.score });
+    eventBus.emit('game:over', { score: this.score, duration, jumps: this.jumps });
   }
 
   update(_time: number, delta: number): void {

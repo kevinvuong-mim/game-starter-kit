@@ -109,9 +109,12 @@ export class ApiClient implements IApiClient {
           !finalConfig._retried401 &&
           this.authRecoveryHandler
         ) {
+          finalConfig = { ...finalConfig, _retried401: true };
           const recovered = await this.authRecoveryHandler();
           if (recovered) {
-            return this.request<T>(path, { ...finalConfig, _retried401: true });
+            // Identity changed — do not replay the original body/HMAC.
+            // Callers (game-sync, devices) re-issue with the new guest.
+            throw error;
           }
         }
 

@@ -26,8 +26,9 @@ Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry kh
 Khi API trả 401, `guest.recoverFromUnauthorized()`:
 
 - Xóa credentials cũ (`gsk:guest`) và reset notification state (`notification-state-v1`)
-- Clear queue `game-sync:pending` (scores offline của identity cũ không sync sang guest mới)
-- Tạo guest mới qua `init()`
+- **Giữ** queue `game-sync:pending` — lần flush sau sẽ gắn `guestId` mới và ký lại HMAC
+- Tạo guest mới qua `init()`, rồi re-bind FCM device token cho guest mới
+- `ApiClient` **không** replay request cũ sau recovery (tránh HMAC ký với guest cũ)
 
 `init()` và `recoverFromUnauthorized()` dùng mutex để tránh race khi retry song song.
 
@@ -45,10 +46,13 @@ Khi guest trở thành `ready` (kể cả sau offline retry), `App.ts` gọi `ia
 
 `guest.controller.ts` gọi `flushPendingName()` khi:
 
+- Sau `saveService.loadLocal()` trong `App.init` (tránh wipe progress)
 - `app:resume`
-- `guest.onReady`
+- `guest.onReady` (sau hydrate)
 - `window.online` (web)
 - `@capacitor/network` reconnect (native)
+
+`saveLocal()` bị bỏ qua nếu gọi trước `loadLocal()` (boot race guard).
 
 Sau sync thành công: `nameSyncPending: false`.
 

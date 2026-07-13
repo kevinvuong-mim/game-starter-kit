@@ -1,7 +1,7 @@
 /**
  * Leaderboard model — matches `GET /leaderboards` response shape from game-api.
  */
-export type LeaderboardStatus = 'idle' | 'loading' | 'refreshing' | 'ready' | 'error';
+export type LeaderboardStatus = 'idle' | 'ready' | 'error' | 'loading' | 'refreshing';
 
 export const LEADERBOARD_LIMIT = 10;
 export const LEADERBOARD_CACHE_TTL_MS = 60_000;

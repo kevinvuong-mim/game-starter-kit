@@ -99,6 +99,8 @@ export class App {
 
     await saveService.loadLocal();
     syncGuestToStore();
+    // Name flush may call saveLocal — only safe after hydrate.
+    void guest.flushPendingName();
     await dailyRewards.init();
     await settings.init();
     missions.init();

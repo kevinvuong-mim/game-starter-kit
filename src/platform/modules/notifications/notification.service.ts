@@ -65,6 +65,26 @@ export class NotificationService {
     logger.info('[Notification] Push notifications initialized');
   }
 
+  /**
+   * After guest auth recovery the device must re-register against the new guest.
+   * `initializePush` is a no-op once `pushInitialized` is set, so re-enqueue explicitly.
+   */
+  async rebindPushAfterGuestRecovery(): Promise<void> {
+    const config = getConfig();
+    if (!Capacitor.isNativePlatform() || !config.pushNotificationsEnabled) {
+      return;
+    }
+
+    if (!this.pushInitialized) {
+      await this.initializePush();
+      return;
+    }
+
+    await pushNotificationService.refreshTokenIfNeeded();
+    void deviceSyncService.flush().catch(() => undefined);
+    logger.info('[Notification] Re-bound push device token after guest recovery');
+  }
+
   async scheduleDailyRewardReminder(): Promise<void> {
     if (!getConfig().localNotificationsEnabled) {
       return;

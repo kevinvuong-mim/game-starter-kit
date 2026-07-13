@@ -91,6 +91,11 @@ export function toNonNegativeInt(value: number): number {
   return Math.floor(value);
 }
 
+/** Must match game-api: 64-char lowercase/uppercase hex SHA-256 secret. */
+export function isValidReplaySecret(secret: string): boolean {
+  return /^[0-9a-fA-F]{64}$/.test(secret);
+}
+
 const METADATA_MAX_KEYS = 10;
 const METADATA_MAX_BYTES = 2048;
 const METADATA_MAX_KEY_LENGTH = 64;

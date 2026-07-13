@@ -22,13 +22,15 @@ VITE_REPLAY_SECRET=<64-char-sha256-hex>
 | `VITE_GAME_ID`       | string                         | Bắt buộc             | Game id dùng ở frontend và backend                                           |
 | `VITE_REPLAY_SECRET` | string                         | Bắt buộc             | Secret replay — phải khớp `GAME_CONFIG[gameId].replaySecret` trên `game-api` |
 
-Preset API URL trong code:
+Preset API URL trong code (`src/platform/core/config/index.ts`):
 
-| Env          | API URL                                |
-| ------------ | -------------------------------------- |
-| `dev`        | `http://localhost:3000/api`            |
-| `staging`    | `https://staging-api.studio.games/api` |
-| `production` | `https://api.studio.games/api`         |
+| Env          | API URL                                  |
+| ------------ | ---------------------------------------- |
+| `dev`        | `http://localhost:3000/api`              |
+| `staging`    | `https://game-api-s5kn.onrender.com/api` |
+| `production` | `https://game-api-s5kn.onrender.com/api` |
+
+`VITE_REPLAY_SECRET` phải là **64-char hex**. Secret sai/thiếu → client **không sync** và **giữ** offline queue (không xóa im lặng).
 
 Production/staging nên dùng HTTPS.
 

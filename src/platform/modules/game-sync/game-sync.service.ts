@@ -3,6 +3,7 @@ import {
   sanitizeMetadata,
   toNonNegativeInt,
   MAX_SYNC_ATTEMPTS,
+  isValidReplaySecret,
   type ResultSubmitData,
   computeReplaySignature,
   type PendingGameResult,
@@ -82,6 +83,14 @@ export class GameSyncService {
   }
 
   private async flushForGuest(gameId: string, guestId: string): Promise<void> {
+    const { replaySecret } = getConfig();
+    if (!isValidReplaySecret(replaySecret)) {
+      logger.error(
+        '[GameSync] Invalid or missing VITE_REPLAY_SECRET — refusing to sync (queue preserved)'
+      );
+      return;
+    }
+
     let queue = await this.repository.loadQueue();
     const now = Date.now();
     const pending = queue.filter(
@@ -96,8 +105,6 @@ export class GameSyncService {
     queue = queue.map((item) =>
       !item.synced && item.gameId === gameId ? { ...item, guestId } : item
     );
-
-    const { replaySecret } = getConfig();
 
     for (let i = 0; i < pending.length; i += MAX_BATCH_SIZE) {
       const batch = pending.slice(i, i + MAX_BATCH_SIZE);
@@ -171,7 +178,9 @@ export class GameSyncService {
     gameId: string,
     guestId: string
   ): PendingGameResult[] {
-    const rejectedIds = new Set((response.rejected ?? []).map((item) => item.clientResultId));
+    const rejectedById = new Map(
+      (response.rejected ?? []).map((item) => [item.clientResultId, item.reason])
+    );
     const batchIds = new Set(batch.map((item) => item.localId));
 
     return queue.flatMap((item) => {
@@ -179,7 +188,21 @@ export class GameSyncService {
         return [item];
       }
 
-      if (rejectedIds.has(item.clientResultId)) {
+      const rejectReason = rejectedById.get(item.clientResultId);
+      if (rejectReason === 'invalid_signature') {
+        // Likely config/secret mismatch or stale guest HMAC — keep queue, back off.
+        logger.error(
+          '[GameSync] Result rejected (invalid_signature) — keeping in queue; check VITE_REPLAY_SECRET',
+          { clientResultId: item.clientResultId }
+        );
+        return [this.markAttemptFailed(item, 'invalid_signature')];
+      }
+
+      if (rejectReason) {
+        logger.warn('[GameSync] Result rejected', {
+          clientResultId: item.clientResultId,
+          reason: rejectReason,
+        });
         return [];
       }
 

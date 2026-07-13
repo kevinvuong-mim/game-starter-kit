@@ -107,11 +107,7 @@ Platform Core     → src/platform/core — events, state, storage, api, provide
 Bootstrap         → src/platform/bootstrap — App, GameEngine, provider wiring
 ```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for full details.
-
-## Game Layer Rules
-
-Games communicate with the platform via the **Event Bus** — no direct API, storage, or store access:
+Games communicate with the platform via the **Event Bus** — no direct API, storage, or store access.
 
 ```typescript
 import { eventBus, AnalyticsEvents } from '@platform/core/events';
@@ -226,13 +222,17 @@ npm run cap:ios        # open Xcode
 
 ## Documentation
 
-| Topic            | Path                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| Architecture     | [ARCHITECTURE.md](./ARCHITECTURE.md)                                                   |
-| Notifications    | [documents/modules/notifications.md](./documents/modules/notifications.md)             |
-| Firebase native  | [documents/setup/firebase-native.md](./documents/setup/firebase-native.md)             |
-| Mobile build     | [documents/setup/mobile-build.md](./documents/setup/mobile-build.md)                   |
-| Environment vars | [documents/setup/environment-variables.md](./documents/setup/environment-variables.md) |
+| Topic            | Path                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Guest identity   | [documents/modules/guest-identity.md](./documents/modules/guest-identity.md)             |
+| Game result sync | [documents/modules/game-result-sync.md](./documents/modules/game-result-sync.md)         |
+| Leaderboard      | [documents/modules/leaderboard.md](./documents/modules/leaderboard.md)                   |
+| Notifications    | [documents/modules/notifications.md](./documents/modules/notifications.md)               |
+| Firebase native  | [documents/setup/firebase-native.md](./documents/setup/firebase-native.md)               |
+| Mobile build     | [documents/setup/mobile-build.md](./documents/setup/mobile-build.md)                     |
+| Environment vars | [documents/setup/environment-variables.md](./documents/setup/environment-variables.md)   |
+| Emulator / sim   | [documents/build/emulator-and-simulator.md](./documents/build/emulator-and-simulator.md) |
+| Deep links       | [documents/deeplink/README.md](./documents/deeplink/README.md)                           |
 
 ## Performance Targets
 

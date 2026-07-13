@@ -153,7 +153,9 @@ export class AdsService {
 
     const result = await this.getProvider().showRewarded(placement);
     manager.state.markCompleted();
-    this.lastRewardedAt = Date.now();
+    if (result.shown) {
+      this.lastRewardedAt = Date.now();
+    }
 
     if (result.shown && result.rewarded) {
       this.track(AD_ANALYTICS_EVENTS.REWARD_EARNED, {
@@ -198,8 +200,10 @@ export class AdsService {
 
     const result = await provider.showInterstitial(placement);
     manager.state.markCompleted();
-    this.lastInterstitialAt = Date.now();
-    this.track(AD_ANALYTICS_EVENTS.IMPRESSION, { placement, format: 'interstitial' });
+    if (result.shown) {
+      this.lastInterstitialAt = Date.now();
+      this.track(AD_ANALYTICS_EVENTS.IMPRESSION, { placement, format: 'interstitial' });
+    }
 
     void this.loadInterstitial();
     return result;

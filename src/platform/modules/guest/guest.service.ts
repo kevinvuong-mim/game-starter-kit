@@ -5,7 +5,6 @@ import { getConfig } from '@platform/core/config';
 import { usePlatformStore } from '@platform/core/state';
 import { saveService } from '@platform/modules/save/save.service';
 import { guestRepository, type GuestRepository } from './guest.repository';
-import { gameSyncRepository } from '@platform/modules/game-sync/game-sync.repository';
 import { notificationRepository } from '@platform/modules/notifications/notification.repository';
 import { createDefaultNotificationState } from '@platform/modules/notifications/notification.model';
 
@@ -173,7 +172,7 @@ export class GuestService {
         this.playerName = stored.name ?? null;
         this.markReady(stored.guestId);
         logger.info('[Guest] Loaded credentials from storage');
-        void this.flushPendingName();
+        // Defer name flush until App has loadLocal()'d — see App.init.
         return;
       }
 
@@ -211,12 +210,18 @@ export class GuestService {
     this.guestId = null;
     this.playerName = null;
 
+    // Keep offline score queue — next flush re-signs with the new guestId.
     await notificationRepository.saveState(createDefaultNotificationState());
-    await gameSyncRepository.clear();
-    logger.info('[Guest] Cleared pending game-sync queue after auth recovery');
+    logger.info('[Guest] Auth recovery — credentials cleared, score queue preserved');
 
     await this.init();
-    return this.getStatus() === 'ready';
+    const recovered = this.getStatus() === 'ready';
+    if (recovered) {
+      const { notificationService } =
+        await import('@platform/modules/notifications/notification.service');
+      await notificationService.rebindPushAfterGuestRecovery();
+    }
+    return recovered;
   }
 
   private markReady(guestId: string): void {

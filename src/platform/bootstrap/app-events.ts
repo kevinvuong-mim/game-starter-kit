@@ -46,6 +46,8 @@ export function bindAppEvents(): () => void {
     }),
 
     events.on('game:over', async ({ score, duration, jumps }) => {
+      // Apply score before save — do not rely on a later score:update ordering.
+      usePlatformStore.getState().setHighScore(score);
       trackGameOver({ score, duration, jumps });
       events.emit('ad:show:request', { placement: 'GAME_OVER' });
       await saveService.saveLocal();

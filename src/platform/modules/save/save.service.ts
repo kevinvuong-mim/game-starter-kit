@@ -12,7 +12,15 @@ export interface SaveData {
 }
 
 export class SaveService {
+  /** Blocks saveLocal until loadLocal has run, preventing boot races from wiping progress. */
+  private hydrated = false;
+
   async saveLocal(): Promise<void> {
+    if (!this.hydrated) {
+      logger.warn('[Save] Skipping saveLocal before loadLocal (would overwrite progress)');
+      return;
+    }
+
     const data: SaveData = {
       version: 1,
       timestamp: Date.now(),
@@ -29,6 +37,8 @@ export class SaveService {
     if (!data?.state && durable === 'preferences') {
       data = await this.migrateFromIndexedDb();
     }
+
+    this.hydrated = true;
 
     if (!data?.state) return false;
 

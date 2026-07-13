@@ -72,7 +72,9 @@ Envelope qua `ResponseInterceptor` — client unwrap `.data` bằng `unwrapSucce
 
 Khi sync thành công, `game-sync.service` emit `game:sync:completed` với `rank`/`bestScore` và cập nhật leaderboard cache.
 
-Item trong `rejected[]` (signature invalid, v.v.) bị **loại khỏi queue** tại client — không retry. Emit analytics/log khi cần debug; cân nhắc dead-letter queue nếu cần giữ rejected items.
+`invalid_signature` trong `rejected[]` → **giữ trong queue** + backoff (thường do sai `VITE_REPLAY_SECRET`). Reject reason khác → loại khỏi queue.
+
+Flush **từ chối** chạy nếu `VITE_REPLAY_SECRET` không phải 64-char hex (queue được bảo toàn).
 
 ## Metadata
 
