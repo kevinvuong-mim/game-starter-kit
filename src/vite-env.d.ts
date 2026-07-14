@@ -22,6 +22,9 @@ interface ImportMetaEnv {
   readonly VITE_ADMOB_ANDROID_REWARDED_ID?: string;
   readonly VITE_ADMOB_ANDROID_INTERSTITIAL_ID?: string;
 
+  readonly VITE_IOS_APP_STORE_ID: string;
+  readonly VITE_ANDROID_PACKAGE_ID: string;
+
   readonly VITE_ANALYTICS_PROVIDER: 'console' | 'firebase';
   readonly VITE_FIREBASE_APP_ID?: string;
   readonly VITE_FIREBASE_API_KEY?: string;
