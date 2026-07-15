@@ -35,8 +35,8 @@ export class RateAppModalScreen extends BaseScreen {
     return {
       x: width / 2,
       y: height / 2,
-      width: (2 * width) / 3,
       height: height / 2,
+      width: (2 * width) / 3,
     };
   }
 
@@ -73,10 +73,10 @@ export class RateAppModalScreen extends BaseScreen {
 
     this.messageText = this.scene.add.text(0, 0, t('rateApp.message'), {
       align: 'center',
-      color: '#ffffff',
       fontSize: '26px',
-      fontFamily: FREDOKA_FONT,
+      color: '#ffffff',
       wordWrap: { width: 0 },
+      fontFamily: FREDOKA_FONT,
     });
     this.messageText.setOrigin(0.5);
     this.add(this.messageText);

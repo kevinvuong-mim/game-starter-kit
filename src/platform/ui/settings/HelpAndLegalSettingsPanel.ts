@@ -21,8 +21,8 @@ export class HelpAndLegalSettingsPanel extends Phaser.GameObjects.Container {
 
     const title = this.scene.add
       .text(centerX, 0, t('settings.helpAndLegal'), {
-        color: '#aaaaaa',
         fontSize: '20px',
+        color: '#aaaaaa',
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
@@ -40,8 +40,8 @@ export class HelpAndLegalSettingsPanel extends Phaser.GameObjects.Container {
     this.add(bg);
 
     const text = this.scene.add.text(x, y, label, {
-      color: '#ffffff',
       fontSize: '20px',
+      color: '#ffffff',
       fontFamily: FREDOKA_FONT,
     });
     text.setOrigin(0.5);

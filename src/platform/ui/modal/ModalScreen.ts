@@ -81,8 +81,8 @@ export class ModalScreen extends BaseScreen {
 
     this.content = this.scene.add.text(0, 0, '', {
       align: 'center',
-      color: '#ffffff',
       fontSize: '22px',
+      color: '#ffffff',
       fontFamily: FREDOKA_FONT,
       wordWrap: { width: 0 },
     });

@@ -89,8 +89,8 @@ export class ShopPanel extends Phaser.GameObjects.Container {
 
     const nameText = this.scene.add.text(-rowHalf + 14, -10, itemName, {
       fontSize: '16px',
-      color: '#ffffff',
       fontStyle: 'bold',
+      color: '#ffffff',
       fontFamily: FREDOKA_FONT,
     });
     container.add(nameText);
@@ -138,8 +138,8 @@ export class ShopPanel extends Phaser.GameObjects.Container {
     const success = await shop.purchase(item.id);
     if (success) {
       toast.show({
-        message: t('shop.purchaseSuccess', { name: itemName }),
         type: 'success',
+        message: t('shop.purchaseSuccess', { name: itemName }),
       });
       this.renderItems();
     } else {
@@ -150,8 +150,8 @@ export class ShopPanel extends Phaser.GameObjects.Container {
   private async restorePurchases(): Promise<void> {
     const count = await shop.restore();
     toast.show({
-      message: count > 0 ? t('shop.restoreSuccess', { count }) : t('shop.restoreEmpty'),
       type: count > 0 ? 'success' : 'info',
+      message: count > 0 ? t('shop.restoreSuccess', { count }) : t('shop.restoreEmpty'),
     });
     this.renderItems();
   }

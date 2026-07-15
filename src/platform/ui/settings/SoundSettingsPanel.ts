@@ -23,8 +23,8 @@ export class SoundSettingsPanel extends Phaser.GameObjects.Container {
 
     const title = this.scene.add
       .text(centerX, 0, t('settings.sound'), {
-        color: '#aaaaaa',
         fontSize: '20px',
+        color: '#aaaaaa',
         fontFamily: FREDOKA_FONT,
       })
       .setOrigin(0.5);
@@ -50,8 +50,8 @@ export class SoundSettingsPanel extends Phaser.GameObjects.Container {
     this.add(bg);
 
     const text = this.scene.add.text(x, y, active ? `${label} ✓` : label, {
-      color: '#ffffff',
       fontSize: '20px',
+      color: '#ffffff',
       fontFamily: FREDOKA_FONT,
     });
     text.setOrigin(0.5);

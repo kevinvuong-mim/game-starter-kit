@@ -8,9 +8,9 @@ import { createUIButton, UIButtonBackgroundKey } from '../button/UIButton';
 
 const INPUT_ROW_Y = 56;
 const SAVE_ROW_Y = 112;
-const MAX_NAME_LENGTH = 32;
-const INPUT_WIDTH = 260;
 const INPUT_HEIGHT = 44;
+const INPUT_WIDTH = 260;
+const MAX_NAME_LENGTH = 32;
 
 export class NameSettingsPanel extends Phaser.GameObjects.Container {
   private saving = false;
@@ -72,15 +72,15 @@ export class NameSettingsPanel extends Phaser.GameObjects.Container {
 
     const saveButton = createUIButton({
       scene: this.scene,
-      position: { x: centerX, y: SAVE_ROW_Y },
-      size: { width: INPUT_WIDTH, height: INPUT_HEIGHT },
-      background: { key: UIButtonBackgroundKey.Primary },
-      text: {
-        content: t('settings.playerNameSave'),
-      },
       onClick: () => {
         void this.handleSave();
       },
+      position: { x: centerX, y: SAVE_ROW_Y },
+      text: {
+        content: t('settings.playerNameSave'),
+      },
+      background: { key: UIButtonBackgroundKey.Primary },
+      size: { width: INPUT_WIDTH, height: INPUT_HEIGHT },
     });
     this.add(saveButton);
   }
