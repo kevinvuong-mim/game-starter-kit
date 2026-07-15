@@ -123,7 +123,6 @@
     "anonymous": "Người chơi",
     "rankUnavailable": "Chưa có hạng của bạn",
     "error": "Không tải được bảng xếp hạng. Kiểm tra kết nối và thử lại.",
-    "offline": "Bạn đang ngoại tuyến — hiển thị bảng xếp hạng đã lưu.",
     "offlineLocalBest": "Bạn đang ngoại tuyến — điểm chơi được lưu trên máy.",
     "cached": "Đã lưu",
     "stale": "Có thể đã cũ",

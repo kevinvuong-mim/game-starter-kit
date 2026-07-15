@@ -184,7 +184,6 @@ export class LeaderboardService {
       status: hasData ? 'ready' : 'error',
       fromCache: hasData ? true : current.fromCache,
       isStale: hasData,
-      error: hasData ? 'leaderboard.offline' : 'leaderboard.error',
     });
     this.view = view;
     this.emit(view);

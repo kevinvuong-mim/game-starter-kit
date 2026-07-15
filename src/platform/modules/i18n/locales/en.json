@@ -123,7 +123,6 @@
     "anonymous": "Player",
     "rankUnavailable": "Your rank is not available yet",
     "error": "Couldn't load the leaderboard. Check your connection and try again.",
-    "offline": "You're offline — showing the last saved leaderboard.",
     "offlineLocalBest": "You're offline — play scores are saved locally.",
     "cached": "Cached",
     "stale": "May be outdated",
