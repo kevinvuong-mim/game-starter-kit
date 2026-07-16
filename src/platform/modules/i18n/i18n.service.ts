@@ -23,8 +23,9 @@ export class LocalizationService {
   async init(language?: string): Promise<void> {
     await this.loadLanguage(this.fallbackLanguage);
 
-    const lang = this.normalizeLanguage(language ?? usePlatformStore.getState().settings.language);
-    await this.setLanguage(lang);
+    const stored = language == null ? await storage.load<string>('settings:language') : null;
+    const resolved = language ?? stored ?? this.detectDeviceLanguage();
+    await this.setLanguage(resolved);
   }
 
   async setLanguage(language: string): Promise<void> {
@@ -44,6 +45,30 @@ export class LocalizationService {
     usePlatformStore.getState().updateSettings({ language: lang });
     await storage.save('settings:language', lang);
     logger.info(`[i18n] Language set to: ${lang}`);
+  }
+
+  /** Device locale when supported; otherwise fallback (`en`). */
+  private detectDeviceLanguage(): SupportedLanguage {
+    for (const candidate of this.getDeviceLanguageCandidates()) {
+      const code = candidate.split('-')[0]?.toLowerCase();
+      if (code && SUPPORTED_LANGUAGES.includes(code as SupportedLanguage)) {
+        return code as SupportedLanguage;
+      }
+    }
+    return this.fallbackLanguage;
+  }
+
+  private getDeviceLanguageCandidates(): string[] {
+    if (typeof navigator === 'undefined') return [];
+
+    const candidates: string[] = [];
+    if (navigator.languages?.length) {
+      candidates.push(...navigator.languages);
+    }
+    if (navigator.language) {
+      candidates.push(navigator.language);
+    }
+    return candidates;
   }
 
   private normalizeLanguage(language: string): SupportedLanguage {
