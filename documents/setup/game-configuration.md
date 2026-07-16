@@ -22,6 +22,8 @@ export const gameConfig: GameConfig = {
 | `height`       | File                 | Chiều cao canvas Phaser                                 |
 | `version`      | File                 | Phiên bản game (semver)                                 |
 
+> **Game mới:** không chỉ đổi env trên kit. Mỗi game mới cần **1 PR `game-api`** (`GameId` + `GAME_CONFIG` + migrate) rồi mới set `VITE_GAME_ID` / `VITE_REPLAY_SECRET`. Chi tiết: `game-api/documents/setup/adding-new-game.md`.
+
 ## Env
 
 ```bash
