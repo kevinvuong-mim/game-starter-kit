@@ -23,7 +23,7 @@ Preset trong `src/platform/core/config/notification-env.json`, merge vào `ENV_C
 | `staging`    | on\* | on    |
 | `production` | on\* | on    |
 
-\* Push chỉ bật khi native + đủ `VITE_FIREBASE_*` (xem [Firebase Native Setup](../setup/firebase-native.md)).
+\* Push chỉ bật khi native + đủ `VITE_FIREBASE_*` (xem [Firebase Native Setup](../setup/firebase-native.md)). Local preset `on` cũng bị tắt trên web vì `resolveLocalNotificationsEnabled()` yêu cầu native.
 
 ## File chính
 
@@ -53,14 +53,15 @@ Chỉ chạy trên `Capacitor.isNativePlatform()`.
 
 ```
 Permission granted → FCM token
-  → POST /api/devices (lần đầu)        → data: { guestId }
-  → PATCH /api/devices (token/locale)  → data: { guestId }
-  → DELETE /api/devices (unregister — backend clear fcmToken fields)
+  → POST /api/devices (lần đầu / ghi đè)   → data: { guestId }
+  → PATCH /api/devices (token + locale)    → data: { guestId }
 ```
+
+`DELETE /api/devices` được implement trong `deviceSyncService` / `pushNotificationService.unregister()`, nhưng **không** có settings toggle hiện tại để gọi unregister từ UI.
 
 App resume: refresh FCM token + flush pending sync (không còn heartbeat endpoint).
 
-State local: key `notification-state-v1` (`pendingToken`, `lastSyncedToken`, `unregisterPending`, …).
+State local: key `notification-state-v1` (durable storage → Preferences/IndexedDB; trên Preferences có prefix `gsk:`).
 
 ## Tap notification → màn trong app
 
@@ -96,7 +97,7 @@ Khi app bị kill, tap notification có thể tới **trước** khi Phaser sẵ
 2. `PreloadScene.create()` emit `boot:preload-complete` → `navigationService.markBootComplete()`.
 3. `PreloadScene` đọc `getBootNavigationTarget()` và `scene.start()` tới pending scene hoặc `Home`.
 
-Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bind — không mất event, chỉ cần defer navigate.
+Khi callback tap được giao trước lúc Phaser preload xong, `navigationService` giữ destination trong bộ nhớ và defer việc chuyển scene.
 
 ## Events liên quan
 
@@ -105,12 +106,11 @@ Capacitor giữ event tap (`retainUntilConsumed`) cho đến khi JS listener bin
 | `app:resume`                        | Push: refresh token + flush pending sync; local: reconcile daily schedule      |
 | `daily:claim`                       | Schedule local reminder ngày hôm sau                                           |
 | `settings:change` (`language`)      | Push: `PATCH /api/devices` với locale mới                                      |
-| `settings:change` (`notifications`) | Bật: re-init push + `POST /api/devices`; tắt: `DELETE /api/devices` unregister |
 | `boot:preload-complete`             | `markBootComplete()` + clear pending (PreloadScene navigate tới target)        |
 
 ## API backend
 
-Xem `game-api/documents/apis/devices.md`.
+Xem [Devices API](../../../game-api/documents/apis/devices.md).
 
 ## Related Documentation
 

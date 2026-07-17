@@ -109,13 +109,16 @@ Chi tiết biến môi trường: [Environment Variables](../setup/environment-v
 
 ### 3. Backend API (tuỳ chọn nhưng khuyến nghị)
 
-App gọi guest init, leaderboard, game sync qua API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`. Khi test trên emulator/simulator, dùng `http://localhost:3000/api`.
+App gọi guest init, leaderboard, game sync qua API URL theo `VITE_APP_ENV` trong `src/platform/core/config/index.ts`. Preset `dev` là `http://localhost:3000/api`. iOS Simulator truy cập trực tiếp host localhost; Android Emulator cần reverse cổng ADB:
 
 Chạy `game-api` trước khi test các flow online:
 
 ```bash
 cd ../game-api
 npm run start:dev
+
+# Terminal khác, sau khi Android emulator đã boot:
+adb reverse tcp:3000 tcp:3000
 ```
 
 ---
@@ -163,8 +166,9 @@ Thứ tự thực thi:
 2. `cap add ios` (nếu chưa có `ios/`)
 3. `capacitor-assets generate` — icon/splash
 4. **`node scripts/apply-ios-native.mjs pre-sync`** — pin `GoogleUserMessagingPlatform ~> 2.3` trong Podfile **trước** `pod install`
-5. `cap sync ios` — chạy `pod install`
-6. `node scripts/apply-ios-native.mjs` — copy storyboard/Swift template, inject `GADApplicationIdentifier`
+5. `pod install --repo-update` trong `ios/App`
+6. `cap sync ios` — copy web assets + cập nhật plugins
+7. `node scripts/apply-ios-native.mjs` — copy storyboard/Swift template, inject `GADApplicationIdentifier`
 
 > **Quan trọng (iOS + AdMob):** `@capacitor-community/admob@6.x` không tương thích UMP 3.x. Script `pre-sync` pin UMP `~> 2.3`. Nếu đổi Podfile hoặc gặp lỗi CocoaPods, xóa lock rồi cài lại:
 >
@@ -438,7 +442,7 @@ xcrun simctl launch booted com.studio.gamestarterkit
 | iOS `pod install` conflict UMP 3.x                | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
 | `No connected devices!` (Gradle)                  | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
 | Emulator không hiện trong `adb devices`           | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
-| API guest/leaderboard fail trên Android emulator  | Dùng `http://localhost:3000/api` rồi `npm run build:android` lại                                                         |
+| API guest/leaderboard fail trên Android emulator  | Start API trên host, chạy `adb reverse tcp:3000 tcp:3000`, rồi mở lại app                                               |
 | Ads không load trên emulator                      | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
 | `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                           |
 | Android vẫn thấy navigation bar (3 nút dưới)      | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                             |

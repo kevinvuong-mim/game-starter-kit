@@ -17,23 +17,39 @@ Upload **cùng nội dung** lên `.well-known/` của từng domain (HTTPS, khô
 ## iOS (Universal Links)
 
 1. Replace `TEAM_ID` trong `apple-app-site-association` bằng Apple Team ID.
-2. Publish file giống nhau tại:
+2. Align `appIDs` bundle ids với `capacitor.config.ts` `appId` (hiện tại `com.studio.gamestarterkit`). Sample file dùng suffix `.dev` / `.prod` như placeholder — đổi cho khớp build thật trước khi publish.
+3. Publish file giống nhau tại:
    - `https://dev.gamestarterkit.example.com/.well-known/apple-app-site-association`
    - `https://gamestarterkit.example.com/.well-known/apple-app-site-association`
-3. Content-Type: `application/json` (không có extension `.json` trong URL).
-4. Associated Domains entitlement được apply bởi `scripts/apply-ios-native.mjs` (cả hai host).
+4. Content-Type: `application/json` (không có extension `.json` trong URL).
+5. Associated Domains entitlement được apply bởi `scripts/apply-ios-native.mjs` (cả hai host).
 
 ## Android (App Links)
 
 1. Replace `sha256_cert_fingerprints` bằng SHA-256 của keystore (release và/hoặc debug nếu cần test).
-2. Publish file giống nhau tại:
+2. Align `package_name` với Capacitor `appId` (hiện tại `com.studio.gamestarterkit`). Sample `assetlinks.json` dùng `.dev` / `.prod` placeholder.
+3. Publish file giống nhau tại:
    - `https://dev.gamestarterkit.example.com/.well-known/assetlinks.json`
    - `https://gamestarterkit.example.com/.well-known/assetlinks.json`
-3. Intent filters (cả hai host) được inject bởi `scripts/apply-android-native.mjs`.
+4. Intent filters (cả hai host) được inject bởi `scripts/apply-android-native.mjs`.
 
 ## Custom URL Scheme
 
 Default scheme: `gamestarterkit://`
+
+Supported paths (`src/platform/modules/deep-link/deep-link.model.ts`):
+
+| Path | Scene |
+| ---- | ----- |
+| `/`, `/home` | `Home` |
+| `/shop` | `Shop` |
+| `/legal` | `Legal` |
+| `/play`, `/gameplay` | `Gameplay` |
+| `/missions` | `Missions` |
+| `/settings` | `Settings` |
+| `/how-to-play` | `HowToPlay` |
+| `/leaderboard` | `Leaderboard` |
+| `/daily-reward` | `DailyReward` |
 
 Examples:
 
@@ -64,4 +80,4 @@ Cold start: `getLaunchUrl()` chạy trước Phaser boot; destination defer qua 
 
 Defaults nằm trong `src/platform/modules/deep-link/deep-link.config.ts` và `scripts/deeplink-config.mjs`. Host active theo `VITE_APP_ENV` (production → prod host, còn lại → dev host).
 
-AASA / `assetlinks.json`: sửa trực tiếp `documents/deeplink/` (`TEAM_ID`, package name, SHA-256 fingerprint) rồi upload lên server — không qua `.env`.
+AASA / `assetlinks.json`: sửa trực tiếp `documents/deeplink/` (`TEAM_ID`, package/bundle id khớp `appId`, SHA-256 fingerprint) rồi upload lên server — không qua `.env`.

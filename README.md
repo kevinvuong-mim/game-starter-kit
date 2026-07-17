@@ -72,7 +72,8 @@ game-starter-kit/
 │   ├── images/                # UI/game art
 │   └── audio/                 # SFX (e.g. pop-sound-effect, coin-drop)
 ├── native/                    # Native templates: fullscreen, FCM, AdMob (applied by scripts/)
-├── scripts/                   # apply-android-native.mjs, apply-ios-native.mjs, native-ops.mjs
+├── scripts/                   # native-ops, apply-*-native, run-*-emulator/simulator, verify-game-config, …
+├── documents/                 # Module + setup guides (linked below)
 ├── index.html
 └── capacitor.config.ts
 ```
@@ -130,12 +131,16 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 | shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                       |
 | missions      | Daily missions (`missions.json`); WATCH_AD progress via rewarded ads           |
 | leaderboard   | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)             |
-| daily-reward  | 7-day streak calendar, local persistence                                       |
+| daily-reward  | 7-day streak calendar; Preferences key `daily-reward-v2` (unprefixed)          |
 | save          | Single `game-save` key — hydrates Zustand store on boot                        |
-| settings      | Language, sound, vibration, graphics — part of store state                     |
+| settings      | Language, sound, music, vibration, graphics — part of store state              |
 | guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)      |
 | game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)                |
 | notifications | Push (FCM) + local daily reward; device token sync (`/devices`)                |
+| deep-link     | Custom scheme, Universal Links / App Links, and deferred cold-start navigation |
+| navigation    | Scene navigation + pending queue (notification / deeplink cold start)          |
+| app-review    | Native review prompt with App Store / Play Store fallback                      |
+| share         | Native share sheet helper (used from Game Over)                                |
 | ads (module)  | Placement config, banner context restore, reward flow, controller on event bus |
 | IAP (module)  | Purchase, restore, entitlements; RevenueCat `logIn` on `guest.onReady`         |
 | analytics     | Provider interface — Console + Firebase (core)                                 |
@@ -145,22 +150,48 @@ eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
 
 Feature screens are **Phaser scenes** that compose reusable **panels**. Six panel scenes (`Shop`, `Missions`, `Leaderboard`, `DailyReward`, `HowToPlay`, `Legal`) share `BasePanelScene` for title, close button, and `app:back` handling.
 
-```typescript
-import { t, createUIButton, ShopPanel, toast, soundManager } from '@platform/ui';
-import { screenManager } from '@platform/ui/screen/ScreenManager';
+Fonts: **Fredoka** (default UI via `FREDOKA_FONT`) and **Nunito Sans** (`NUNITO_FONT`). Home’s Play button badge uses Nunito Sans with i18n key `home.playBadge` (`"NEW"` / `"MỚI"`).
 
-// Overlay stack (e.g. modal on Home)
-screenManager.open('modal', { message: 'Hello!' });
+The `@platform/ui` barrel re-exports `t`, `toast`, `shareService`, and `LeaderboardPanel`. Import other helpers from their module paths:
+
+```typescript
+import { t, toast } from '@platform/ui';
+import { NUNITO_FONT } from '@platform/ui/fonts';
+import { soundManager } from '@platform/ui/audio/SoundManager';
+import { createUIButton } from '@platform/ui/button/UIButton';
+import { screenManager } from '@platform/ui/screen/ScreenManager';
+import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
+
+// HomeScene registers the built-in overlay screen.
+screenManager.register(new RateAppModalScreen(scene));
+screenManager.open('rate-app', { width: 480, height: 640 });
 toast.show({ message: 'Coins +50', type: 'success' });
 
-// UIButton plays pop SFX on pointerdown by default; override with sound: 'coin-drop' | false
-createUIButton({ scene, position: { x: 0, y: 0 }, background: { key: '...' }, sound: 'coin-drop' });
+// UIButton supports optional badges and plays pop SFX by default.
+const button = createUIButton({
+  scene,
+  position: { x: 0, y: 0 },
+  background: { key: 'play-button-background' },
+  sound: 'coin-drop',
+  badge: {
+    content: t('home.playBadge'),
+    textStyle: { fontFamily: NUNITO_FONT },
+    background: {
+      radius: 10,
+      color: 0xff0000,
+      border: { width: 3, color: 0xffffff },
+    },
+    position: { x: 210, y: -10 },
+  },
+});
+button.setBadgeContent('HOT');
+button.setBadgeVisible(true);
 
 // Play SFX directly (respects settings.soundEnabled)
 soundManager.playCoinDrop();
 ```
 
-Built-in scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyReward, Settings, HowToPlay, Legal.
+`RateAppModalScreen` is the built-in `ScreenManager` overlay; there is no generic `ModalScreen`. Built-in user-facing scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyReward, Settings, HowToPlay, Legal.
 
 ## Environment Config
 
@@ -173,6 +204,13 @@ VITE_REPLAY_SECRET=<64-char-sha256-hex>
 VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)
 VITE_ANALYTICS_PROVIDER=console # console | firebase
+VITE_IOS_APP_STORE_ID=
+VITE_ANDROID_PACKAGE_ID=com.studio.gamestarterkit
+
+# Deep links (defaults shown)
+VITE_DEEPLINK_SCHEME=gamestarterkit
+VITE_DEEPLINK_HOST_DEV=dev.gamestarterkit.example.com
+VITE_DEEPLINK_HOST_PROD=gamestarterkit.example.com
 
 # Native AdMob (build/release)
 VITE_ADMOB_ANDROID_APP_ID=
@@ -182,7 +220,7 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_ADMOB_ANDROID_BANNER_ID= …
 # VITE_ADMOB_IOS_REWARDED_ID= …
 
-# Firebase — analytics (staging/production) + push (staging/production when native)
+# Firebase — analytics (when provider=firebase) + push gate on native
 # VITE_FIREBASE_API_KEY=
 # VITE_FIREBASE_AUTH_DOMAIN=
 # VITE_FIREBASE_PROJECT_ID=
@@ -190,7 +228,7 @@ VITE_ADMOB_IOS_APP_ID=
 # VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-Push/local toggles per env: `src/platform/core/config/notification-env.json`. Native FCM setup: [documents/setup/firebase-native.md](./documents/setup/firebase-native.md).
+Push/local toggles per env: `src/platform/core/config/notification-env.json`. Native FCM setup: [documents/setup/firebase-native.md](./documents/setup/firebase-native.md). Full variable reference: [documents/setup/environment-variables.md](./documents/setup/environment-variables.md).
 
 | Variable                  | Description                                           |
 | ------------------------- | ----------------------------------------------------- |
@@ -203,6 +241,8 @@ Push/local toggles per env: `src/platform/core/config/notification-env.json`. Na
 | `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds          |
 | `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform            |
 | `VITE_FIREBASE_*`         | Firebase web config (analytics + push gate on native) |
+| `VITE_IOS_APP_STORE_ID` / `VITE_ANDROID_PACKAGE_ID` | Store listing IDs used by app review fallback |
+| `VITE_DEEPLINK_*`         | Custom scheme plus development/production link hosts |
 
 API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `GameEngine` passes `gameConfig.id` and `gameConfig.replaySecret` (from `VITE_GAME_ID` / `VITE_REPLAY_SECRET`) into runtime config. `name`, `width`, `height`, and `version` are edited directly in `src/game/config.ts`.
 
@@ -224,6 +264,7 @@ npm run cap:ios        # open Xcode
 
 | Topic            | Path                                                                                     |
 | ---------------- | ---------------------------------------------------------------------------------------- |
+| Game config      | [documents/setup/game-configuration.md](./documents/setup/game-configuration.md)         |
 | Guest identity   | [documents/modules/guest-identity.md](./documents/modules/guest-identity.md)             |
 | Game result sync | [documents/modules/game-result-sync.md](./documents/modules/game-result-sync.md)         |
 | Leaderboard      | [documents/modules/leaderboard.md](./documents/modules/leaderboard.md)                   |
@@ -261,6 +302,8 @@ npm run cap:ios        # open Xcode
 | `npm run build:ios`          | Full iOS pipeline via `scripts/native-ops.mjs`             |
 | `npm run run:android`        | Build + compile APK + boot emulator + install + launch     |
 | `npm run run:ios`            | Build + xcodebuild simulator + install + launch            |
+
+`scripts/native-ops.mjs` accepts only `build <android|ios>`; platform creation is part of that build pipeline. There is no separate `ensure` action.
 
 ## Platform Updates
 

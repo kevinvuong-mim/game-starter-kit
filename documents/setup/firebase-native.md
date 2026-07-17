@@ -86,11 +86,16 @@ npm run build:android
 npm run build:ios
 ```
 
-Hoặc thủ công sau `npx cap sync`:
+Hoặc chạy pipeline tương đương thủ công (sau `npm run build`, `npm run assets:generate`, và `cap add` nếu platform chưa tồn tại):
 
 ```bash
+# Android
+npx cap sync android
 node scripts/apply-android-native.mjs
+
+# iOS
 node scripts/apply-ios-native.mjs pre-sync
+(cd ios/App && pod install --repo-update)
 npx cap sync ios
 node scripts/apply-ios-native.mjs
 ```
@@ -173,9 +178,9 @@ Client **không dùng deeplink URL**. Flow:
 
 **Cold start:** Nếu user tap notification khi app bị kill, `navigationService` lưu pending destination. Sau preload assets, `PreloadScene` emit `boot:preload-complete` (listener gọi `markBootComplete()`) rồi navigate tới target scene.
 
-Chi tiết module: [documents/modules/notifications.md](../modules/notifications.md).
+Chi tiết module: [Notifications](../modules/notifications.md).
 
-Backend device API: `game-api/documents/apis/devices.md`.
+Backend device API: [Devices API](../../../game-api/documents/apis/devices.md).
 
 ---
 

@@ -39,3 +39,5 @@ Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo pa
 ## View model
 
 UI nhận `leaderboard:update` với `entries[].bestScore`, `myRank`, `myBestScore`, `isStale`, `fromCache`, `status`.
+
+Backend contract đầy đủ: [Leaderboard API](../../../game-api/documents/apis/leaderboard.md). Backend mặc định 20 entries/page, nhưng starter kit luôn gửi client limit 10.

@@ -14,8 +14,8 @@
 | `npm run cap:android`     | Mở Android Studio                                                                                        |
 | `npm run cap:ios`         | Mở Xcode                                                                                                 |
 | `npm run assets:generate` | Generate icon/splash bằng `capacitor-assets`                                                             |
-| `npm run build:android`   | Full Android pipeline: build web, ensure platform, generate assets, sync Android, apply native templates |
-| `npm run build:ios`       | Full iOS pipeline: build web, ensure platform, generate assets, sync iOS, apply native templates         |
+| `npm run build:android`   | Full Android pipeline: build web, add platform if missing, generate assets, sync, apply native templates |
+| `npm run build:ios`       | Full iOS pipeline: build web, add platform if missing, generate assets, resolve pods, sync, apply templates |
 | `npm run run:android`     | Build + emulator install + launch (`scripts/run-android-emulator.sh`)                                    |
 | `npm run run:ios`         | Build + simulator install + launch (`scripts/run-ios-simulator.sh`)                                      |
 
@@ -67,11 +67,14 @@ npm run build
 # cap add ios (nếu chưa có ios/)
 npm run assets:generate
 node scripts/apply-ios-native.mjs pre-sync   # pin UMP trước pod install
+(cd ios/App && pod install --repo-update)    # native-ops thực thi bước này
 npx cap sync ios
 node scripts/apply-ios-native.mjs            # post-sync: templates + AdMob plist
 ```
 
 Các script trong `scripts/` merge template từ `native/` để giữ native changes repeatable sau mỗi lần regenerate platform.
+
+`native-ops.mjs` chỉ hỗ trợ action `build` (`build android` hoặc `build ios`). Việc thêm platform khi thiếu nằm bên trong pipeline; không có action `ensure` riêng.
 
 **Firebase / FCM:** `apply-android-native.mjs` và `apply-ios-native.mjs` cũng copy `google-services.json` / `GoogleService-Info.plist`, permissions notification, và iOS `AppDelegate.swift` khi push enabled. Chi tiết: [Firebase Native Setup](./firebase-native.md).
 

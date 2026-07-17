@@ -51,7 +51,7 @@ Header: `Authorization: Bearer <secretToken>`
 
 ## Response
 
-Envelope qua `ResponseInterceptor` — client unwrap `.data` bằng `unwrapSuccessEnvelope()`:
+Backend trả REST envelope; client unwrap `.data` bằng `unwrapSuccessEnvelope()`:
 
 ```json
 {
@@ -78,8 +78,9 @@ Flush **từ chối** chạy nếu `VITE_REPLAY_SECRET` không phải 64-char he
 
 ## Metadata
 
-- Tối đa 10 keys, 2048 bytes JSON.
-- Chỉ flat primitives (string / number / boolean / null).
+- Tối đa 10 keys; key dài 1–64 ký tự.
+- Chỉ flat primitives (string tối đa 256 ký tự / finite number / boolean / null).
+- `JSON.stringify(metadata).length` tối đa 2048 JavaScript code units. Nếu vượt giới hạn, client bỏ toàn bộ metadata trước khi gửi.
 
 ## Flow
 
@@ -88,3 +89,5 @@ Flush **từ chối** chạy nếu `VITE_REPLAY_SECRET` không phải 64-char he
 3. `flush()` khi online / `app:resume` / guest ready / native network reconnect.
 4. Batch tối đa 50 items, Bearer auth.
 5. Đánh dấu `synced: true` khi `response.success` và item không nằm trong `rejected[]` (kể cả server dedup — `insertedCount` có thể là 0).
+
+Backend contract đầy đủ: [Results API](../../../game-api/documents/apis/results.md).

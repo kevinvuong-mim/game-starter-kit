@@ -105,17 +105,41 @@ VITE_FIREBASE_MEASUREMENT_ID=
 
 | Env          | Analytics                  | Push (native) | Local notifications |
 | ------------ | -------------------------- | ------------- | ------------------- |
-| `dev`        | off (mặc định)             | off           | on                  |
-| `staging`    | on (nếu provider firebase) | on\*          | on                  |
-| `production` | on                         | on\*          | on                  |
+| `dev`        | off (`analyticsEnabled`)   | off           | on\*                |
+| `staging`    | on (`analyticsEnabled`)    | on\*\*        | on\*                |
+| `production` | on                         | on\*\*        | on\*                |
 
-\* Push chỉ active khi `Capacitor.isNativePlatform()` **và** đủ 5 biến `VITE_FIREBASE_*` (`isFirebaseConfigured()`).
+\* Local chỉ active trên native (`resolveLocalNotificationsEnabled()`).  
+\*\* Push chỉ active khi `Capacitor.isNativePlatform()` **và** đủ 5 biến `VITE_FIREBASE_*` (`isFirebaseConfigured()`). Provider analytics (`console` / `firebase`) độc lập với cờ `analyticsEnabled`.
 
 Flags merge từ `src/platform/core/config/notification-env.json` vào `ENV_CONFIGS` tại `src/platform/core/config/index.ts`.
 
-Backend push (FCM gửi từ server) cần thêm `FIREBASE_*` trên `game-api` — xem `game-api/documents/setup/environment-variables.md`.
+Backend push (FCM gửi từ server) cần thêm `FIREBASE_*` trên `game-api` — xem [game-api environment variables](../../../game-api/documents/setup/environment-variables.md).
 
 Native config files (`google-services.json`, `GoogleService-Info.plist`): [Firebase Native Setup](./firebase-native.md).
+
+---
+
+## Deep links
+
+```env
+VITE_DEEPLINK_SCHEME=gamestarterkit
+VITE_DEEPLINK_HOST_DEV=dev.gamestarterkit.example.com
+VITE_DEEPLINK_HOST_PROD=gamestarterkit.example.com
+```
+
+Ba biến đều optional và fallback về các giá trị trên. `production` dùng prod host; `dev` và `staging` dùng dev host. Native build scripts inject custom URL scheme cùng cả hai HTTPS hosts. Xem [Deep-link setup](../deeplink/README.md).
+
+---
+
+## App review
+
+```env
+VITE_IOS_APP_STORE_ID=
+VITE_ANDROID_PACKAGE_ID=com.studio.gamestarterkit
+```
+
+Các ID này được dùng để mở store listing khi native in-app review không khả dụng. Android package mặc định là `com.studio.gamestarterkit`; iOS App Store ID mặc định rỗng.
 
 ---
 
@@ -134,6 +158,13 @@ VITE_ADS_PROVIDER=mock
 VITE_ANALYTICS_PROVIDER=console
 VITE_ADMOB_ANDROID_APP_ID=
 VITE_ADMOB_IOS_APP_ID=
+
+VITE_IOS_APP_STORE_ID=
+VITE_ANDROID_PACKAGE_ID=com.studio.gamestarterkit
+
+VITE_DEEPLINK_SCHEME=gamestarterkit
+VITE_DEEPLINK_HOST_DEV=dev.gamestarterkit.example.com
+VITE_DEEPLINK_HOST_PROD=gamestarterkit.example.com
 ```
 
 ---
@@ -144,3 +175,4 @@ VITE_ADMOB_IOS_APP_ID=
 - [Firebase Native Setup](./firebase-native.md)
 - [Game Configuration](./game-configuration.md)
 - [Mobile Build](./mobile-build.md)
+- [Deep-link setup](../deeplink/README.md)

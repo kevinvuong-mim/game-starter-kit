@@ -17,9 +17,9 @@ Guest identity quản lý anonymous player cho `game-api`.
 ## `guest.init()` flow
 
 1. Đọc `gsk:guest` từ storage.
-2. Nếu có → `api.setAuthToken(secretToken)`, xong.
+2. Nếu có → `apiClient.setAuthToken(secretToken)`, xong.
 3. Nếu không → `POST /api/guest/init` body `{ gameId }`.
-4. Lưu `{ guestId, secretToken }`, gọi `setAuthToken`.
+4. Lưu `{ guestId, secretToken }`, gọi `apiClient.setAuthToken`.
 
 Nếu offline ở bước 3, guest ở trạng thái `pending` và tự retry khi network online (`@capacitor/network` trên native, `window.online` trên web).
 
@@ -85,3 +85,7 @@ Body:
 ```json
 { "name": "PlayerOne" }
 ```
+
+Client trim tên và từ chối chuỗi rỗng trước khi gửi. Backend giới hạn tên ở 1–32 ký tự.
+
+Backend contract đầy đủ: [Guest API](../../../game-api/documents/apis/guest.md).
