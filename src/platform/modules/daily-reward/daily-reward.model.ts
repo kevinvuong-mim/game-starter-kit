@@ -17,7 +17,7 @@ export interface DailyRewardModel {
   lastSessionTimestamp: number;
 }
 
-export type RewardDayStatus = 'locked' | 'claimed' | 'current';
+type RewardDayStatus = 'locked' | 'claimed' | 'current';
 
 export interface RewardDayProgress {
   day: number;

@@ -4,7 +4,7 @@ import { saveService } from '@platform/modules/save/save.service';
 import { missions, type MissionService } from './mission.service';
 import { missionTracker, type MissionTracker } from './mission.tracker';
 
-export class MissionController {
+class MissionController {
   constructor(
     private readonly service: MissionService = missions,
     private readonly tracker: MissionTracker = missionTracker

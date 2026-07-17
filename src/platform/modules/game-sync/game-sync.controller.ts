@@ -11,7 +11,7 @@ import { gameSync, type GameSyncService } from './game-sync.service';
  * - `app:resume` → flush any pending results when the app foregrounds.
  * - network `online` → flush when connectivity is restored.
  */
-export class GameSyncController {
+class GameSyncController {
   private onlineHandler?: () => void;
   private networkListener?: PluginListenerHandle;
 

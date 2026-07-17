@@ -1,4 +1,4 @@
-export interface UserState {
+interface UserState {
   id: string;
   createdAt: number;
   avatarUrl?: string;
@@ -6,21 +6,21 @@ export interface UserState {
   lastLoginAt: number;
 }
 
-export interface CurrencyState {
+interface CurrencyState {
   coins: number;
 }
 
-export interface InventoryItem {
+interface InventoryItem {
   id: string;
   quantity: number;
   equipped?: boolean;
 }
 
-export interface InventoryState {
+interface InventoryState {
   items: Record<string, InventoryItem>;
 }
 
-export interface ProgressState {
+interface ProgressState {
   highScore: number;
   currentLevel: number;
   totalGamesPlayed: number;
@@ -35,7 +35,7 @@ export interface SettingsState {
   graphicsQuality: 'low' | 'high' | 'medium';
 }
 
-export type MissionStatus = 'active' | 'claimed' | 'completed';
+type MissionStatus = 'active' | 'claimed' | 'completed';
 
 export interface MissionProgress {
   id: string;
@@ -49,7 +49,7 @@ export interface MissionProgress {
   lastResetDayKey?: string | null;
 }
 
-export interface MissionsState {
+interface MissionsState {
   missions: Record<string, MissionProgress>;
 }
 

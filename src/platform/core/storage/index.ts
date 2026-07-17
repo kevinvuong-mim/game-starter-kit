@@ -1,6 +1,2 @@
-export { LocalStorageProvider } from './LocalStorage';
-export { MemoryStorageProvider } from './MemoryStorage';
-export { IndexedDBStorageProvider } from './IndexedDBStorage';
-export { PreferencesStorageProvider } from './PreferencesStorage';
-export type { StorageProvider, StorageProviderType } from './types';
-export { storage, StorageService, resolveDurableProviderType } from './StorageService';
+export { storage } from './StorageService';
+export type { StorageProviderType } from './types';

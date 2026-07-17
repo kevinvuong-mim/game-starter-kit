@@ -12,7 +12,7 @@ export type AdState =
 
 export type BannerState = 'IDLE' | 'HIDDEN' | 'LOADING' | 'VISIBLE' | 'DESTROYED';
 
-export interface AdReward {
+interface AdReward {
   type: string;
   amount: number;
 }
@@ -25,7 +25,7 @@ export interface AdShowResult {
   providerPayload?: Record<string, unknown>;
 }
 
-export interface AdUnitIds {
+interface AdUnitIds {
   banner?: string;
   appOpen?: string;
   rewarded?: string;
@@ -96,8 +96,6 @@ export const DEFAULT_REMOTE_CONFIG: AdsRemoteConfig = {
 };
 
 export const BANNER_ALLOWED_PLACEMENTS = new Set(['HOME', 'LEADERBOARD', 'SHOP', 'GAME_OVER']);
-
-export const BANNER_BLOCKED_CONTEXTS = new Set(['GAMEPLAY', 'CUTSCENE', 'COMBAT']);
 
 export const AD_ANALYTICS_EVENTS = {
   CLOSED: 'ads_closed',

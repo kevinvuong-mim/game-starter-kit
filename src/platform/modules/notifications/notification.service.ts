@@ -14,9 +14,9 @@ import { pushNotificationService } from './push-notification.service';
 import { localNotificationService } from './local-notification.service';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
 
-export type NotificationStatus = 'off' | 'active' | 'denied' | 'pending';
+type NotificationStatus = 'off' | 'active' | 'denied' | 'pending';
 
-export class NotificationService {
+class NotificationService {
   private pushInitialized = false;
   private localInitialized = false;
 

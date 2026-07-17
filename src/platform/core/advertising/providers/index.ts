@@ -13,5 +13,3 @@ export function createAdsProvider(name: AdsProviderName): IAdsProvider {
       return new MockAdsProvider();
   }
 }
-
-export { MockAdsProvider, AdMobAdsProvider };

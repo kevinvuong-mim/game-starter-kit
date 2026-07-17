@@ -36,7 +36,7 @@ const { ads, iap, config, events, analytics } = services;
  * App layer orchestrator. Wires platform modules to the event bus.
  * Games never import this directly.
  */
-export class App {
+class App {
   private initialized = false;
   private dailyRewardUnsubscribe?: () => void;
   private unsubscribers: Array<() => void> = [];

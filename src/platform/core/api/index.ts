@@ -1,13 +1,4 @@
-export type {
-  IApiClient,
-  HttpMethod,
-  ApiResponse,
-  RequestConfig,
-  ErrorInterceptor,
-  RequestInterceptor,
-  ResponseInterceptor,
-} from './types';
 export { ApiError } from './types';
-export { apiClient, ApiClient } from './ApiClient';
+export { apiClient } from './ApiClient';
+export type { ApiEnvelope } from './envelope';
 export { unwrapSuccessEnvelope } from './envelope';
-export type { ApiEnvelope, ApiErrorEnvelope } from './envelope';

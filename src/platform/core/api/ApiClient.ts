@@ -14,7 +14,7 @@ const DEFAULT_TIMEOUT = 15_000;
 const DEFAULT_RETRY_DELAY = 1_000;
 const DEFAULT_RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
 
-export class ApiClient implements IApiClient {
+class ApiClient implements IApiClient {
   private baseUrl: string;
   private authToken: string | null = null;
   private errorInterceptors: ErrorInterceptor[] = [];

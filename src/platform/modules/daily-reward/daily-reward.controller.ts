@@ -4,7 +4,7 @@ import { saveService } from '@platform/modules/save/save.service';
 import { trackDailyClaim } from '@platform/core/analytics/events';
 import { dailyRewards, type DailyRewardService } from './daily-reward.service';
 
-export class DailyRewardController {
+class DailyRewardController {
   constructor(private readonly service: DailyRewardService = dailyRewards) {}
 
   bind(events: IEventBus): () => void {

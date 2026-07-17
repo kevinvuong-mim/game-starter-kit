@@ -19,7 +19,7 @@ export interface ResolvedReward {
 const RANDOM_COIN_MIN = 150;
 const RANDOM_COIN_MAX = 350;
 
-export const REWARD_CYCLE: CycleRewardDefinition[] = [
+const REWARD_CYCLE: CycleRewardDefinition[] = [
   { day: 1, type: 'coins', coins: 100 },
   { day: 2, type: 'coins', coins: 150 },
   { day: 3, type: 'coins', coins: 200 },

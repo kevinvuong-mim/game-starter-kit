@@ -3,14 +3,14 @@ import { getConfig } from '@platform/core/config';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { getStoreListingUrl } from '@platform/modules/app-review/app-review.config';
 
-export interface ShareScoreOptions {
+interface ShareScoreOptions {
   score: number;
   gameName: string;
 }
 
-export type ShareScoreResult = 'shared' | 'cancelled' | 'unavailable';
+type ShareScoreResult = 'shared' | 'cancelled' | 'unavailable';
 
-export class ShareService {
+class ShareService {
   /** Open the native share sheet with the player's score. */
   async shareScore({ score, gameName }: ShareScoreOptions): Promise<ShareScoreResult> {
     const title = t('game.shareScoreTitle', { gameName });

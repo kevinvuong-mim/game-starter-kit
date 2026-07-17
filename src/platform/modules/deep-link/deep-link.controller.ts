@@ -5,7 +5,7 @@ import { navigationService } from '@platform/modules/navigation/navigation.servi
 import { deepLinkService } from './deep-link.service';
 import { buildDeepLinkSceneData } from './deep-link.model';
 
-export class DeepLinkController {
+class DeepLinkController {
   bind(events: IEventBus): () => void {
     const unsubs = [
       events.on('deeplink:open', (payload) => {

@@ -1,23 +1,12 @@
-export {
-  deviceSyncService,
-  notificationService,
-  notificationController,
-  pushNotificationService,
-  localNotificationService,
-} from './notifications';
-export { t, i18n } from './i18n';
-export { shareService } from './share';
-export { appReview } from './app-review';
-export { shop } from './shop/shop.service';
-export type { SupportedLanguage } from './i18n';
+export { i18n } from './i18n';
+export { bindAdsController } from './ads';
+export { bindIapController } from './iap';
+export { deepLinkController } from './deep-link';
+export { gameSyncController } from './game-sync';
 export { guest, guestController } from './guest';
 export { saveService } from './save/save.service';
-export { adsModule, bindAdsController } from './ads';
 export { settings } from './settings/settings.service';
 export { missions, missionController } from './missions';
-export { gameSync, gameSyncController } from './game-sync';
+export { notificationController } from './notifications';
 export { leaderboard, leaderboardController } from './leaderboard';
-export { navigationService } from './navigation/navigation.service';
 export { dailyRewards, dailyRewardController } from './daily-reward';
-export { iap, PRODUCTS, IAP_EVENTS, bindIapController } from './iap';
-export { initAppBridge, deepLinkService, deepLinkController } from './deep-link';

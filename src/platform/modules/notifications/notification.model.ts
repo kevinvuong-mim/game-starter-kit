@@ -19,7 +19,7 @@ export const NOTIFICATION_CHANNEL = {
   DESCRIPTION: 'Leaderboard updates and daily reward reminders',
 } as const;
 
-export const NOTIFICATION_ROUTES = {
+const NOTIFICATION_ROUTES = {
   HOME: 'Home',
   LEADERBOARD: 'Leaderboard',
   DAILY_REWARD: 'DailyReward',
@@ -35,8 +35,8 @@ export const NOTIFICATION_TYPES = {
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES];
 
-export const DAILY_REWARD_REMINDER_HOUR = 7;
-export const DAILY_REWARD_REMINDER_MINUTE = 0;
+const DAILY_REWARD_REMINDER_HOUR = 7;
+const DAILY_REWARD_REMINDER_MINUTE = 0;
 
 export type DeviceLocale = 'EN' | 'VI';
 export type DevicePlatform = 'IOS' | 'ANDROID';
@@ -106,12 +106,6 @@ export function deviceSyncNeeded(state: NotificationState): boolean {
 export interface PushNotificationPayload {
   type?: NotificationType;
   route?: NotificationRoute;
-}
-
-export interface NavigationRequest {
-  returnTo?: string;
-  scene: NotificationRoute;
-  returnData?: Record<string, unknown>;
 }
 
 export function mapLocaleToDeviceLocale(language: string): DeviceLocale {

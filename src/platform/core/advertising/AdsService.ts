@@ -13,7 +13,7 @@ import { AD_ANALYTICS_EVENTS, BANNER_ALLOWED_PLACEMENTS, DEFAULT_REMOTE_CONFIG }
 
 type AnalyticsHandler = (event: string, metadata?: Record<string, unknown>) => void;
 
-export class AdsService {
+class AdsService {
   private readonly formats = {
     app_open: new AdFormatManager('app_open'),
     rewarded: new AdFormatManager('rewarded'),

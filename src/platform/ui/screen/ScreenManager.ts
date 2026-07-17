@@ -77,7 +77,7 @@ export abstract class BaseScreen extends Phaser.GameObjects.Container implements
   }
 }
 
-export class ScreenManager {
+class ScreenManager {
   private screens = new Map<UIScreenId, IUIScreen>();
   private activeStack: UIScreenId[] = [];
 

@@ -10,7 +10,7 @@ import { dailyRewards } from '@platform/modules/daily-reward';
 import { navigationService } from '@platform/modules/navigation/navigation.service';
 import { resolveNotificationRoute, type PushNotificationPayload } from './notification.model';
 
-export class NotificationController {
+class NotificationController {
   private onlineHandler?: () => void;
   private networkListener?: PluginListenerHandle;
 

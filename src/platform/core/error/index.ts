@@ -1,6 +1,6 @@
 import { getEnvironment } from '../config';
 
-export type LogLevel = 'info' | 'warn' | 'debug' | 'error';
+type LogLevel = 'info' | 'warn' | 'debug' | 'error';
 
 const LOG_LEVELS: Record<LogLevel, number> = {
   info: 1,
@@ -9,17 +9,13 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   error: 3,
 };
 
-export class Logger {
+class Logger {
   private context: string;
   private minLevel: LogLevel;
 
   constructor(context = 'Platform', minLevel?: LogLevel) {
     this.context = context;
     this.minLevel = minLevel ?? (getEnvironment() === 'production' ? 'warn' : 'debug');
-  }
-
-  child(context: string): Logger {
-    return new Logger(`${this.context}:${context}`, this.minLevel);
   }
 
   debug(message: string, ...args: unknown[]): void {
@@ -49,51 +45,14 @@ export class Logger {
 
 export const logger = new Logger('Platform');
 
-export async function reportCrash(error: Error, context?: string): Promise<void> {
+async function reportCrash(error: Error, context?: string): Promise<void> {
   logger.error('Crash reported', error, { context });
 }
 
-export class ErrorBoundary {
-  private handlers: Array<(error: Error, context: string) => void> = [];
-
-  onError(handler: (error: Error, context: string) => void): () => void {
-    this.handlers.push(handler);
-    return () => {
-      const idx = this.handlers.indexOf(handler);
-      if (idx >= 0) this.handlers.splice(idx, 1);
-    };
-  }
-
+class ErrorBoundary {
   capture(error: unknown, context = 'unknown'): void {
     const err = error instanceof Error ? error : new Error(String(error));
-
-    for (const handler of this.handlers) {
-      try {
-        handler(err, context);
-      } catch (e) {
-        logger.error('Error boundary handler failed', e);
-      }
-    }
-
     void reportCrash(err, context);
-  }
-
-  wrap<T extends (...args: unknown[]) => unknown>(fn: T, context: string): T {
-    return ((...args: unknown[]) => {
-      try {
-        const result = fn(...args);
-        if (result instanceof Promise) {
-          return result.catch((e) => {
-            this.capture(e, context);
-            throw e;
-          });
-        }
-        return result;
-      } catch (e) {
-        this.capture(e, context);
-        throw e;
-      }
-    }) as T;
   }
 }
 

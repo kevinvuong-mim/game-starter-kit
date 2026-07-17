@@ -9,7 +9,7 @@ interface PendingNavigation {
   data?: Record<string, unknown>;
 }
 
-export class NavigationService {
+class NavigationService {
   private bootComplete = false;
   private game: Phaser.Game | null = null;
   private pending: PendingNavigation | null = null;

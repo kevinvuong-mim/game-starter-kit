@@ -4,12 +4,12 @@ import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
 import { getStoreListingUrl } from './app-review.config';
 
-export type AppReviewResult = 'in_app' | 'store' | 'unavailable';
+type AppReviewResult = 'in_app' | 'store' | 'unavailable';
 
 /** Time to wait for Play In-App Review UI after requestReview() resolves. */
 const ANDROID_REVIEW_UI_WAIT_MS = 100;
 
-export class AppReviewService {
+class AppReviewService {
   /** Request the native in-app review dialog (SKStoreReviewController / Play In-App Review). */
   async requestReview(): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) {

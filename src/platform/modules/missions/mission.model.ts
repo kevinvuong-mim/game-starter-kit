@@ -2,11 +2,11 @@ import { getLocalDateKey, now } from '@platform/core/utils';
 
 export type MissionBehaviorType = 'WATCH_AD';
 
-export type MissionStatus = 'active' | 'completed' | 'claimed';
+type MissionStatus = 'active' | 'completed' | 'claimed';
 
 export type MissionResetPolicy = 'daily' | 'weekly' | 'never' | 'repeat';
 
-export interface MissionReward {
+interface MissionReward {
   type: 'coins';
   amount: number;
 }
@@ -32,10 +32,6 @@ export interface MissionProgress {
   status: MissionStatus;
   /** Local calendar day key (`YYYY-MM-DD`) of the last reset. */
   lastResetDayKey?: string | null;
-}
-
-export interface MissionsState {
-  missions: Record<string, MissionProgress>;
 }
 
 export function createMissionProgress(def: MissionDefinition): MissionProgress {

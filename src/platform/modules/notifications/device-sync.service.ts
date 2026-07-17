@@ -18,7 +18,7 @@ import { notificationRepository, type NotificationRepository } from './notificat
  * Persists desired device state locally and flushes to `/api/devices`
  * when guest is ready and network is available.
  */
-export class DeviceSyncService {
+class DeviceSyncService {
   private flushing = false;
 
   constructor(

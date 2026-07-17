@@ -9,7 +9,7 @@ import { notificationRepository, type NotificationRepository } from './notificat
 
 type PushActionHandler = (payload: PushNotificationPayload) => void;
 
-export class PushNotificationService {
+class PushNotificationService {
   private listenersBound = false;
   private currentToken: string | null = null;
   private onAction: PushActionHandler | null = null;

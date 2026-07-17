@@ -36,12 +36,6 @@ export interface RestoreResult {
   restoredEntitlements: string[];
 }
 
-export interface IapInitState {
-  ready: boolean;
-  loading: boolean;
-  error: string | null;
-}
-
 export interface StoredEntitlements {
   version: number;
   updatedAt: number;

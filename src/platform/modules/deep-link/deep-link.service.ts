@@ -10,7 +10,7 @@ import {
 } from './deep-link.model';
 import { parseDeepLinkUrl } from './deep-link.parser';
 
-export class DeepLinkService {
+class DeepLinkService {
   private bootComplete = false;
   private pendingDeepLink: DeepLinkPayload | null = null;
 

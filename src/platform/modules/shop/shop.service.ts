@@ -5,7 +5,7 @@ import { usePlatformStore } from '@platform/core/state';
 import type { ProductKey } from '@platform/modules/iap';
 import { iap, getProductByKey } from '@platform/modules/iap';
 
-export type ShopItemType = 'skin' | 'boost' | 'entitlement';
+type ShopItemType = 'skin' | 'boost' | 'entitlement';
 
 export interface ShopItem {
   id: string;
@@ -19,7 +19,7 @@ export interface ShopItem {
   currency: 'iap' | 'coins';
 }
 
-export class ShopService {
+class ShopService {
   private items: ShopItem[] = catalog.items as ShopItem[];
 
   getItems(type?: ShopItemType): ShopItem[] {

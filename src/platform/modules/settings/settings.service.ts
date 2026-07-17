@@ -3,7 +3,7 @@ import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 import type { SettingsState } from '@platform/core/state';
 
-export class SettingsService {
+class SettingsService {
   async init(): Promise<void> {
     const { language } = this.getSettings();
     await i18n.setLanguage(language);

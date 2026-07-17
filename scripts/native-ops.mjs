@@ -75,9 +75,7 @@ function build(targetPlatform) {
   fail(`Unsupported platform: ${targetPlatform}`);
 }
 
-if (action === 'ensure') {
-  ensureCapPlatform(platform);
-} else if (action === 'build') {
+if (action === 'build') {
   build(platform);
 } else {
   fail(`Unsupported action: ${action}`);

@@ -8,7 +8,7 @@ import { leaderboard, type LeaderboardService } from './leaderboard.service';
  * - `leaderboard:refresh` → force a network refresh.
  * - `leaderboard:page`    → load a specific page.
  */
-export class LeaderboardController {
+class LeaderboardController {
   constructor(private readonly service: LeaderboardService = leaderboard) {}
 
   bind(events: IEventBus): () => void {

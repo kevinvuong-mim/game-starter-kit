@@ -49,7 +49,7 @@ export interface ResultSubmitData {
   rejected?: Array<{ clientResultId: string; reason: string }>;
 }
 
-export function buildReplayPayload(params: {
+function buildReplayPayload(params: {
   score: number;
   gameId: string;
   guestId: string;

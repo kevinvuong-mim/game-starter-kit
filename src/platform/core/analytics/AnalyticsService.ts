@@ -1,7 +1,7 @@
 import { logger } from '../error';
 import type { AnalyticsEvent, AnalyticsParams, IAnalyticsProvider } from './types';
 
-export class AnalyticsService {
+class AnalyticsService {
   private enabled = true;
   private providers: IAnalyticsProvider[] = [];
 

@@ -5,13 +5,13 @@ import type { PlatformState } from '@platform/core/state';
 
 const SAVE_KEY = 'game-save';
 
-export interface SaveData {
+interface SaveData {
   version: number;
   timestamp: number;
   state: Partial<PlatformState>;
 }
 
-export class SaveService {
+class SaveService {
   /** Blocks saveLocal until loadLocal has run, preventing boot races from wiping progress. */
   private hydrated = false;
 

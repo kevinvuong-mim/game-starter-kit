@@ -4,7 +4,13 @@ import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { BaseScreen } from '../screen/ScreenManager';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { appReview } from '@platform/modules/app-review';
-import type { ModalScreenLayout } from '../modal/ModalScreen';
+
+interface ModalScreenLayout {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
 
 type ResolvedModalLayout = {
   x: number;

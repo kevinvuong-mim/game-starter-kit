@@ -1,4 +1,4 @@
-export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
 
 export interface RequestConfig {
   auth?: boolean;

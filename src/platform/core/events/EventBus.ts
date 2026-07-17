@@ -8,7 +8,7 @@ type ListenerEntry = {
 /**
  * Typed event bus for decoupled communication between game and platform layers.
  */
-export class EventBus implements IEventBus {
+class EventBus implements IEventBus {
   private listeners = new Map<PlatformEvent, Set<ListenerEntry>>();
 
   /**

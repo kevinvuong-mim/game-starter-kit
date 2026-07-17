@@ -1,10 +1,7 @@
 {
   "common": {
-    "ok": "Đồng ý",
-    "cancel": "Hủy",
     "close": "Đóng",
-    "loading": "Đang tải...",
-    "error": "Đã xảy ra lỗi"
+    "loading": "Đang tải..."
   },
   "home": {
     "play": "Chơi",

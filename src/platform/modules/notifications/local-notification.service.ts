@@ -8,7 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { ensureAndroidNotificationChannel } from './android-notification-channel';
 
-export class LocalNotificationService {
+class LocalNotificationService {
   private initialized = false;
 
   async initialize(): Promise<void> {

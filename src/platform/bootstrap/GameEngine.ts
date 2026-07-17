@@ -15,7 +15,7 @@ import { navigationService } from '@platform/modules/navigation/navigation.servi
 
 const TABLET_LETTERBOX_BG_ID = 'tablet-letterbox-bg';
 
-export class GameEngine {
+class GameEngine {
   private game: Phaser.Game | null = null;
 
   async bootstrap(): Promise<Phaser.Game> {

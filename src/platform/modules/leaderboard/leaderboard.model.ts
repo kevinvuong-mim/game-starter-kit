@@ -1,10 +1,10 @@
 /**
  * Leaderboard model — matches `GET /leaderboards` response shape from game-api.
  */
-export type LeaderboardStatus = 'idle' | 'ready' | 'error' | 'loading' | 'refreshing';
+type LeaderboardStatus = 'idle' | 'ready' | 'error' | 'loading' | 'refreshing';
 
 export const LEADERBOARD_LIMIT = 10;
-export const LEADERBOARD_CACHE_TTL_MS = 60_000;
+const LEADERBOARD_CACHE_TTL_MS = 60_000;
 export const LEADERBOARD_CACHE_PREFIX = 'leaderboard:cache:';
 
 export interface LeaderboardEntry {
@@ -14,7 +14,7 @@ export interface LeaderboardEntry {
   name: string | null;
 }
 
-export interface LeaderboardSelf {
+interface LeaderboardSelf {
   rank: number;
   bestScore: number;
 }
@@ -53,7 +53,7 @@ export interface LeaderboardView {
   entries: LeaderboardEntry[];
 }
 
-export function createInitialPagination(page = 1) {
+function createInitialPagination(page = 1) {
   return { page, limit: LEADERBOARD_LIMIT, total: 0, totalPages: 0 };
 }
 
@@ -71,12 +71,6 @@ export function createInitialView(): LeaderboardView {
     lastUpdated: null,
     pagination: createInitialPagination(),
   };
-}
-
-export function maskGuestId(guestId: string): string {
-  if (!guestId) return '----';
-  const tail = guestId.replace(/-/g, '').slice(-4);
-  return `...${tail}`;
 }
 
 export function getLeaderboardDisplayName(

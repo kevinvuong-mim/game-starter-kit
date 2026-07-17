@@ -23,7 +23,3 @@ export function createIapProvider(
       return new MockIapAdapter();
   }
 }
-
-export { MockIapAdapter } from './iap.mock-adapter';
-export { RevenueCatAdapter } from './iap.revenuecat-adapter';
-export type { RevenueCatAdapterConfig } from './iap.revenuecat-adapter';

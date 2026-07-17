@@ -10,11 +10,11 @@ import {
 } from '@platform/modules/app-review/app-review.config';
 import notificationEnvConfigs from './notification-env.json';
 
-export type IapProvider = 'mock' | 'revenuecat';
-export type AnalyticsProvider = 'console' | 'firebase';
+type IapProvider = 'mock' | 'revenuecat';
+type AnalyticsProvider = 'console' | 'firebase';
 export type Environment = 'dev' | 'staging' | 'production';
 
-export interface FirebaseConfig {
+interface FirebaseConfig {
   appId: string;
   apiKey: string;
   projectId: string;
@@ -40,14 +40,14 @@ export interface RuntimeConfig {
   analyticsProvider: AnalyticsProvider;
 }
 
-export interface IapConfig {
+interface IapConfig {
   revenueCat: {
     apiKey: string;
   };
   provider: IapProvider;
 }
 
-export interface AdsConfig {
+interface AdsConfig {
   appId: string;
   testing: boolean;
   adUnits: {
@@ -118,7 +118,7 @@ function resolveFirebaseConfig(): FirebaseConfig {
   };
 }
 
-export function isFirebaseConfigured(firebase: FirebaseConfig): boolean {
+function isFirebaseConfigured(firebase: FirebaseConfig): boolean {
   return Boolean(
     firebase.appId &&
     firebase.apiKey &&

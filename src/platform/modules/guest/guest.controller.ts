@@ -6,7 +6,7 @@ import type { PluginListenerHandle } from '@capacitor/core';
 /**
  * Flushes pending guest profile changes when connectivity returns.
  */
-export class GuestController {
+class GuestController {
   private onlineHandler?: () => void;
   private networkListener?: PluginListenerHandle;
 

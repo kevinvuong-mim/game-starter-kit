@@ -7,7 +7,7 @@ interface TranslationNode {
 }
 
 const SUPPORTED_LANGUAGES = ['en', 'vi'] as const;
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 /** Lazy loaders — each locale is a separate chunk in production builds */
 const LOCALE_LOADERS: Record<SupportedLanguage, () => Promise<{ default: TranslationNode }>> = {
@@ -15,7 +15,7 @@ const LOCALE_LOADERS: Record<SupportedLanguage, () => Promise<{ default: Transla
   vi: () => import('./locales/vi.json'),
 };
 
-export class LocalizationService {
+class LocalizationService {
   private currentLanguage: SupportedLanguage = 'en';
   private fallbackLanguage: SupportedLanguage = 'en';
   private catalogs = new Map<string, TranslationNode>();

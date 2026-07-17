@@ -6,8 +6,6 @@ export const IAP_EVENTS = {
   ENTITLEMENT_CHANGED: 'iap:entitlement:changed',
 } as const;
 
-export type IapEventName = (typeof IAP_EVENTS)[keyof typeof IAP_EVENTS];
-
 export interface IapPurchaseSuccessPayload {
   productId: string;
   entitlement: string;

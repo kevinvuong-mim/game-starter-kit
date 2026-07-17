@@ -1,4 +1,4 @@
-export const DEEP_LINK_ROUTES = {
+const DEEP_LINK_ROUTES = {
   HOME: 'Home',
   SHOP: 'Shop',
   LEGAL: 'Legal',

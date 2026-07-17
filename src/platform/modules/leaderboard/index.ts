@@ -1,17 +1,4 @@
-export {
-  maskGuestId,
-  createInitialView,
-  LEADERBOARD_LIMIT,
-  getLeaderboardDisplayName,
-} from './leaderboard.model';
-export type {
-  LeaderboardData,
-  LeaderboardSelf,
-  LeaderboardView,
-  LeaderboardEntry,
-  LeaderboardStatus,
-} from './leaderboard.model';
-export type { FetchOptions } from './leaderboard.service';
-export { leaderboard, LeaderboardService } from './leaderboard.service';
-export { leaderboardController, LeaderboardController } from './leaderboard.controller';
-export { leaderboardRepository, LeaderboardRepository } from './leaderboard.repository';
+export { leaderboard } from './leaderboard.service';
+export { leaderboardController } from './leaderboard.controller';
+export type { LeaderboardView, LeaderboardEntry } from './leaderboard.model';
+export { LEADERBOARD_LIMIT, getLeaderboardDisplayName } from './leaderboard.model';

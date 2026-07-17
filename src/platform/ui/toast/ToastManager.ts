@@ -40,7 +40,7 @@ function resolveToastCoords(
   }
 }
 
-export class ToastManager {
+class ToastManager {
   private showing = false;
   private queue: ToastOptions[] = [];
   private game: Phaser.Game | null = null;

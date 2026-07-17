@@ -9,12 +9,12 @@ import { purchaseStorage, type PurchaseStorage } from './purchase.storage';
 import { PRODUCTS, getProductById, IAP_PURCHASE_TIMEOUT_MS } from './iap.config';
 import type { IAPProvider, RestoreResult, PurchaseResult, ProductDefinition } from './iap.types';
 
-export interface IapServiceDeps {
+interface IapServiceDeps {
   emit?: IEventBus['emit'];
   storage?: PurchaseStorage;
 }
 
-export class IapService {
+class IapService {
   private readonly storage: PurchaseStorage;
   private readonly emit: typeof eventBus.emit;
 

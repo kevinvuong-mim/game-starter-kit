@@ -1,10 +1,7 @@
 {
   "common": {
-    "ok": "OK",
-    "cancel": "Cancel",
     "close": "Close",
-    "loading": "Loading...",
-    "error": "Something went wrong"
+    "loading": "Loading..."
   },
   "home": {
     "play": "Play",

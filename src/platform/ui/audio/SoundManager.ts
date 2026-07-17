@@ -5,7 +5,7 @@ import { usePlatformStore } from '@platform/core/state';
 export const SOUND_COIN_DROP_KEY = 'coin-drop';
 export const SOUND_POP_KEY = 'pop-sound-effect';
 
-export class SoundManager {
+class SoundManager {
   private game: Phaser.Game | null = null;
 
   init(game: Phaser.Game): void {

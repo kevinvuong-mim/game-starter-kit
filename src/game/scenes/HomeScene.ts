@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
+import { NUNITO_FONT } from '@platform/ui/fonts';
 import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
@@ -41,6 +42,21 @@ export class HomeScene extends Phaser.Scene {
         offset: { x: 24, y: 0 },
       },
       onClick: () => this.scene.start('Gameplay'),
+      badge: {
+        textStyle: {
+          fontFamily: NUNITO_FONT,
+        },
+        background: {
+          radius: 10,
+          color: 0xff0000,
+          border: {
+            width: 3,
+            color: 0xffffff,
+          },
+        },
+        content: t('home.playBadge'),
+        position: { x: 210, y: -10 },
+      },
     });
 
     createUIButton({

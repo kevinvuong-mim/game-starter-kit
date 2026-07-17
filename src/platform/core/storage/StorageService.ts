@@ -7,11 +7,11 @@ import { PreferencesStorageProvider } from './PreferencesStorage';
 import type { StorageProvider, StorageProviderType } from './types';
 
 /** Durable storage: native SharedPreferences/UserDefaults, IndexedDB on web. */
-export function resolveDurableProviderType(): StorageProviderType {
+function resolveDurableProviderType(): StorageProviderType {
   return Capacitor.isNativePlatform() ? 'preferences' : 'indexedDB';
 }
 
-export class StorageService {
+class StorageService {
   private primary: StorageProviderType;
   private providers = new Map<StorageProviderType, StorageProvider>();
 

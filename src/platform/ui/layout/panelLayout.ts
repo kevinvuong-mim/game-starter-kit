@@ -1,5 +1,5 @@
-export const PANEL_INNER_PADDING = 20;
-export const PANEL_WIDTH_RATIO = 0.72;
+const PANEL_INNER_PADDING = 20;
+const PANEL_WIDTH_RATIO = 0.72;
 
 export interface PanelLayoutMetrics {
   width: number;

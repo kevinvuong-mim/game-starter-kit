@@ -16,16 +16,6 @@ export interface ApiEnvelope<T> {
   statusCode: number;
 }
 
-export interface ApiErrorEnvelope {
-  path: string;
-  error: string;
-  message: string;
-  success: false;
-  timestamp: string;
-  statusCode: number;
-  errors?: Array<{ field: string; message: string; constraint: string; value: unknown }>;
-}
-
 /** Unwrap a success envelope to its inner payload, throwing if success is false. */
 export function unwrapSuccessEnvelope<T>(envelope: ApiEnvelope<T>): T {
   if (!envelope.success) {

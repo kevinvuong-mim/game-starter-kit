@@ -1,13 +1,13 @@
 import { t } from '@platform/modules/i18n/i18n.service';
 import { ads, type AdsRemoteConfig, DEFAULT_REMOTE_CONFIG } from '@platform/core/advertising';
 
-export interface RewardRequestResult {
+interface RewardRequestResult {
   message?: string;
   success: boolean;
   reward?: { type: string; amount: number };
 }
 
-export class AdsModuleService {
+class AdsModuleService {
   private configLoaded = false;
   private runtimeConfig: AdsRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
 
