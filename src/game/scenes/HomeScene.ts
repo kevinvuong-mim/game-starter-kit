@@ -34,12 +34,12 @@ export class HomeScene extends Phaser.Scene {
       icon: {
         key: 'play-button-icon',
         size: { width: 43, height: 43 },
-        offset: { x: -72, y: 0 },
+        offset: { x: 56, y: 39 },
       },
       text: {
         content: t('home.play'),
         style: { fontSize: 36, fontStyle: 'bold' },
-        offset: { x: 24, y: 0 },
+        offset: { x: 152, y: 39 },
       },
       onClick: () => this.scene.start('Gameplay'),
       badge: {

@@ -93,9 +93,15 @@ function getButtonLayout(options: UIButtonOptions): {
 function addButtonText(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
-  text: UIButtonText
+  text: UIButtonText,
+  offsetX: number,
+  offsetY: number,
+  width: number,
+  height: number
 ): Phaser.GameObjects.Text {
-  const textObject = scene.add.text(text.offset?.x ?? 0, text.offset?.y ?? 0, text.content);
+  const x = offsetX + (text.offset?.x ?? width / 2);
+  const y = offsetY + (text.offset?.y ?? height / 2);
+  const textObject = scene.add.text(x, y, text.content);
   applyTextStyle(textObject, text.style);
   textObject.setOrigin(0.5);
   container.add(textObject);
@@ -105,9 +111,15 @@ function addButtonText(
 function addButtonIcon(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
-  icon: UIButtonIcon
+  icon: UIButtonIcon,
+  offsetX: number,
+  offsetY: number,
+  width: number,
+  height: number
 ): void {
-  const iconObject = scene.add.image(icon.offset?.x ?? 0, icon.offset?.y ?? 0, icon.key);
+  const x = offsetX + (icon.offset?.x ?? width / 2);
+  const y = offsetY + (icon.offset?.y ?? height / 2);
+  const iconObject = scene.add.image(x, y, icon.key);
 
   if (icon.size) {
     iconObject.setDisplaySize(icon.size.width, icon.size.height);
@@ -278,10 +290,12 @@ export function createUIButton(options: UIButtonOptions): UIButton {
   backgroundImage.setDisplaySize(width, height);
   container.add(backgroundImage);
 
-  const textObject = text ? addButtonText(scene, container, text) : undefined;
+  const textObject = text
+    ? addButtonText(scene, container, text, offsetX, offsetY, width, height)
+    : undefined;
 
   if (icon) {
-    addButtonIcon(scene, container, icon);
+    addButtonIcon(scene, container, icon, offsetX, offsetY, width, height);
   }
 
   const badgeParts = badge ? addButtonBadge(scene, container, badge, offsetX, offsetY) : undefined;

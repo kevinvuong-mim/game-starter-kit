@@ -53,11 +53,13 @@ export interface IUIComponent {
 export interface UIButtonIcon {
   key: string;
   size?: UIButtonSize;
+  /** Center position relative to the button's top-left corner. Defaults to the button center. */
   offset?: UIButtonPosition;
 }
 
 export interface UIButtonText {
   content: string;
+  /** Center position relative to the button's top-left corner. Defaults to the button center. */
   offset?: UIButtonPosition;
   style?: UIButtonTextStyle;
 }
@@ -86,6 +88,7 @@ export interface UIButtonBadge {
       width: number;
     };
   };
+  /** Top-left position relative to the button's top-left corner. */
   position?: UIButtonPosition;
   padding?: {
     vertical: number;
