@@ -33,8 +33,11 @@ function applyTextStyle(textObject: Phaser.GameObjects.Text, style?: UIButtonTex
     textObject.setFontStyle(style.fontStyle);
   }
 
-  if (style?.stroke !== undefined) {
-    textObject.setStroke(style.stroke, style.strokeThickness ?? 0);
+  const borderColor = style?.border?.color ?? style?.stroke;
+  const borderWidth = style?.border?.width ?? style?.strokeThickness ?? 0;
+
+  if (borderColor !== undefined && borderWidth > 0) {
+    textObject.setStroke(borderColor, borderWidth);
   }
 }
 

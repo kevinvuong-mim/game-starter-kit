@@ -38,13 +38,18 @@ export class HomeScene extends Phaser.Scene {
       },
       text: {
         content: t('home.play'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: {
+          fontSize: 36,
+          fontStyle: 'bold',
+          border: { width: 4, color: '#000000' },
+        },
         offset: { x: 152, y: 39 },
       },
       onClick: () => this.scene.start('Gameplay'),
       badge: {
         textStyle: {
           fontFamily: NUNITO_FONT,
+          border: { width: 4, color: '#000000' },
         },
         background: {
           radius: 10,
@@ -66,7 +71,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.leaderboard'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () => this.openScreen('Leaderboard'),
     });
@@ -78,7 +83,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.settings'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () => this.openScreen('Settings'),
     });
@@ -90,7 +95,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.shop'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () => this.openScreen('Shop'),
     });
@@ -102,7 +107,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.missions'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () => this.openScreen('Missions'),
     });
@@ -114,7 +119,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.dailyReward'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       sound: 'coin-drop',
       onClick: () => this.openScreen('DailyReward'),
@@ -127,7 +132,7 @@ export class HomeScene extends Phaser.Scene {
       background: { key: UIButtonBackgroundKey.Rounded },
       text: {
         content: t('home.rateApp'),
-        style: { fontSize: 36, fontStyle: 'bold' },
+        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () =>
         screenManager.open('rate-app', {

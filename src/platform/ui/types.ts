@@ -30,6 +30,7 @@ export type UIButtonTextStyle = {
   fontStyle?: string;
   fontFamily?: string;
   strokeThickness?: number;
+  border?: { color: string; width: number };
 };
 
 export interface IUIScreen extends IUIComponent {
