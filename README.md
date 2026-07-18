@@ -178,8 +178,8 @@ const button = createUIButton({
     textStyle: { fontFamily: NUNITO_FONT },
     background: {
       radius: 10,
-      color: 0xff0000,
-      border: { width: 3, color: 0xffffff },
+      color: '#ff0000',
+      border: { width: 3, color: '#ffffff' },
     },
     position: { x: 210, y: -10 },
   },

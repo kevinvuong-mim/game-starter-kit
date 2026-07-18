@@ -147,6 +147,10 @@ function measureBadge(
   };
 }
 
+function toColorNumber(color: string): number {
+  return Phaser.Display.Color.ValueToColor(color).color;
+}
+
 function drawBadgeBackground(
   background: Phaser.GameObjects.Graphics,
   badge: UIButtonBadge,
@@ -161,11 +165,15 @@ function drawBadgeBackground(
 
   const radius = badge.background.radius ?? height / 2;
 
-  background.fillStyle(badge.background.color, 1);
+  background.fillStyle(toColorNumber(badge.background.color), 1);
   background.fillRoundedRect(x, y, width, height, radius);
 
   if (badge.background.border) {
-    background.lineStyle(badge.background.border.width, badge.background.border.color, 1);
+    background.lineStyle(
+      badge.background.border.width,
+      toColorNumber(badge.background.border.color),
+      1
+    );
     background.strokeRoundedRect(x, y, width, height, radius);
   }
 }

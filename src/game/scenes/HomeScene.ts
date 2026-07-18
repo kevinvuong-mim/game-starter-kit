@@ -41,7 +41,7 @@ export class HomeScene extends Phaser.Scene {
         style: {
           fontSize: 36,
           fontStyle: 'bold',
-          border: { width: 4, color: '#000000' },
+          border: { width: 4, color: '#b55419' },
         },
         offset: { x: 152, y: 39 },
       },
@@ -49,14 +49,14 @@ export class HomeScene extends Phaser.Scene {
       badge: {
         textStyle: {
           fontFamily: NUNITO_FONT,
-          border: { width: 4, color: '#000000' },
+          border: { width: 4, color: '#c4271d' },
         },
         background: {
           radius: 10,
-          color: 0xff0000,
+          color: '#ea2313',
           border: {
             width: 3,
-            color: 0xffffff,
+            color: '#ac2503',
           },
         },
         content: t('home.playBadge'),

@@ -82,10 +82,10 @@ export interface UIButtonBadge {
     height?: number;
   };
   background?: {
-    color: number;
+    color: string;
     radius?: number;
     border?: {
-      color: number;
+      color: string;
       width: number;
     };
   };
