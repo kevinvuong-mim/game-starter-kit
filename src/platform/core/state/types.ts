@@ -14,6 +14,8 @@ interface InventoryItem {
   id: string;
   quantity: number;
   equipped?: boolean;
+  /** Boost expiry wall-clock ms; ignored for non-boost items. */
+  expiresAt?: number;
 }
 
 interface InventoryState {

@@ -10,6 +10,7 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
+import { shop } from '@platform/modules/shop/shop.service';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save/save.service';
 
@@ -29,7 +30,8 @@ export function bindAppEvents(): () => void {
     }),
 
     events.on('coin:add', ({ amount }) => {
-      usePlatformStore.getState().addCoins(amount);
+      const multiplier = shop.getActiveCoinMultiplier();
+      usePlatformStore.getState().addCoins(amount * multiplier);
     }),
 
     events.on('coin:spend', ({ amount }) => {
@@ -63,6 +65,10 @@ export function bindAppEvents(): () => void {
 
     events.on('shop:purchase', ({ itemId, price }) => {
       trackPurchase({ itemId, price });
+      void saveService.saveLocal();
+    }),
+
+    events.on('shop:equip', () => {
       void saveService.saveLocal();
     }),
 

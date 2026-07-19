@@ -4,6 +4,7 @@ import { gameConfig } from '@game/config';
 import { HUD } from '@platform/ui/hud/HUD';
 import { eventBus } from '@platform/core/events';
 import { ObjectPool } from '@game/utils/ObjectPool';
+import { getEquippedPlayerColor } from '@platform/ui';
 
 interface FallingObject {
   speed: number;
@@ -53,7 +54,7 @@ export class GameplayScene extends Phaser.Scene {
 
     this.addBackgroundImage(width, height);
 
-    this.player = this.add.circle(120, height - 160, 24, 0x4a90d9);
+    this.player = this.add.circle(120, height - 160, 24, getEquippedPlayerColor());
     this.player.setStrokeStyle(3, 0xffffff);
     this.groundY = height - 140;
     this.velocityY = 0;

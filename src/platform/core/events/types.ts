@@ -45,6 +45,7 @@ export interface PlatformEventMap {
   'daily:progress:request': void;
   'daily:progress': RewardProgress;
   'deeplink:open': DeepLinkPayload;
+  'shop:equip': { itemId: string };
   'daily:claim:result': {
     day?: number;
     coins?: number;

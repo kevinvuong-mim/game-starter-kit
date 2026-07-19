@@ -147,6 +147,14 @@ class PushNotificationService {
   }
 
   private extractPayload(data?: Record<string, unknown>): PushNotificationPayload {
+    const rankRaw = data?.rank;
+    const rank =
+      typeof rankRaw === 'number'
+        ? rankRaw
+        : typeof rankRaw === 'string' && rankRaw.trim() !== ''
+          ? Number(rankRaw)
+          : undefined;
+
     return {
       type:
         typeof data?.type === 'string' ? (data.type as PushNotificationPayload['type']) : undefined,
@@ -154,6 +162,7 @@ class PushNotificationService {
         typeof data?.route === 'string'
           ? (data.route as PushNotificationPayload['route'])
           : undefined,
+      rank: typeof rank === 'number' && Number.isFinite(rank) ? rank : undefined,
     };
   }
 }

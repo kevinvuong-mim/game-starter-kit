@@ -36,6 +36,7 @@ export class DailyRewardService {
     if (this.detectTimeManipulation()) {
       this.model.timeManipulated = true;
     } else {
+      this.model.timeManipulated = false;
       this.model.lastSessionTimestamp = Date.now();
     }
 
@@ -93,8 +94,6 @@ export class DailyRewardService {
   }
 
   detectTimeManipulation(now = Date.now()): boolean {
-    if (this.model.timeManipulated) return true;
-
     const { lastSessionTimestamp, lastClaimWallClock } = this.model;
 
     if (lastSessionTimestamp > 0 && now < lastSessionTimestamp - BACKWARD_CLOCK_TOLERANCE_MS) {
@@ -122,6 +121,8 @@ export class DailyRewardService {
     if (this.detectTimeManipulation()) {
       this.model.timeManipulated = true;
     } else {
+      // Clock is consistent again — clear a previous lock so claims can resume.
+      this.model.timeManipulated = false;
       this.model.lastSessionTimestamp = Date.now();
     }
     void this.persist();

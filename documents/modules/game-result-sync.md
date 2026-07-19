@@ -74,7 +74,7 @@ Khi sync thành công, `game-sync.service` emit `game:sync:completed` với `ran
 
 `invalid_signature` trong `rejected[]` → **giữ trong queue** + backoff (thường do sai `VITE_REPLAY_SECRET`). Reject reason khác → loại khỏi queue.
 
-Flush **từ chối** chạy nếu `VITE_REPLAY_SECRET` không phải 64-char hex (queue được bảo toàn).
+Flush **từ chối** chạy nếu `VITE_REPLAY_SECRET` không phải **64-char lowercase hex** (`/^[0-9a-f]{64}$/`) — queue được bảo toàn.
 
 ## Metadata
 

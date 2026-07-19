@@ -18,7 +18,9 @@ export interface FetchOptions {
 }
 
 export class LeaderboardService {
+  private fetchSeq = 0;
   private currentPage = 1;
+  private inflightPage: number | null = null;
   private view: LeaderboardView = createInitialView();
   private inflight: Promise<LeaderboardView> | null = null;
 
@@ -70,12 +72,21 @@ export class LeaderboardService {
       await this.serveCachedPage(this.currentPage);
     }
 
-    if (this.inflight) return this.inflight;
+    // Reuse in-flight only for the same page and non-forced refresh.
+    if (!options.force && this.inflight && this.inflightPage === this.currentPage) {
+      return this.inflight;
+    }
 
-    const request = this.runFetch().finally(() => {
-      this.inflight = null;
+    const page = this.currentPage;
+    const seq = ++this.fetchSeq;
+    const request = this.runFetch(seq, page).finally(() => {
+      if (this.inflight === request) {
+        this.inflight = null;
+        this.inflightPage = null;
+      }
     });
     this.inflight = request;
+    this.inflightPage = page;
     return request;
   }
 
@@ -115,7 +126,7 @@ export class LeaderboardService {
     return true;
   }
 
-  private async runFetch(): Promise<LeaderboardView> {
+  private async runFetch(seq: number, page: number): Promise<LeaderboardView> {
     const gameId = getConfig().gameId;
     const hasData = this.view.entries.length > 0;
 
@@ -126,11 +137,21 @@ export class LeaderboardService {
     try {
       const data = await this.repository.fetch({
         gameId,
-        page: this.currentPage,
+        page,
         guestId,
       });
+
+      // Discard stale responses from an older page/force request.
+      if (seq !== this.fetchSeq) {
+        return this.view;
+      }
+
       return this.applySuccess(data, guestId);
     } catch (error) {
+      if (seq !== this.fetchSeq) {
+        return this.view;
+      }
+
       if (error instanceof ApiError && error.status === 404) {
         logger.error('[Leaderboard] Game not found on backend — check gameId config', error);
       }
@@ -184,6 +205,7 @@ export class LeaderboardService {
       status: hasData ? 'ready' : 'error',
       fromCache: hasData ? true : current.fromCache,
       isStale: hasData,
+      error: hasData ? 'leaderboard.staleBanner' : 'leaderboard.error',
     });
     this.view = view;
     this.emit(view);

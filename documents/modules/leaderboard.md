@@ -12,12 +12,14 @@ Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo pa
 
 `LeaderboardController` cũng gọi `refreshLeaderboard()` trên `app:resume`.
 
-## Offline behavior
+## Offline / fetch behavior
 
 - `init()`: hydrate từ cache local nếu có; đánh dấu `isStale` khi cache hết TTL.
-- `fetchLeaderboard()`: serve cache trước, revalidate nền khi online.
+- `fetchLeaderboard()`: serve cache trước (khi `!force`), rồi revalidate mạng.
+- In-flight reuse chỉ khi **cùng page** và `!force`. Mỗi request có `fetchSeq`; response cũ bị discard khi `seq !== fetchSeq` (tránh race khi đổi page / force refresh).
+- `status`: `idle` \| `ready` \| `error` \| `loading` \| `refreshing` — **không** có `'offline'`.
+- Banner UI dựa trên `isStale` + `error` i18n (`leaderboard.staleBanner`, `leaderboard.offlineLocalBest`, `leaderboard.error`).
 - `myBestScore`: enrich từ `progress.highScore` local khi API không trả `self`.
-- UI hiển thị banner khi `status === 'offline'` hoặc `isStale === true`.
 
 ## Endpoint
 
@@ -38,6 +40,6 @@ Hybrid offline-first: đọc all-time leaderboard từ `game-api`, cache theo pa
 
 ## View model
 
-UI nhận `leaderboard:update` với `entries[].bestScore`, `myRank`, `myBestScore`, `isStale`, `fromCache`, `status`.
+UI nhận `leaderboard:update` với `entries[].bestScore`, `myRank`, `myBestScore`, `isStale`, `fromCache`, `status`, `error`.
 
 Backend contract đầy đủ: [Leaderboard API](../../../game-api/documents/apis/leaderboard.md). Backend mặc định 20 entries/page, nhưng starter kit luôn gửi client limit 10.

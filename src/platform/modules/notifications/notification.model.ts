@@ -104,6 +104,8 @@ export function deviceSyncNeeded(state: NotificationState): boolean {
 }
 
 export interface PushNotificationPayload {
+  /** Present on rank_push FCM data payloads from game-api. */
+  rank?: number;
   type?: NotificationType;
   route?: NotificationRoute;
 }

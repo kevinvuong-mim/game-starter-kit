@@ -6,6 +6,7 @@ import {
   MAX_DEVICE_SYNC_ATTEMPTS,
   MAX_DEVICE_SYNC_BACKOFF_MS,
   BASE_DEVICE_SYNC_BACKOFF_MS,
+  createDefaultNotificationState,
 } from './notification.model';
 import { ApiError } from '@platform/core/api';
 import { logger } from '@platform/core/error';
@@ -15,7 +16,7 @@ import { notificationRepository, type NotificationRepository } from './notificat
 /**
  * Offline-first FCM device token sync.
  *
- * Persists desired device state locally and flushes to `/api/devices`
+ * Persists desired device state locally and flushes to `/devices`
  * when guest is ready and network is available.
  */
 class DeviceSyncService {
@@ -121,26 +122,11 @@ class DeviceSyncService {
     }
   }
 
-  private async flushUnregister(state: NotificationState): Promise<NotificationState> {
+  private async flushUnregister(_state: NotificationState): Promise<NotificationState> {
     await this.repository.unregisterDevice();
-
-    const cleared: NotificationState = {
-      ...state,
-      platform: null,
-      syncAttempts: 0,
-      pendingToken: null,
-      pendingLocale: null,
-      lastSyncedToken: null,
-      lastSyncedLocale: null,
-      lastAttemptAt: undefined,
-      lastErrorCode: undefined,
-      nextAttemptAt: undefined,
-      unregisterPending: false,
-    };
-
-    await this.repository.saveState(cleared);
+    await this.repository.clearState();
     logger.info('[DeviceSync] Device unregistered');
-    return cleared;
+    return createDefaultNotificationState();
   }
 
   private async flushDeviceRegistration(state: NotificationState): Promise<NotificationState> {

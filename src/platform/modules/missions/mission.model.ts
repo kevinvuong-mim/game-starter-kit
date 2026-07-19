@@ -4,7 +4,7 @@ export type MissionBehaviorType = 'WATCH_AD';
 
 type MissionStatus = 'active' | 'completed' | 'claimed';
 
-export type MissionResetPolicy = 'daily' | 'weekly' | 'never' | 'repeat';
+export type MissionResetPolicy = 'daily' | 'never';
 
 interface MissionReward {
   type: 'coins';

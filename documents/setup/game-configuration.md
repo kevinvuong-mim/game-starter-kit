@@ -27,7 +27,7 @@ export const gameConfig: GameConfig = {
 ## Env
 
 ```bash
-VITE_REPLAY_SECRET=<64-char-sha256-hex>
+VITE_REPLAY_SECRET=<64-char-lowercase-sha256-hex>
 VITE_GAME_ID=FRULOOP
 ```
 

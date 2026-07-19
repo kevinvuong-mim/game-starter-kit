@@ -65,7 +65,7 @@ State local: key `notification-state-v1` (durable storage → Preferences/Indexe
 
 ## Tap notification → màn trong app
 
-**Không dùng deeplink URL.** Backend gửi FCM `data: { type, route }`; local notification gắn `extra: { type, route }`.
+**Không dùng deeplink URL.** Backend gửi FCM `data: { type, route, ...params }` (rank push gồm `rank`); local notification gắn `extra: { type, route }`.
 
 | Nguồn / payload                                 | Scene mở      |
 | ----------------------------------------------- | ------------- |
@@ -82,12 +82,13 @@ Luồng:
 
 ### Foreground push (app đang mở)
 
-Khi nhận push trong foreground (`pushNotificationReceived`), `notificationService` hiển thị toast i18n:
+Khi nhận push trong foreground (`pushNotificationReceived`), `notificationService` hiển thị toast i18n (copy EN/VI khớp `game-api` notification templates):
 
-| `type`           | Toast key                         |
-| ---------------- | --------------------------------- |
+| `type`           | Toast key |
+| ---------------- | --------- |
 | `top_100_exited` | `notifications.top100Exited.body` |
-| `rank_push`      | `notifications.rankPush.body`     |
+| `rank_push` (có `data.rank`) | `notifications.rankPush.body` với `{ rank }` |
+| `rank_push` (thiếu rank) | `notifications.rankPush.bodyFallback` |
 
 ### Cold start (pending navigation)
 
@@ -116,3 +117,4 @@ Xem [Devices API](../../../game-api/documents/apis/devices.md).
 
 - [Firebase Native Setup](../setup/firebase-native.md)
 - [Environment Variables](../setup/environment-variables.md)
+- [Local features](./local-features.md)

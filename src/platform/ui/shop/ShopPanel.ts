@@ -74,10 +74,13 @@ export class ShopPanel extends Phaser.GameObjects.Container {
   private createItemRow(item: ShopItem, y: number): Phaser.GameObjects.Container {
     const container = this.scene.add.container(0, y);
     const owned = shop.isOwned(item.id);
+    const equipped = item.type === 'skin' && shop.isEquipped(item.id);
     const itemName = t(`shop.items.${item.id}.name`);
     const itemDesc = t(`shop.items.${item.id}.description`);
     const priceLabel = owned
-      ? t('shop.owned')
+      ? equipped
+        ? t('shop.equipped')
+        : t('shop.owned')
       : `${item.price} ${t(`shop.currency.${item.currency}`)}`;
     const rowHalf = this.rowWidth / 2;
     const textWrapWidth = Math.max(140, this.rowWidth * 0.52);
@@ -120,6 +123,29 @@ export class ShopPanel extends Phaser.GameObjects.Container {
       });
 
       container.add([buyBtn, buyLabel]);
+    } else if (item.type === 'skin' && !equipped) {
+      const equipBtn = this.scene.add.rectangle(actionX, 0, 92, 36, 0x6c5ce7);
+      equipBtn.setStrokeStyle(1, 0xffffff);
+      equipBtn.setInteractive({ useHandCursor: true });
+
+      const equipLabel = this.scene.add.text(actionX, 0, t('shop.equip'), {
+        fontSize: '15px',
+        color: '#ffffff',
+        fontFamily: FREDOKA_FONT,
+      });
+      equipLabel.setOrigin(0.5);
+
+      equipBtn.on('pointerdown', () => {
+        if (shop.equipSkin(item.id)) {
+          toast.show({
+            type: 'success',
+            message: t('shop.equipSuccess', { name: itemName }),
+          });
+          this.renderItems();
+        }
+      });
+
+      container.add([equipBtn, equipLabel]);
     } else {
       const ownedText = this.scene.add.text(actionX, 0, priceLabel, {
         fontSize: '13px',

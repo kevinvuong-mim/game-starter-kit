@@ -1,9 +1,9 @@
 /**
  * Backend response envelope.
  *
- * Every endpoint on the Game Leaderboard API wraps its payload in this shape
- * (see `documents/game.md` §9). The shared {@link ApiClient} returns the raw
- * body, so repositories must unwrap `.data` to reach the real payload.
+ * Every endpoint on game-api wraps its payload in this shape. The shared
+ * {@link ApiClient} returns the raw body, so repositories must unwrap `.data`
+ * to reach the real payload.
  */
 import { ApiError } from './types';
 

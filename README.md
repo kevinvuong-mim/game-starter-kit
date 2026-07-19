@@ -98,7 +98,7 @@ game-starter-kit/
 
 ```
 Game Layer        → src/game/ — gameplay only (scenes, entities, systems)
-     ↓ eventBus
+     ↓ @platform/ui  |  eventBus
 Platform UI       → src/platform/ui — Phaser panels, HUD, toast, sound, screen stack
      ↓
 Platform Modules  → src/platform/modules — feature services + controllers
@@ -108,10 +108,11 @@ Platform Core     → src/platform/core — events, state, storage, api, provide
 Bootstrap         → src/platform/bootstrap — App, GameEngine, provider wiring
 ```
 
-Games communicate with the platform via the **Event Bus** — no direct API, storage, or store access.
+Games talk to the platform via **`@platform/ui`** and/or the **Event Bus**. ESLint blocks `@platform/modules/*` (and direct store/API/storage) from `src/game`.
 
 ```typescript
 import { eventBus, AnalyticsEvents } from '@platform/core/events';
+import { getEquippedPlayerColor } from '@platform/ui';
 import { gameConfig } from '@game/config';
 
 eventBus.emit('game:start', { gameId: gameConfig.id });
@@ -119,32 +120,37 @@ eventBus.emit('score:update', { score: 100 });
 eventBus.emit('coin:add', { amount: 5, source: 'gameplay' });
 eventBus.emit('game:over', { score: 100, duration: 30000 });
 eventBus.emit('analytics', { event: AnalyticsEvents.SESSION_START });
+
+// Demo player fill from equipped shop skin
+this.add.circle(120, height - 160, 24, getEquippedPlayerColor());
 ```
 
-**i18n:** import `t` from `@platform/ui` (or `@platform/ui/index`), not from `@platform/modules`.
+**i18n / share / toast:** import from `@platform/ui`, not `@platform/modules`.
 
 ## Platform Modules
 
-| Module        | Description                                                                    |
-| ------------- | ------------------------------------------------------------------------------ |
-| i18n          | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON                 |
-| shop          | Data-driven catalog (`catalog.json`), coin/IAP purchases                       |
-| missions      | Daily missions (`missions.json`); WATCH_AD progress via rewarded ads           |
-| leaderboard   | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)             |
-| daily-reward  | 7-day streak calendar; Preferences key `daily-reward-v2` (unprefixed)          |
-| save          | Single `game-save` key — hydrates Zustand store on boot                        |
-| settings      | Language, sound, music, vibration, graphics — part of store state              |
-| guest         | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)      |
-| game-sync     | Offline queue → HMAC `signature` batch upload (`POST /results`)                |
-| notifications | Push (FCM) + local daily reward; device token sync (`/devices`)                |
-| deep-link     | Custom scheme, Universal Links / App Links, and deferred cold-start navigation |
-| navigation    | Scene navigation + pending queue (notification / deeplink cold start)          |
-| app-review    | Native review prompt with App Store / Play Store fallback                      |
-| share         | Native share sheet helper (used from Game Over)                                |
-| ads (module)  | Placement config, banner context restore, reward flow, controller on event bus |
-| IAP (module)  | Purchase, restore, entitlements; RevenueCat `logIn` on `guest.onReady`         |
-| analytics     | Provider interface — Console + Firebase (core)                                 |
-| advertising   | AdMob / mock providers, placement state machines (core)                        |
+| Module        | Backend? | Description                                                                |
+| ------------- | -------- | -------------------------------------------------------------------------- |
+| guest         | **API**  | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)  |
+| game-sync     | **API**  | Offline queue → HMAC `signature` batch upload (`POST /results`)            |
+| leaderboard   | **API**  | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)         |
+| notifications | **API**  | Push (FCM) + local daily reward; device token sync (`/devices`)            |
+| i18n          | Local    | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON             |
+| shop          | Local    | Catalog skins/boosts/IAP; equip skin + timed `boost_double`                |
+| missions      | Local    | Daily missions (`missions.json`); WATCH_AD via rewarded ads                |
+| daily-reward  | Local    | 7-day streak; anti-tamper recovers when clock is consistent again          |
+| save          | Local    | Single `game-save` key — hydrates Zustand store on boot                    |
+| settings      | Local    | Language, sound, music, vibration, graphics — part of store state          |
+| deep-link     | Local    | Custom scheme, Universal Links / App Links, deferred cold-start navigation |
+| navigation    | Local    | Scene navigation + pending queue (notification / deeplink cold start)      |
+| app-review    | Local    | Native review prompt with App Store / Play Store fallback                  |
+| share         | Local    | Native share sheet helper (used from Game Over)                            |
+| ads (module)  | Local    | Placement config, banner context (`HOME` / `GAME_OVER` / …), reward flow   |
+| IAP (module)  | Local\*  | Purchase, restore, entitlements; RevenueCat `logIn` on `guest.onReady`     |
+| analytics     | Local    | Provider interface — Console + Firebase (core)                             |
+| advertising   | Local    | AdMob / mock providers, placement state machines (core)                    |
+
+\* IAP is client-authoritative in this starter kit (no game-api receipt validation). Local feature details: [documents/modules/local-features.md](./documents/modules/local-features.md).
 
 ## UI Framework
 
@@ -152,7 +158,7 @@ Feature screens are **Phaser scenes** that compose reusable **panels**. Six pane
 
 Fonts: **Fredoka** (default UI via `FREDOKA_FONT`) and **Nunito Sans** (`NUNITO_FONT`). Home’s Play button badge uses Nunito Sans with i18n key `home.playBadge` (`"NEW"` / `"MỚI"`).
 
-The `@platform/ui` barrel re-exports `t`, `toast`, `shareService`, and `LeaderboardPanel`. Import other helpers from their module paths:
+The `@platform/ui` barrel re-exports `t`, `toast`, `shareService`, `LeaderboardPanel`, and `getEquippedPlayerColor`. Import other helpers from their module paths:
 
 ```typescript
 import { t, toast } from '@platform/ui';
@@ -200,7 +206,7 @@ Copy `.env.example` to `.env` and adjust per environment. `.env.example` include
 ```bash
 VITE_APP_ENV=dev              # dev | staging | production
 VITE_GAME_ID=FRULOOP
-VITE_REPLAY_SECRET=<64-char-sha256-hex>
+VITE_REPLAY_SECRET=<64-char-lowercase-sha256-hex>
 VITE_IAP_PROVIDER=mock        # mock | revenuecat
 VITE_ADS_PROVIDER=mock        # mock | admob (AdMob used on native when admob)
 VITE_ANALYTICS_PROVIDER=console # console | firebase
@@ -230,19 +236,19 @@ VITE_ADMOB_IOS_APP_ID=
 
 Push/local toggles per env: `src/platform/core/config/notification-env.json`. Native FCM setup: [documents/setup/firebase-native.md](./documents/setup/firebase-native.md). Full variable reference: [documents/setup/environment-variables.md](./documents/setup/environment-variables.md).
 
-| Variable                  | Description                                           |
-| ------------------------- | ----------------------------------------------------- |
-| `VITE_APP_ENV`            | Runtime environment (`dev`, `staging`, `production`)  |
-| `VITE_GAME_ID`            | Game id used by the frontend and backend              |
-| `VITE_REPLAY_SECRET`      | HMAC replay secret — must match backend per game id   |
-| `VITE_IAP_PROVIDER`       | `mock` or `revenuecat`                                |
-| `VITE_ADS_PROVIDER`       | `mock` or `admob`                                     |
-| `VITE_ANALYTICS_PROVIDER` | `console` or `firebase`                               |
-| `VITE_ADMOB_*_APP_ID`     | Per-platform AdMob app IDs for native builds          |
-| `VITE_ADMOB_*_*_ID`       | Production ad unit IDs per format/platform            |
-| `VITE_FIREBASE_*`         | Firebase web config (analytics + push gate on native) |
-| `VITE_IOS_APP_STORE_ID` / `VITE_ANDROID_PACKAGE_ID` | Store listing IDs used by app review fallback |
-| `VITE_DEEPLINK_*`         | Custom scheme plus development/production link hosts |
+| Variable                                            | Description                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `VITE_APP_ENV`                                      | Runtime environment (`dev`, `staging`, `production`)                           |
+| `VITE_GAME_ID`                                      | Game id used by the frontend and backend                                       |
+| `VITE_REPLAY_SECRET`                                | HMAC replay secret — **64-char lowercase hex**; must match backend per game id |
+| `VITE_IAP_PROVIDER`                                 | `mock` or `revenuecat`                                                         |
+| `VITE_ADS_PROVIDER`                                 | `mock` or `admob`                                                              |
+| `VITE_ANALYTICS_PROVIDER`                           | `console` or `firebase`                                                        |
+| `VITE_ADMOB_*_APP_ID`                               | Per-platform AdMob app IDs for native builds                                   |
+| `VITE_ADMOB_*_*_ID`                                 | Production ad unit IDs per format/platform                                     |
+| `VITE_FIREBASE_*`                                   | Firebase web config (analytics + push gate on native)                          |
+| `VITE_IOS_APP_STORE_ID` / `VITE_ANDROID_PACKAGE_ID` | Store listing IDs used by app review fallback                                  |
+| `VITE_DEEPLINK_*`                                   | Custom scheme plus development/production link hosts                           |
 
 API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `GameEngine` passes `gameConfig.id` and `gameConfig.replaySecret` (from `VITE_GAME_ID` / `VITE_REPLAY_SECRET`) into runtime config. `name`, `width`, `height`, and `version` are edited directly in `src/game/config.ts`.
 
@@ -269,6 +275,7 @@ npm run cap:ios        # open Xcode
 | Game result sync | [documents/modules/game-result-sync.md](./documents/modules/game-result-sync.md)         |
 | Leaderboard      | [documents/modules/leaderboard.md](./documents/modules/leaderboard.md)                   |
 | Notifications    | [documents/modules/notifications.md](./documents/modules/notifications.md)               |
+| Local features   | [documents/modules/local-features.md](./documents/modules/local-features.md)             |
 | Firebase native  | [documents/setup/firebase-native.md](./documents/setup/firebase-native.md)               |
 | Mobile build     | [documents/setup/mobile-build.md](./documents/setup/mobile-build.md)                     |
 | Environment vars | [documents/setup/environment-variables.md](./documents/setup/environment-variables.md)   |

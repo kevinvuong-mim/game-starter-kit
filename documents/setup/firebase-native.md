@@ -161,9 +161,10 @@ Kiểm tra:
 
 ### Push — scheduled rank (`rank_push`)
 
-1. Backend gửi FCM với `data: { type, route }` (ví dụ `rank_push`, `route: Leaderboard`)
+1. Backend gửi FCM với `data: { type, route, rank? }` (ví dụ `rank_push`, `route: Leaderboard`, `rank: "42"`)
 2. Tap notification → in-app navigation tới `Leaderboard` (không dùng deeplink URL)
-3. Cold start: navigation được defer cho đến sau preload assets; `navigationService` subscribe `boot:preload-complete` để `markBootComplete()`
+3. Foreground: toast dùng `notifications.rankPush.body` với `{ rank }`, hoặc `bodyFallback` nếu thiếu rank
+4. Cold start: navigation được defer cho đến sau preload assets; `navigationService` subscribe `boot:preload-complete` để `markBootComplete()`
 
 ---
 

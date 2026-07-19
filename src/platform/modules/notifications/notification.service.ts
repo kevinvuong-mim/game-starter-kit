@@ -181,7 +181,9 @@ class NotificationService {
       case NOTIFICATION_TYPES.TOP_100_EXITED:
         return t('notifications.top100Exited.body');
       case NOTIFICATION_TYPES.RANK_PUSH:
-        return t('notifications.rankPush.body');
+        return typeof payload.rank === 'number'
+          ? t('notifications.rankPush.body', { rank: payload.rank })
+          : t('notifications.rankPush.bodyFallback');
       default:
         return null;
     }

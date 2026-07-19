@@ -1,4 +1,3 @@
-
 export { iap } from './iap.service';
 export { getProductByKey } from './iap.config';
 export type { ProductKey } from './iap.config';

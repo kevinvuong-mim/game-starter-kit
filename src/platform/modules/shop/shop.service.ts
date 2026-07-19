@@ -19,6 +19,13 @@ export interface ShopItem {
   currency: 'iap' | 'coins';
 }
 
+const DEFAULT_PLAYER_COLOR = 0x4a90d9;
+
+const SKIN_COLORS: Record<string, number> = {
+  skin_blue: 0x4a90d9,
+  skin_gold: 0xffd700,
+};
+
 class ShopService {
   private items: ShopItem[] = catalog.items as ShopItem[];
 
@@ -40,7 +47,44 @@ class ShopService {
       return iap.has(product.entitlement);
     }
 
+    if (item.type === 'boost') {
+      return this.isBoostActive(id);
+    }
+
     return !!usePlatformStore.getState().inventory.items[id];
+  }
+
+  isEquipped(id: string): boolean {
+    return !!usePlatformStore.getState().inventory.items[id]?.equipped;
+  }
+
+  isBoostActive(id: string, now = Date.now()): boolean {
+    const expiresAt = usePlatformStore.getState().inventory.items[id]?.expiresAt;
+    return typeof expiresAt === 'number' && expiresAt > now;
+  }
+
+  getActiveCoinMultiplier(now = Date.now()): number {
+    return this.isBoostActive('boost_double', now) ? 2 : 1;
+  }
+
+  getEquippedSkinColor(): number {
+    const items = usePlatformStore.getState().inventory.items;
+    for (const [id, item] of Object.entries(items)) {
+      if (item.equipped && SKIN_COLORS[id] !== undefined) {
+        return SKIN_COLORS[id];
+      }
+    }
+    return DEFAULT_PLAYER_COLOR;
+  }
+
+  equipSkin(id: string): boolean {
+    const item = this.getItem(id);
+    if (!item || item.type !== 'skin' || !this.isOwned(id)) {
+      return false;
+    }
+    usePlatformStore.getState().equipItem(id);
+    eventBus.emit('shop:equip', { itemId: id });
+    return true;
   }
 
   async purchase(itemId: string): Promise<boolean> {
@@ -92,8 +136,14 @@ class ShopService {
   private grantItem(item: ShopItem): void {
     const store = usePlatformStore.getState();
 
-    if (item.type === 'skin' || item.type === 'boost') {
+    if (item.type === 'skin') {
       store.addItem(item.id);
+      store.equipItem(item.id);
+      return;
+    }
+
+    if (item.type === 'boost') {
+      store.activateBoost(item.id, item.duration ?? 3600);
     }
   }
 }

@@ -13,7 +13,7 @@ Tài liệu này mô tả các biến môi trường runtime của `game-starter
 ```env
 VITE_APP_ENV=dev
 VITE_GAME_ID=FRULOOP
-VITE_REPLAY_SECRET=<64-char-sha256-hex>
+VITE_REPLAY_SECRET=<64-char-lowercase-sha256-hex>
 ```
 
 | Variable             | Values                         | Default / Source     | Description                                                                  |
@@ -30,7 +30,7 @@ Preset API URL trong code (`src/platform/core/config/index.ts`):
 | `staging`    | `https://game-api-s5kn.onrender.com/api` |
 | `production` | `https://game-api-s5kn.onrender.com/api` |
 
-`VITE_REPLAY_SECRET` phải là **64-char hex**. Secret sai/thiếu → client **không sync** và **giữ** offline queue (không xóa im lặng).
+`VITE_REPLAY_SECRET` phải là **64-char lowercase hex** (`/^[0-9a-f]{64}$/`). Secret sai/thiếu → client **không sync** và **giữ** offline queue (không xóa im lặng).
 
 Production/staging nên dùng HTTPS.
 
@@ -148,7 +148,7 @@ Các ID này được dùng để mở store listing khi native in-app review kh
 ```env
 VITE_APP_ENV=dev
 VITE_GAME_ID=FRULOOP
-VITE_REPLAY_SECRET=<64-char-sha256-hex>
+VITE_REPLAY_SECRET=<64-char-lowercase-sha256-hex>
 
 VITE_IAP_PROVIDER=mock
 VITE_REVENUECAT_ANDROID_API_KEY=

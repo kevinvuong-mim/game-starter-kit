@@ -15,6 +15,7 @@ export interface PlatformStore extends PlatformState {
   equipItem: (id: string) => void;
   addItem: (id: string, quantity?: number) => void;
   removeItem: (id: string, quantity?: number) => void;
+  activateBoost: (id: string, durationSeconds: number) => void;
 
   // Progress
   incrementGamesPlayed: () => void;
@@ -102,6 +103,26 @@ export const usePlatformStore = createStore<PlatformStore>()((set, get) => ({
         items[id] = { ...items[id], equipped: true };
       }
       return { inventory: { items } };
+    }),
+
+  activateBoost: (id, durationSeconds) =>
+    set((s) => {
+      const existing = s.inventory.items[id];
+      const now = Date.now();
+      const baseExpiry = existing?.expiresAt && existing.expiresAt > now ? existing.expiresAt : now;
+      return {
+        inventory: {
+          items: {
+            ...s.inventory.items,
+            [id]: {
+              id,
+              quantity: Math.max(1, existing?.quantity ?? 1),
+              equipped: existing?.equipped,
+              expiresAt: baseExpiry + durationSeconds * 1000,
+            },
+          },
+        },
+      };
     }),
 
   setHighScore: (score) =>
