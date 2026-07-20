@@ -11,7 +11,7 @@ export class LeaderboardScene extends BasePanelScene {
       defaultReturnTo: 'Home',
       sceneKey: 'Leaderboard',
       titleKey: 'leaderboard.title',
-      backgroundKey: 'leaderboard-screen-background',
+      backgroundKey: 'general-screen-background',
     });
   }
 

@@ -22,24 +22,19 @@ export class PreloadScene extends Phaser.Scene {
       console.warn(`[Assets] Missing starter asset: ${file.key}`);
     });
 
-    this.load.image(
-      'leaderboard-screen-background',
-      '/assets/images/leaderboard-screen-background.png'
-    );
     this.load.audio(SOUND_COIN_DROP_KEY, '/assets/audio/coin-drop.mp3');
     this.load.audio(SOUND_POP_KEY, '/assets/audio/pop-sound-effect.mp3');
     this.load.image('play-button-icon', '/assets/images/play-button-icon.webp');
-    this.load.image('home-screen-background', '/assets/images/home-screen-background.jpeg');
+    this.load.image('home-screen-background', '/assets/images/home-screen-background.webp');
     this.load.image('play-button-background', '/assets/images/play-button-background.webp');
-    this.load.image('gameplay-screen-background', '/assets/images/gameplay-screen-background.png');
+    this.load.image('general-screen-background', '/assets/images/general-screen-background.webp');
   }
 
   create(): void {
     this.ensureFallbackTexture('play-button-icon', 43, 43, 0xffffff);
     this.ensureFallbackTexture('home-screen-background', 16, 16, 0x16213e);
     this.ensureFallbackTexture('play-button-background', 256, 78, 0x4a90d9);
-    this.ensureFallbackTexture('gameplay-screen-background', 16, 16, 0x16213e);
-    this.ensureFallbackTexture('leaderboard-screen-background', 16, 16, 0x1a1a2e);
+    this.ensureFallbackTexture('general-screen-background', 16, 16, 0x16213e);
 
     const target = getBootNavigationTarget();
 
