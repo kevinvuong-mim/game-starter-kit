@@ -22,7 +22,9 @@ export class GameOverScene extends Phaser.Scene {
     const score = data.score ?? 0;
     const { width, height } = this.cameras.main;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e, 0.95);
+    const background = this.add.image(width / 2, height / 2, 'general-background-image');
+    const backgroundScale = Math.max(width / background.width, height / background.height);
+    background.setScale(backgroundScale).setDepth(-1);
 
     this.add
       .text(width / 2, height * 0.25, t('game.gameOver'), {

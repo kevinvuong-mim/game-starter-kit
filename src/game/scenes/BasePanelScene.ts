@@ -45,11 +45,11 @@ export abstract class BasePanelScene extends Phaser.Scene {
 
     this.onBeforePanel();
 
-    if (this.options.backgroundKey) {
-      this.addBackgroundImage(width, height, this.options.backgroundKey);
-    } else {
-      this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
-    }
+    this.addBackgroundImage(
+      width,
+      height,
+      this.options.backgroundKey ?? 'general-background-image'
+    );
 
     const titleY = this.options.titleY ?? 0.12;
     this.add

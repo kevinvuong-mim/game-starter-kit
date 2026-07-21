@@ -8,8 +8,8 @@
     "playBadge": "MỚI",
     "shop": "Cửa hàng",
     "settings": "Cài đặt",
-    "leaderboard": "Bảng xếp hạng",
-    "dailyReward": "Phần thưởng hàng ngày",
+    "leaderboard": "Xếp hạng",
+    "dailyReward": "Quà hàng ngày",
     "missions": "Nhiệm vụ",
     "rateApp": "Đánh giá"
   },
@@ -94,7 +94,7 @@
     "watchAd": "Xem quảng cáo"
   },
   "dailyReward": {
-    "title": "Phần thưởng hàng ngày",
+    "title": "Quà hàng ngày",
     "claim": "Nhận",
     "day": "Ngày {{day}}",
     "coins": "{{coins}} xu",
@@ -104,10 +104,10 @@
     "comeBack": "Quay lại vào ngày mai!",
     "claimSuccess": "+{{coins}} xu!",
     "chestSuccess": "Đã nhận {{item}}!",
-    "timeManipulated": "Phần thưởng hàng ngày không khả dụng do thay đổi thời gian thiết bị."
+    "timeManipulated": "Quà hàng ngày không khả dụng do thay đổi thời gian thiết bị."
   },
   "leaderboard": {
-    "title": "Bảng xếp hạng",
+    "title": "Xếp hạng",
     "refresh": "Làm mới",
     "refreshing": "Đang cập nhật…",
     "retry": "Thử lại",
@@ -136,7 +136,7 @@
   },
   "howToPlay": {
     "title": "Hướng dẫn chơi",
-    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: xem quảng cáo thưởng để nhận xu\n• Phần thưởng hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Bảng xếp hạng: so sánh điểm cao nhất với người chơi khác"
+    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: xem quảng cáo thưởng để nhận xu\n• Quà hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Xếp hạng: so sánh điểm cao nhất với người chơi khác"
   },
   "rateApp": {
     "message": "Bạn có thích game không?",
@@ -152,8 +152,8 @@
   },
   "notifications": {
     "dailyReward": {
-      "title": "Phần thưởng hàng ngày",
-      "body": "Phần thưởng hàng ngày đã sẵn sàng. Quay lại và nhận thưởng nhé!"
+      "title": "Quà hàng ngày",
+      "body": "Quà hàng ngày đã sẵn sàng. Quay lại và nhận thưởng nhé!"
     },
     "top100Exited": {
       "title": "Top 100",

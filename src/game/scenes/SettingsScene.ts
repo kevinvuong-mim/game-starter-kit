@@ -25,7 +25,9 @@ export class SettingsScene extends Phaser.Scene {
 
     const { width, height } = this.cameras.main;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e);
+    const background = this.add.image(width / 2, height / 2, 'general-background-image');
+    const backgroundScale = Math.max(width / background.width, height / background.height);
+    background.setScale(backgroundScale).setDepth(-1);
 
     this.add
       .text(width / 2, height * 0.12, t('settings.title'), {
