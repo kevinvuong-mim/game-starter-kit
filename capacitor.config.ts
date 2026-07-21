@@ -1,10 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const liveReloadUrl = process.env.CAP_SERVER_URL;
+
 const config: CapacitorConfig = {
   webDir: 'dist',
-  server: {
-    androidScheme: 'https',
-  },
   appName: 'Game Starter Kit',
   appId: 'com.studio.gamestarterkit',
   plugins: {
@@ -19,6 +18,12 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ['alert', 'badge', 'sound'],
     },
+  },
+  server: {
+    androidScheme: 'https',
+    ...(liveReloadUrl
+      ? { url: liveReloadUrl, cleartext: liveReloadUrl.startsWith('http://') }
+      : {}),
   },
 };
 

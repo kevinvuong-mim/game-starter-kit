@@ -6,6 +6,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:android": "node scripts/dev-native.mjs android",
+    "dev:ios": "node scripts/dev-native.mjs ios",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "cap:android": "cap open android",

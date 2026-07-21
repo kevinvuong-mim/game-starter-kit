@@ -15,6 +15,36 @@ Hai script one-command — build native rồi mở app trên emulator/simulator:
 | `npm run run:android` | `scripts/run-android-emulator.sh` | `build:android` (qua `scripts/native-ops.mjs`) → `assembleDebug` → boot emulator (nếu chưa có device) → cài APK → launch |
 | `npm run run:ios`     | `scripts/run-ios-simulator.sh`    | `build:ios` (qua `scripts/native-ops.mjs`) → `xcodebuild` (simulator) → boot simulator → cài `.app` → launch             |
 
+## Live reload khi phát triển
+
+Để build/cài native một lần rồi tự reload khi sửa web code:
+
+```bash
+npm run dev:android
+# hoặc
+npm run dev:ios
+```
+
+Script tự khởi động Vite, inject URL dev vào Capacitor, build và mở app. Giữ terminal
+đó chạy; các thay đổi trong `src/` sẽ được Vite cập nhật trên emulator/simulator.
+Nhấn `Ctrl+C` để dừng.
+
+URL mặc định:
+
+- Android Emulator: `http://10.0.2.2:5173`
+- iOS Simulator: `http://localhost:5173`
+
+Với thiết bị thật, máy dev và thiết bị phải cùng mạng Wi-Fi rồi truyền IP LAN:
+
+```bash
+CAP_SERVER_URL=http://192.168.1.10:5173 npm run dev:android
+CAP_SERVER_URL=http://192.168.1.10:5173 npm run dev:ios
+```
+
+`CAP_SERVER_URL` chỉ được thêm khi chạy lệnh dev. Các lệnh build thông thường không
+đóng gói URL máy dev vào app production. Cần build lại native khi đổi plugin,
+Capacitor config hoặc native code; thay đổi TypeScript/CSS/assets chỉ cần live reload.
+
 ### Biến môi trường tuỳ chọn
 
 **Android** (`run:android`):
@@ -442,7 +472,7 @@ xcrun simctl launch booted com.studio.gamestarterkit
 | iOS `pod install` conflict UMP 3.x                | Chạy `apply-ios-native.mjs pre-sync` **trước** `cap sync`; xóa `Podfile.lock` + `pod install`                            |
 | `No connected devices!` (Gradle)                  | Emulator/device chưa boot — `adb devices` phải thấy `device`                                                             |
 | Emulator không hiện trong `adb devices`           | Process emulator chết sớm — chạy lại với `-gpu swiftshader_indirect` hoặc mở từ Android Studio                           |
-| API guest/leaderboard fail trên Android emulator  | Start API trên host, chạy `adb reverse tcp:3000 tcp:3000`, rồi mở lại app                                               |
+| API guest/leaderboard fail trên Android emulator  | Start API trên host, chạy `adb reverse tcp:3000 tcp:3000`, rồi mở lại app                                                |
 | Ads không load trên emulator                      | Bình thường; dùng device thật hoặc để trống App ID trên platform đó để dùng sample ads                                   |
 | `run:ios` build OK nhưng Simulator không thấy app | Script cũ ghi `bootstatus` vào stdout làm hỏng UDID — cập nhật `run-ios-simulator.sh` mới nhất                           |
 | Android vẫn thấy navigation bar (3 nút dưới)      | Chạy lại `npm run build:android` để apply `MainActivity` immersive mode từ `native/android/`                             |
