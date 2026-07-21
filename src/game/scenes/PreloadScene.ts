@@ -24,15 +24,17 @@ export class PreloadScene extends Phaser.Scene {
 
     this.load.audio(SOUND_COIN_DROP_KEY, '/assets/audio/coin-drop.mp3');
     this.load.audio(SOUND_POP_KEY, '/assets/audio/pop-sound-effect.mp3');
-    this.load.image('background-image', '/assets/images/background-image.webp');
     this.load.image('play-button-icon', '/assets/images/play-button-icon.webp');
+    this.load.image('home-background-image', '/assets/images/home-background-image.webp');
     this.load.image('play-button-background', '/assets/images/play-button-background.webp');
+    this.load.image('general-background-image', '/assets/images/general-background-image.webp');
   }
 
   create(): void {
-    this.ensureFallbackTexture('background-image', 16, 16, 0x16213e);
     this.ensureFallbackTexture('play-button-icon', 43, 43, 0xffffff);
+    this.ensureFallbackTexture('home-background-image', 16, 16, 0x16213e);
     this.ensureFallbackTexture('play-button-background', 256, 78, 0x4a90d9);
+    this.ensureFallbackTexture('general-background-image', 16, 16, 0x16213e);
 
     const target = getBootNavigationTarget();
 

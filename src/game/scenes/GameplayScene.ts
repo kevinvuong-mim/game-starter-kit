@@ -203,7 +203,7 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private addBackgroundImage(width: number, height: number): void {
-    const bg = this.add.image(width / 2, height / 2, 'background-image');
+    const bg = this.add.image(width / 2, height / 2, 'general-background-image');
     const scale = Math.max(width / bg.width, height / bg.height);
     bg.setScale(scale).setDepth(-1);
   }
