@@ -18,6 +18,7 @@
     "gameOver": "GAME OVER",
     "newRecord": "NEW RECORD",
     "retry": "PLAY AGAIN",
+    "leaderboard": "LEADERBOARD",
     "home": "HOME",
     "shareScore": "SHARE",
     "shareScoreTitle": "My score in {{gameName}}",

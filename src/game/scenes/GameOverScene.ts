@@ -48,8 +48,8 @@ export class GameOverScene extends Phaser.Scene {
     const contentTop = height * 0.35;
     const buttonsStartY = this.getButtonsStartY(contentTop, isNewRecord);
     const lastButtonY = isNewRecord
-      ? buttonsStartY + NEW_RECORD_HEIGHT + NEW_RECORD_GAP + 2 * BUTTON_HEIGHT
-      : buttonsStartY + 2 * BUTTON_HEIGHT;
+      ? buttonsStartY + NEW_RECORD_HEIGHT + NEW_RECORD_GAP + 3 * BUTTON_HEIGHT
+      : buttonsStartY + 3 * BUTTON_HEIGHT;
     const panelBottom = lastButtonY + BUTTON_HEIGHT / 2 + 36;
     const panelTop = contentTop - 28;
     const panelHeight = panelBottom - panelTop;
@@ -120,6 +120,24 @@ export class GameOverScene extends Phaser.Scene {
         style: { fontSize: 32, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
       onClick: () => this.scene.start('Gameplay', { returnTo: this.returnTo }),
+    });
+    buttonY += BUTTON_HEIGHT;
+
+    createUIButton({
+      scene: this,
+      position: { x: centerX, y: buttonY },
+      size: { width: BUTTON_WIDTH, height: BUTTON_HEIGHT },
+      background: { key: 'leaderboard-button-background' },
+      depth: 3,
+      text: {
+        content: t('game.leaderboard'),
+        style: { fontSize: 32, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
+      },
+      onClick: () =>
+        this.scene.start('Leaderboard', {
+          returnTo: 'GameOver',
+          returnData: { score, returnTo: this.returnTo, isNewRecord },
+        }),
     });
     buttonY += BUTTON_HEIGHT;
 

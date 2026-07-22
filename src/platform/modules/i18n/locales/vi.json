@@ -18,6 +18,7 @@
     "gameOver": "GAME OVER",
     "newRecord": "KỶ LỤC MỚI",
     "retry": "CHƠI LẠI",
+    "leaderboard": "XẾP HẠNG",
     "home": "TRANG CHỦ",
     "shareScore": "CHIA SẺ",
     "shareScoreTitle": "Điểm của tôi trong {{gameName}}",
