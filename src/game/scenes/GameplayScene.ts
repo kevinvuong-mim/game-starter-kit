@@ -4,7 +4,7 @@ import { gameConfig } from '@game/config';
 import { HUD } from '@platform/ui/hud/HUD';
 import { eventBus } from '@platform/core/events';
 import { ObjectPool } from '@game/utils/ObjectPool';
-import { getEquippedPlayerColor } from '@platform/ui';
+import { getEquippedPlayerColor, getHighScore } from '@platform/ui';
 
 interface FallingObject {
   speed: number;
@@ -27,8 +27,10 @@ export class GameplayScene extends Phaser.Scene {
   private startTime = 0;
   private velocityY = 0;
   private gameActive = true;
+  private returnTo = 'Home';
   private jumpsRemaining = 0;
   private sessionEnded = false;
+  private startingHighScore = 0;
   private player!: Phaser.GameObjects.Arc;
   private pool!: ObjectPool<FallingObject>;
   private spawnTimer?: Phaser.Time.TimerEvent;
@@ -41,6 +43,10 @@ export class GameplayScene extends Phaser.Scene {
     super({ key: 'Gameplay' });
   }
 
+  init(data: { returnTo?: string } = {}): void {
+    this.returnTo = data.returnTo ?? 'Home';
+  }
+
   create(): void {
     this.cleanupEventListeners();
 
@@ -51,6 +57,7 @@ export class GameplayScene extends Phaser.Scene {
     this.jumpsRemaining = this.maxJumps;
     this.gameActive = true;
     this.sessionEnded = false;
+    this.startingHighScore = getHighScore();
 
     this.addBackgroundImage(width, height);
 
@@ -92,7 +99,7 @@ export class GameplayScene extends Phaser.Scene {
       eventBus.on('app:back', () => {
         if (this.gameActive) {
           this.endSession();
-          this.scene.start('Home');
+          this.scene.start(this.returnTo);
         }
       })
     );
@@ -199,6 +206,7 @@ export class GameplayScene extends Phaser.Scene {
     eventBus.emit('score:update', { score: this.score });
     eventBus.emit('coin:add', { amount: 1, source: 'gameplay' });
     eventBus.emit('collect', { itemId: 'coin', count: 1 });
+    eventBus.emit('merge', { count: 1 });
     this.releaseObject(obj);
   }
 
@@ -210,10 +218,17 @@ export class GameplayScene extends Phaser.Scene {
 
   private gameOver(): void {
     if (!this.gameActive) return;
+
+    const isNewRecord = this.score > this.startingHighScore;
     this.endSession();
 
     this.time.delayedCall(500, () => {
-      this.scene.start('GameOver', { score: this.score, jumps: this.jumps });
+      this.scene.start('GameOver', {
+        score: this.score,
+        jumps: this.jumps,
+        returnTo: this.returnTo,
+        isNewRecord,
+      });
     });
   }
 }

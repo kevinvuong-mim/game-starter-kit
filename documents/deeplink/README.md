@@ -47,7 +47,6 @@ Supported paths (`src/platform/modules/deep-link/deep-link.model.ts`):
 | `/play`, `/gameplay` | `Gameplay` |
 | `/missions` | `Missions` |
 | `/settings` | `Settings` |
-| `/how-to-play` | `HowToPlay` |
 | `/leaderboard` | `Leaderboard` |
 | `/daily-reward` | `DailyReward` |
 

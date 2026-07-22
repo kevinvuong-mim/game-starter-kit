@@ -117,7 +117,6 @@ export class LeaderboardService {
         fromCache: true,
         isStale: !isCacheFresh(cache),
         lastUpdated: cache.updatedAt,
-        error: !isCacheFresh(cache) ? 'leaderboard.staleBanner' : null,
       })
     );
 
@@ -205,7 +204,6 @@ export class LeaderboardService {
       status: hasData ? 'ready' : 'error',
       fromCache: hasData ? true : current.fromCache,
       isStale: hasData,
-      error: hasData ? 'leaderboard.staleBanner' : 'leaderboard.error',
     });
     this.view = view;
     this.emit(view);

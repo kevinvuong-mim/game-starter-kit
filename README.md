@@ -133,7 +133,7 @@ this.add.circle(120, height - 160, 24, getEquippedPlayerColor());
 | ------------- | -------- | -------------------------------------------------------------------------- |
 | guest         | **API**  | Anonymous guest + `secretToken` (`POST /guest/init`, storage `gsk:guest`)  |
 | game-sync     | **API**  | Offline queue → HMAC `signature` batch upload (`POST /results`)            |
-| leaderboard   | **API**  | Offline cache, TTL, paginated REST (`LEADERBOARD_LIMIT` = 10/page)         |
+| leaderboard   | **API**  | Offline cache, TTL, Top 100 REST (`LEADERBOARD_LIMIT` = 100/page)          |
 | notifications | **API**  | Push (FCM) + local daily reward; device token sync (`/devices`)            |
 | i18n          | Local    | Runtime language switch (`en` / `vi`), lazy-loaded locale JSON             |
 | shop          | Local    | Catalog skins/boosts/IAP; equip skin + timed `boost_double`                |
@@ -143,7 +143,6 @@ this.add.circle(120, height - 160, 24, getEquippedPlayerColor());
 | settings      | Local    | Language, sound, music, vibration, graphics — part of store state          |
 | deep-link     | Local    | Custom scheme, Universal Links / App Links, deferred cold-start navigation |
 | navigation    | Local    | Scene navigation + pending queue (notification / deeplink cold start)      |
-| app-review    | Local    | Native review prompt with App Store / Play Store fallback                  |
 | share         | Local    | Native share sheet helper (used from Game Over)                            |
 | ads (module)  | Local    | Placement config, banner context (`HOME` / `GAME_OVER` / …), reward flow   |
 | IAP (module)  | Local\*  | Purchase, restore, entitlements; RevenueCat `logIn` on `guest.onReady`     |
@@ -154,7 +153,7 @@ this.add.circle(120, height - 160, 24, getEquippedPlayerColor());
 
 ## UI Framework
 
-Feature screens are **Phaser scenes** that compose reusable **panels**. Six panel scenes (`Shop`, `Missions`, `Leaderboard`, `DailyReward`, `HowToPlay`, `Legal`) share `BasePanelScene` for title, close button, and `app:back` handling.
+Feature screens are **Phaser scenes** that compose reusable **panels**. Five panel scenes (`Shop`, `Missions`, `Leaderboard`, `DailyReward`, `Legal`) share `BasePanelScene` for title, close button, and `app:back` handling.
 
 Fonts: **Fredoka** (default UI via `FREDOKA_FONT`) and **Nunito Sans** (`NUNITO_FONT`). Home’s Play button badge uses Nunito Sans with i18n key `home.playBadge` (`"NEW"` / `"MỚI"`).
 
@@ -165,12 +164,7 @@ import { t, toast } from '@platform/ui';
 import { NUNITO_FONT } from '@platform/ui/fonts';
 import { soundManager } from '@platform/ui/audio/SoundManager';
 import { createUIButton } from '@platform/ui/button/UIButton';
-import { screenManager } from '@platform/ui/screen/ScreenManager';
-import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
 
-// HomeScene registers the built-in overlay screen.
-screenManager.register(new RateAppModalScreen(scene));
-screenManager.open('rate-app', { width: 480, height: 640 });
 toast.show({ message: 'Coins +50', type: 'success' });
 
 // UIButton supports optional badges and plays pop SFX by default.
@@ -197,7 +191,7 @@ button.setBadgeVisible(true);
 soundManager.playCoinDrop();
 ```
 
-`RateAppModalScreen` is the built-in `ScreenManager` overlay; there is no generic `ModalScreen`. Built-in user-facing scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyReward, Settings, HowToPlay, Legal.
+`ScreenManager` is available for custom overlay screens. Built-in user-facing scenes: Home, Gameplay, GameOver, Shop, Missions, Leaderboard, DailyReward, Settings, Legal.
 
 ## Environment Config
 
@@ -247,7 +241,7 @@ Push/local toggles per env: `src/platform/core/config/notification-env.json`. Na
 | `VITE_ADMOB_*_APP_ID`                               | Per-platform AdMob app IDs for native builds                                   |
 | `VITE_ADMOB_*_*_ID`                                 | Production ad unit IDs per format/platform                                     |
 | `VITE_FIREBASE_*`                                   | Firebase web config (analytics + push gate on native)                          |
-| `VITE_IOS_APP_STORE_ID` / `VITE_ANDROID_PACKAGE_ID` | Store listing IDs used by app review fallback                                  |
+| `VITE_IOS_APP_STORE_ID` / `VITE_ANDROID_PACKAGE_ID` | Store listing IDs attached when sharing scores                                 |
 | `VITE_DEEPLINK_*`                                   | Custom scheme plus development/production link hosts                           |
 
 API URL, ads/analytics toggles, and defaults are in `src/platform/core/config/index.ts`. At boot, `GameEngine` passes `gameConfig.id` and `gameConfig.replaySecret` (from `VITE_GAME_ID` / `VITE_REPLAY_SECRET`) into runtime config. `name`, `width`, `height`, and `version` are edited directly in `src/game/config.ts`.

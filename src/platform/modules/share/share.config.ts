@@ -1,18 +1,18 @@
 import { Capacitor } from '@capacitor/core';
 
-export interface AppReviewConfig {
+export interface StoreListingConfig {
   iosAppStoreId: string;
   androidPackageId: string;
 }
 
-export function resolveAppReviewConfig(): AppReviewConfig {
+export function resolveStoreListingConfig(): StoreListingConfig {
   return {
     iosAppStoreId: import.meta.env.VITE_IOS_APP_STORE_ID ?? '',
     androidPackageId: import.meta.env.VITE_ANDROID_PACKAGE_ID ?? 'com.studio.gamestarterkit',
   };
 }
 
-export function getStoreListingUrl(config: AppReviewConfig): string | null {
+export function getStoreListingUrl(config: StoreListingConfig): string | null {
   const platform = Capacitor.getPlatform();
 
   if (platform === 'ios' && config.iosAppStoreId) {

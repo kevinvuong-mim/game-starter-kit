@@ -132,14 +132,14 @@ Ba biến đều optional và fallback về các giá trị trên. `production` 
 
 ---
 
-## App review
+## Store listing
 
 ```env
 VITE_IOS_APP_STORE_ID=
 VITE_ANDROID_PACKAGE_ID=com.studio.gamestarterkit
 ```
 
-Các ID này được dùng để mở store listing khi native in-app review không khả dụng. Android package mặc định là `com.studio.gamestarterkit`; iOS App Store ID mặc định rỗng.
+Các ID này được gắn vào link khi share điểm số. Android package mặc định là `com.studio.gamestarterkit`; iOS App Store ID mặc định rỗng.
 
 ---
 

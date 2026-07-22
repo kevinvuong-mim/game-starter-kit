@@ -16,7 +16,6 @@
           "/daily-reward",
           "/play",
           "/gameplay",
-          "/how-to-play",
           "/legal",
           "NOT /api/*"
         ]
@@ -35,7 +34,6 @@
           "/daily-reward",
           "/play",
           "/gameplay",
-          "/how-to-play",
           "/legal",
           "NOT /api/*"
         ]

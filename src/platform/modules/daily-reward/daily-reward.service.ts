@@ -131,9 +131,8 @@ export class DailyRewardService {
   private applyReward(reward: ResolvedReward): void {
     const store = usePlatformStore.getState();
 
-    if (reward.type === 'coins' && reward.coins) {
+    if (reward.coins) {
       store.addCoins(reward.coins);
-      return;
     }
 
     if (reward.type === 'chest' && reward.itemId) {

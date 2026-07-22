@@ -7,10 +7,8 @@ export class LeaderboardScene extends BasePanelScene {
 
   constructor() {
     super({
-      closeButtonY: 0.94,
-      defaultReturnTo: 'Home',
       sceneKey: 'Leaderboard',
-      titleKey: 'leaderboard.title',
+      defaultReturnTo: 'Home',
     });
   }
 
@@ -23,7 +21,9 @@ export class LeaderboardScene extends BasePanelScene {
   }
 
   protected createPanel(): void {
-    this.panel = new LeaderboardPanel(this);
+    this.panel = new LeaderboardPanel(this, {
+      onBack: () => this.goBack(),
+    });
   }
 
   protected onPanelShutdown(): void {

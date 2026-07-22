@@ -30,7 +30,7 @@ export class HomeScene extends Phaser.Scene {
         content: t('home.play'),
         style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
       },
-      onClick: () => this.scene.start('Gameplay'),
+      onClick: () => this.scene.start('Gameplay', { returnTo: 'Home' }),
     });
 
     createUIButton({

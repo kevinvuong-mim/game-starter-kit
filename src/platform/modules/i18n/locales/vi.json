@@ -10,15 +10,16 @@
     "settings": "Cài đặt",
     "leaderboard": "Xếp hạng",
     "dailyReward": "Quà hàng ngày",
-    "missions": "Nhiệm vụ",
-    "rateApp": "Đánh giá"
+    "missions": "Nhiệm vụ"
   },
   "game": {
     "score": "Điểm: {{score}}",
-    "gameOver": "Kết thúc",
-    "retry": "Chơi lại",
-    "home": "Trang chủ",
-    "shareScore": "Chia sẻ điểm",
+    "yourScore": "ĐIỂM CỦA BẠN",
+    "gameOver": "GAME OVER",
+    "newRecord": "KỶ LỤC MỚI",
+    "retry": "CHƠI LẠI",
+    "home": "TRANG CHỦ",
+    "shareScore": "CHIA SẺ",
     "shareScoreTitle": "Điểm của tôi trong {{gameName}}",
     "shareScoreText": "Tôi đạt {{score}} điểm trong {{gameName}}! Bạn có vượt qua được không?",
     "shareDialogTitle": "Chia sẻ điểm số",
@@ -35,44 +36,57 @@
     "purchaseSuccess": "Đã mua {{name}}!",
     "equipSuccess": "Đã mặc {{name}}!",
     "purchaseFailed": "Mua thất bại",
+    "notEnoughCoins": "Không đủ xu!",
     "restoreSuccess": "Đã khôi phục {{count}} giao dịch",
     "restoreEmpty": "Không có giao dịch để khôi phục",
+    "getCoins": {
+      "missions": "Nhiệm vụ",
+      "dailyReward": "Quà hàng ngày"
+    },
     "currency": {
       "coins": "xu",
       "iap": "USD"
     },
     "items": {
-      "skin_blue": {
-        "name": "Skin Xanh",
-        "description": "Skin nhân vật màu xanh cool"
+      "boost_hammer": {
+        "name": "Búa Nổ",
+        "description": "Phá hủy trái cây bạn chọn!"
       },
-      "skin_gold": {
-        "name": "Skin Vàng",
-        "description": "Skin nhân vật vàng cao cấp"
+      "boost_change": {
+        "name": "Đổi Trái",
+        "description": "Đổi trái hiện tại với trái tiếp theo!"
+      },
+      "boost_swap": {
+        "name": "Hoán Đổi",
+        "description": "Hoán đổi vị trí các trái cây bất kỳ!"
       },
       "boost_double": {
-        "name": "Xu Gấp Đôi",
-        "description": "Nhân đôi xu trong 1 giờ"
+        "name": "Nhân Đôi",
+        "description": "Nhân đôi điểm số của trái cây!"
       },
-      "remove_ads": {
-        "name": "Gỡ Quảng Cáo",
-        "description": "Gỡ quảng cáo banner và interstitial vĩnh viễn"
+      "boost_size": {
+        "name": "Tăng Kích Cỡ",
+        "description": "Tăng kích thước của trái cây!"
       }
     }
   },
   "settings": {
     "title": "Cài đặt",
+    "profile": "Hồ sơ",
     "language": "Ngôn ngữ",
     "languageEn": "English",
     "languageVi": "Tiếng Việt",
     "sound": "Âm thanh",
+    "music": "Nhạc nền",
+    "soundEffects": "Hiệu ứng",
     "soundOn": "Bật",
     "soundOff": "Tắt",
+    "terms": "Điều khoản",
+    "privacy": "Quyền riêng tư",
     "termsPrivacy": "Điều khoản & Quyền riêng tư",
     "helpAndLegal": "Trợ giúp & Pháp lý",
-    "howToPlay": "Hướng dẫn chơi",
     "back": "Quay lại",
-    "playerName": "Tên hiển thị",
+    "playerName": "Tên người chơi",
     "playerNamePlaceholder": "Nhập tên của bạn",
     "playerNameSave": "Lưu",
     "playerNameRequired": "Vui lòng nhập tên",
@@ -83,13 +97,19 @@
   },
   "missions": {
     "title": "Nhiệm vụ",
-    "claim": "Nhận",
+    "claim": "NHẬN",
+    "go": "ĐI",
     "claimed": "Đã nhận",
     "progress": "{{current}}/{{target}}",
     "reward": "{{coins}} xu",
     "claimSuccess": "Đã nhận {{coins}} xu!",
     "claimFailed": "Chưa thể nhận thưởng",
     "dailyMission": "Nhiệm vụ hàng ngày",
+    "reachScore2000": "Đạt 2.000 điểm",
+    "mergeFruit15": "Hợp 15 lần trái cây",
+    "watchAd2": "Xem 2 video quảng cáo",
+    "playGames5": "Chơi 5 ván bất kỳ",
+    "dailyLogin": "Đăng nhập mỗi ngày",
     "watchAd3": "Xem 3 quảng cáo thưởng",
     "watchAd": "Xem quảng cáo"
   },
@@ -108,6 +128,8 @@
   },
   "leaderboard": {
     "title": "Xếp hạng",
+    "top100": "Top 100",
+    "yourRank": "Hạng của bạn",
     "refresh": "Làm mới",
     "refreshing": "Đang cập nhật…",
     "retry": "Thử lại",
@@ -120,7 +142,6 @@
     "offlineLocalBest": "Bạn đang ngoại tuyến — điểm chơi được lưu trên máy.",
     "cached": "Đã lưu",
     "stale": "Có thể đã cũ",
-    "staleBanner": "Đang hiển thị dữ liệu đã lưu — làm mới để cập nhật hạng mới nhất.",
     "localBest": "Điểm cao nhất: {{score}}",
     "updatedAgo": "Cập nhật {{seconds}}s trước",
     "pageInfo": "Trang {{page}} / {{totalPages}}",
@@ -133,15 +154,6 @@
     "tabPrivacy": "Quyền riêng tư",
     "termsContent": "Cập nhật lần cuối: Tháng 6/2026\n\n1. Chấp nhận điều khoản\nBằng việc tải, cài đặt hoặc sử dụng trò chơi này, bạn đồng ý với các Điều khoản Dịch vụ. Nếu không đồng ý, vui lòng không sử dụng trò chơi.\n\n2. Giấy phép\nChúng tôi cấp cho bạn giấy phép hạn chế, không độc quyền, không thể chuyển nhượng để sử dụng trò chơi cho mục đích giải trí cá nhân, phi thương mại.\n\n3. Vật phẩm ảo\nXu, skin và các vật phẩm ảo khác không có giá trị tiền thật và không thể đổi thành tiền mặt. Chúng tôi có thể sửa đổi hoặc gỡ bỏ vật phẩm ảo bất cứ lúc nào.\n\n4. Hành vi người dùng\nBạn cam kết không gian lận, khai thác lỗi, quấy rối người chơi khác hoặc sử dụng trò chơi trái với pháp luật.\n\n5. Thay đổi\nChúng tôi có thể cập nhật điều khoản theo thời gian. Việc tiếp tục sử dụng trò chơi sau khi thay đổi đồng nghĩa với việc chấp nhận điều khoản mới.\n\n6. Liên hệ\nMọi thắc mắc về điều khoản, vui lòng liên hệ support@example.com.",
     "privacyContent": "Cập nhật lần cuối: Tháng 6/2026\n\n1. Thông tin chúng tôi thu thập\nChúng tôi có thể thu thập dữ liệu chơi game (điểm số, tiến độ, loại thiết bị) và sự kiện phân tích.\n\n2. Cách sử dụng thông tin\nDữ liệu được dùng để vận hành trò chơi, cải thiện tính năng, hiển thị bảng xếp hạng, xử lý giao dịch và gửi thông báo phù hợp.\n\n3. Dịch vụ bên thứ ba\nTrò chơi có thể sử dụng các dịch vụ như Firebase Analytics, mạng quảng cáo và nhà cung cấp thanh toán. Mỗi dịch vụ có chính sách riêng tư riêng.\n\n4. Lưu trữ dữ liệu\nTiến độ game được lưu cục bộ trên thiết bị. Điểm cao và hồ sơ guest có thể đồng bộ lên máy chủ để bảng xếp hạng và thông báo hoạt động giữa các phiên chơi.\n\n5. Quyền riêng tư trẻ em\nTrò chơi không hướng tới trẻ em dưới 13 tuổi. Chúng tôi không cố ý thu thập thông tin cá nhân từ trẻ em.\n\n6. Quyền của bạn\nTùy khu vực, bạn có thể yêu cầu truy cập, chỉnh sửa hoặc xóa dữ liệu cá nhân bằng cách liên hệ support@example.com.\n\n7. Thay đổi\nChúng tôi có thể cập nhật chính sách này theo thời gian. Thông báo thay đổi quan trọng sẽ được gửi qua ứng dụng hoặc website."
-  },
-  "howToPlay": {
-    "title": "Hướng dẫn chơi",
-    "content": "Mục tiêu\nNhảy, thu thập xu và tránh chướng ngại vật để đạt điểm cao nhất có thể.\n\nĐiều khiển\n• Chạm màn hình để nhảy\n• Nhấn phím Space trên bàn phím (máy tính)\n• Có thể nhảy tối đa 5 lần trước khi chạm đất\n\nVật phẩm\n• Xu vàng: +10 điểm và +1 xu vào ví\n• Chướng ngại đỏ: chạm vào sẽ kết thúc ván chơi\n\nTính điểm\nĐiểm tăng khi thu thập xu. Hãy phá kỷ lục cá nhân và leo bảng xếp hạng.\n\nKết thúc\nKhi va chướng ngại đỏ, ván chơi kết thúc. Bạn có thể chơi lại ngay hoặc về trang chủ.\n\nTính năng khác\n• Nhiệm vụ: xem quảng cáo thưởng để nhận xu\n• Quà hàng ngày: nhận phần thưởng miễn phí mỗi ngày theo lịch\n• Cửa hàng: dùng xu mua skin và boost\n• Xếp hạng: so sánh điểm cao nhất với người chơi khác"
-  },
-  "rateApp": {
-    "message": "Bạn có thích game không?",
-    "rate": "Đánh giá",
-    "notNow": "Để sau"
   },
   "ads": {
     "rewardOffline": "Kết nối mạng để nhận thưởng",

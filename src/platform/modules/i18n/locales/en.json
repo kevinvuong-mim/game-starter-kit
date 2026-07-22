@@ -10,15 +10,16 @@
     "settings": "Settings",
     "leaderboard": "Leaderboard",
     "dailyReward": "Daily Reward",
-    "missions": "Missions",
-    "rateApp": "Rate App"
+    "missions": "Missions"
   },
   "game": {
     "score": "Score: {{score}}",
-    "gameOver": "Game Over",
-    "retry": "Retry",
-    "home": "Home",
-    "shareScore": "Share Score",
+    "yourScore": "YOUR SCORE",
+    "gameOver": "GAME OVER",
+    "newRecord": "NEW RECORD",
+    "retry": "PLAY AGAIN",
+    "home": "HOME",
+    "shareScore": "SHARE",
     "shareScoreTitle": "My score in {{gameName}}",
     "shareScoreText": "I scored {{score}} in {{gameName}}! Can you beat me?",
     "shareDialogTitle": "Share your score",
@@ -35,44 +36,57 @@
     "purchaseSuccess": "Purchased {{name}}!",
     "equipSuccess": "Equipped {{name}}!",
     "purchaseFailed": "Purchase failed",
+    "notEnoughCoins": "Not enough coins!",
     "restoreSuccess": "Restored {{count}} purchase(s)",
     "restoreEmpty": "No purchases to restore",
+    "getCoins": {
+      "missions": "Missions",
+      "dailyReward": "Daily Reward"
+    },
     "currency": {
       "coins": "coins",
       "iap": "USD"
     },
     "items": {
-      "skin_blue": {
-        "name": "Blue Skin",
-        "description": "A cool blue character skin"
+      "boost_hammer": {
+        "name": "Explosive Hammer",
+        "description": "Destroy the fruit you choose!"
       },
-      "skin_gold": {
-        "name": "Gold Skin",
-        "description": "Premium gold character skin"
+      "boost_change": {
+        "name": "Change Fruit",
+        "description": "Swap the current fruit with the next one!"
+      },
+      "boost_swap": {
+        "name": "Swap",
+        "description": "Swap the positions of any fruits!"
       },
       "boost_double": {
-        "name": "Double Coins",
-        "description": "2x coins for 1 hour"
+        "name": "Double",
+        "description": "Double the score of the fruit!"
       },
-      "remove_ads": {
-        "name": "Remove Ads",
-        "description": "Remove banner and interstitial ads permanently"
+      "boost_size": {
+        "name": "Size Increase",
+        "description": "Increase the size of the fruit!"
       }
     }
   },
   "settings": {
     "title": "Settings",
+    "profile": "Profile",
     "language": "Language",
     "languageEn": "English",
     "languageVi": "Tiếng Việt",
     "sound": "Sound",
+    "music": "Music",
+    "soundEffects": "Effects",
     "soundOn": "On",
     "soundOff": "Off",
+    "terms": "Terms",
+    "privacy": "Privacy",
     "termsPrivacy": "Terms & Privacy",
     "helpAndLegal": "Help & Legal",
-    "howToPlay": "How to Play",
     "back": "Back",
-    "playerName": "Display Name",
+    "playerName": "Player name",
     "playerNamePlaceholder": "Enter your name",
     "playerNameSave": "Save",
     "playerNameRequired": "Please enter a name",
@@ -83,13 +97,19 @@
   },
   "missions": {
     "title": "Missions",
-    "claim": "Claim",
+    "claim": "CLAIM",
+    "go": "GO",
     "claimed": "Claimed",
     "progress": "{{current}}/{{target}}",
     "reward": "{{coins}} coins",
     "claimSuccess": "Claimed {{coins}} coins!",
     "claimFailed": "Cannot claim yet",
     "dailyMission": "Daily mission",
+    "reachScore2000": "Reach 2,000 points",
+    "mergeFruit15": "Merge fruits 15 times",
+    "watchAd2": "Watch 2 ad videos",
+    "playGames5": "Play 5 matches",
+    "dailyLogin": "Log in every day",
     "watchAd3": "Watch 3 rewarded ads",
     "watchAd": "Watch ad"
   },
@@ -108,6 +128,8 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
+    "top100": "Top 100",
+    "yourRank": "Your Rank",
     "refresh": "Refresh",
     "refreshing": "Updating…",
     "retry": "Retry",
@@ -120,7 +142,6 @@
     "offlineLocalBest": "You're offline — play scores are saved locally.",
     "cached": "Cached",
     "stale": "May be outdated",
-    "staleBanner": "Showing saved data — pull to refresh for latest ranks.",
     "localBest": "Your best: {{score}}",
     "updatedAgo": "Updated {{seconds}}s ago",
     "pageInfo": "Page {{page}} / {{totalPages}}",
@@ -133,15 +154,6 @@
     "tabPrivacy": "Privacy",
     "termsContent": "Last updated: June 2026\n\n1. Acceptance of Terms\nBy downloading, installing, or using this game, you agree to these Terms of Service. If you do not agree, please do not use the game.\n\n2. License\nWe grant you a limited, non-exclusive, non-transferable license to use the game for personal, non-commercial entertainment purposes.\n\n3. Virtual Items\nCoins, skins, and other virtual items have no real-world monetary value and cannot be exchanged for cash. We may modify or remove virtual items at any time.\n\n4. User Conduct\nYou agree not to cheat, exploit bugs, harass other players, or use the game in any way that violates applicable laws.\n\n5. Changes\nWe may update these terms from time to time. Continued use of the game after changes constitutes acceptance of the updated terms.\n\n6. Contact\nFor questions about these terms, contact us at support@example.com.",
     "privacyContent": "Last updated: June 2026\n\n1. Information We Collect\nWe may collect gameplay data (scores, progress, device type) and analytics events.\n\n2. How We Use Information\nWe use collected data to operate the game, improve features, display leaderboards, process purchases, and send relevant notifications.\n\n3. Third-Party Services\nThe game may use third-party services such as Firebase Analytics, ad networks, and payment providers. Each service has its own privacy policy.\n\n4. Data Storage\nGame progress is stored locally on your device. High scores and your guest profile may sync to our servers so leaderboards and notifications work across sessions.\n\n5. Children's Privacy\nThe game is not directed at children under 13. We do not knowingly collect personal information from children.\n\n6. Your Rights\nDepending on your region, you may request access to, correction of, or deletion of your personal data by contacting support@example.com.\n\n7. Changes\nWe may update this privacy policy from time to time. We will notify you of significant changes through the app or our website."
-  },
-  "howToPlay": {
-    "title": "How to Play",
-    "content": "Goal\nJump, collect coins, and avoid obstacles to get the highest score possible.\n\nControls\n• Tap anywhere on the screen to jump\n• Press Space on keyboard (desktop)\n• You can jump up to 5 times before landing on the ground\n\nCollectibles\n• Gold coins: +10 score and +1 coin for your wallet\n• Red obstacles: touching them ends the game\n\nScoring\nYour score increases when you collect coins. Try to beat your personal best and climb the leaderboard.\n\nGame Over\nWhen you hit a red obstacle, the run ends. You can retry immediately or return to the home screen.\n\nOther Features\n• Missions: watch rewarded ads to earn coin rewards\n• Daily Reward: claim free rewards once per calendar day\n• Shop: spend coins on skins and boosts\n• Leaderboard: compare your best score with other players"
-  },
-  "rateApp": {
-    "message": "Do you enjoy the game?",
-    "rate": "Rate",
-    "notNow": "Not now"
   },
   "ads": {
     "rewardOffline": "Connect to the internet to claim your reward",

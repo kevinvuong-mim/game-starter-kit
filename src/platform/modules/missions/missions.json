@@ -1,10 +1,51 @@
 [
   {
-    "target": 3,
-    "id": "watch_ad_3",
-    "type": "WATCH_AD",
+    "id": "reach_score_2000",
+    "type": "REACH_SCORE",
+    "target": 2000,
+    "icon": "mission-item-1",
+    "goScene": "Gameplay",
+    "resetPolicy": "never",
+    "titleKey": "missions.reachScore2000",
+    "reward": { "type": "coins", "amount": 200 }
+  },
+  {
+    "id": "merge_fruit_15",
+    "type": "MERGE",
+    "target": 15,
+    "icon": "mission-item-2",
+    "goScene": "Gameplay",
     "resetPolicy": "daily",
-    "titleKey": "missions.watchAd3",
+    "titleKey": "missions.mergeFruit15",
+    "reward": { "type": "coins", "amount": 200 }
+  },
+  {
+    "id": "watch_ad_2",
+    "type": "WATCH_AD",
+    "target": 2,
+    "icon": "mission-item-3",
+    "resetPolicy": "daily",
+    "titleKey": "missions.watchAd2",
+    "reward": { "type": "coins", "amount": 300 }
+  },
+  {
+    "id": "play_games_5",
+    "type": "PLAY_GAME",
+    "target": 5,
+    "icon": "mission-item-4",
+    "goScene": "Gameplay",
+    "resetPolicy": "daily",
+    "titleKey": "missions.playGames5",
+    "reward": { "type": "coins", "amount": 200 }
+  },
+  {
+    "id": "daily_login",
+    "type": "DAILY_LOGIN",
+    "target": 1,
+    "icon": "mission-item-5",
+    "goScene": "DailyReward",
+    "resetPolicy": "daily",
+    "titleKey": "missions.dailyLogin",
     "reward": { "type": "coins", "amount": 100 }
   }
 ]

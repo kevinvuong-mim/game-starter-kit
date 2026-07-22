@@ -7,7 +7,6 @@ import { GameplayScene } from './GameplayScene';
 import { GameOverScene } from './GameOverScene';
 import { MissionsScene } from './MissionsScene';
 import { SettingsScene } from './SettingsScene';
-import { HowToPlayScene } from './HowToPlayScene';
 import { DailyRewardScene } from './DailyRewardScene';
 import { LeaderboardScene } from './LeaderboardScene';
 
@@ -23,7 +22,6 @@ export const gameScenes = [
   GameOverScene,
   MissionsScene,
   SettingsScene,
-  HowToPlayScene,
   DailyRewardScene,
   LeaderboardScene,
 ];

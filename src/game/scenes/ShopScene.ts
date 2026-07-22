@@ -7,9 +7,7 @@ export class ShopScene extends BasePanelScene {
 
   constructor() {
     super({
-      titleY: 0.1,
       sceneKey: 'Shop',
-      titleKey: 'shop.title',
       defaultReturnTo: 'Home',
     });
   }
@@ -19,7 +17,18 @@ export class ShopScene extends BasePanelScene {
   }
 
   protected createPanel(): void {
-    this.panel = new ShopPanel(this);
+    this.panel = new ShopPanel(this, {
+      onBack: () => this.goBack(),
+      onNavigate: (sceneKey) => this.openScreen(sceneKey),
+    });
+  }
+
+  protected handleAppBack(): void {
+    if (this.panel?.isGetCoinsModalOpen()) {
+      this.panel.hideGetCoinsModal();
+      return;
+    }
+    this.goBack();
   }
 
   protected onPanelShutdown(): void {

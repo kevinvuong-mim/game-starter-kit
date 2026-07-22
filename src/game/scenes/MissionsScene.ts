@@ -8,12 +8,22 @@ export class MissionsScene extends BasePanelScene {
     super({
       sceneKey: 'Missions',
       defaultReturnTo: 'Home',
-      titleKey: 'missions.title',
     });
   }
 
   protected createPanel(): void {
-    this.panel = new MissionsPanel(this);
+    this.panel = new MissionsPanel(this, {
+      onBack: () => this.goBack(),
+      onNavigate: (sceneKey) => this.openScreen(sceneKey),
+    });
+  }
+
+  protected handleAppBack(): void {
+    if (this.panel?.isGetCoinsModalOpen()) {
+      this.panel.hideGetCoinsModal();
+      return;
+    }
+    this.goBack();
   }
 
   protected onPanelShutdown(): void {

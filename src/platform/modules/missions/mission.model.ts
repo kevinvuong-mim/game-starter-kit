@@ -1,6 +1,11 @@
 import { getLocalDateKey, now } from '@platform/core/utils';
 
-export type MissionBehaviorType = 'WATCH_AD';
+export type MissionBehaviorType =
+  | 'MERGE'
+  | 'WATCH_AD'
+  | 'PLAY_GAME'
+  | 'REACH_SCORE'
+  | 'DAILY_LOGIN';
 
 type MissionStatus = 'active' | 'completed' | 'claimed';
 
@@ -13,7 +18,11 @@ interface MissionReward {
 
 export interface MissionDefinition {
   id: string;
+  /** Texture key for the mission row icon. */
+  icon?: string;
   target: number;
+  /** Scene to open when the player taps "Go". */
+  goScene?: string;
   titleKey: string;
   reward: MissionReward;
   descriptionKey?: string;

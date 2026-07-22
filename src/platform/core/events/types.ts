@@ -22,6 +22,7 @@ export type EventHandler<T extends PlatformEvent> = (
 export interface PlatformEventMap {
   // Gameplay (game layer emits, platform consumes)
   jump: { count?: number };
+  merge: { count?: number };
   'score:update': { score: number };
   collect: { itemId: string; count?: number };
   'coin:add': { amount: number; source?: string };

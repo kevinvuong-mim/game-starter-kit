@@ -21,12 +21,12 @@ const RANDOM_COIN_MAX = 350;
 
 const REWARD_CYCLE: CycleRewardDefinition[] = [
   { day: 1, type: 'coins', coins: 100 },
-  { day: 2, type: 'coins', coins: 150 },
-  { day: 3, type: 'coins', coins: 200 },
-  { day: 4, type: 'random' },
-  { day: 5, type: 'coins', coins: 300 },
-  { day: 6, type: 'coins', coins: 500 },
-  { day: 7, type: 'chest', itemId: 'rare_chest', itemQuantity: 1 },
+  { day: 2, type: 'coins', coins: 200 },
+  { day: 3, type: 'coins', coins: 300 },
+  { day: 4, type: 'coins', coins: 400 },
+  { day: 5, type: 'coins', coins: 500 },
+  { day: 6, type: 'coins', coins: 600 },
+  { day: 7, type: 'coins', coins: 1000 },
 ];
 
 export class RewardResolver {
@@ -52,6 +52,7 @@ export class RewardResolver {
       return {
         type: 'chest',
         day: definition.day,
+        coins: definition.coins,
         itemId: definition.itemId,
         itemQuantity: definition.itemQuantity ?? 1,
       };
@@ -76,7 +77,11 @@ export class RewardResolver {
     }
 
     if (definition.type === 'chest') {
-      return { label: 'chest', type: 'chest' };
+      return {
+        label: 'chest',
+        type: 'chest',
+        coins: definition.coins,
+      };
     }
 
     return {

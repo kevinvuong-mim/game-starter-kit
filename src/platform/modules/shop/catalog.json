@@ -1,42 +1,54 @@
 {
   "items": [
     {
-      "price": 100,
-      "type": "skin",
-      "id": "skin_blue",
+      "price": 2000,
+      "type": "boost",
+      "duration": 3600,
       "currency": "coins",
-      "name": "Blue Skin",
-      "icon": "skin_blue",
-      "description": "A cool blue character skin"
+      "id": "boost_hammer",
+      "name": "Explosive Hammer",
+      "icon": "shop-item-1",
+      "description": "Destroy the fruit you choose!"
     },
     {
-      "price": 300,
-      "type": "skin",
-      "id": "skin_gold",
+      "price": 2000,
+      "type": "boost",
+      "duration": 3600,
       "currency": "coins",
-      "name": "Gold Skin",
-      "icon": "skin_gold",
-      "description": "Premium gold character skin"
+      "id": "boost_change",
+      "name": "Change Fruit",
+      "icon": "shop-item-2",
+      "description": "Swap the current fruit with the next one!"
     },
     {
-      "price": 200,
+      "price": 2500,
+      "type": "boost",
+      "duration": 3600,
+      "currency": "coins",
+      "id": "boost_swap",
+      "name": "Swap",
+      "icon": "shop-item-3",
+      "description": "Swap the positions of any fruits!"
+    },
+    {
+      "price": 3500,
       "type": "boost",
       "duration": 3600,
       "currency": "coins",
       "id": "boost_double",
-      "name": "Double Coins",
-      "icon": "boost_double",
-      "description": "2x coins for 1 hour"
+      "name": "Double",
+      "icon": "shop-item-4",
+      "description": "Double the score of the fruit!"
     },
     {
-      "price": 4.99,
-      "currency": "iap",
-      "id": "remove_ads",
-      "name": "Remove Ads",
-      "icon": "remove_ads",
-      "type": "entitlement",
-      "productKey": "REMOVE_ADS",
-      "description": "Remove banner and interstitial ads permanently"
+      "price": 3500,
+      "type": "boost",
+      "duration": 3600,
+      "currency": "coins",
+      "id": "boost_size",
+      "name": "Size Increase",
+      "icon": "shop-item-5",
+      "description": "Increase the size of the fruit!"
     }
   ]
 }
