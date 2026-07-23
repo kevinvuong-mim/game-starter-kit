@@ -3,7 +3,6 @@
     {
       "price": 2000,
       "type": "boost",
-      "duration": 3600,
       "currency": "coins",
       "id": "boost_hammer",
       "name": "Explosive Hammer",
@@ -13,7 +12,6 @@
     {
       "price": 2000,
       "type": "boost",
-      "duration": 3600,
       "currency": "coins",
       "id": "boost_change",
       "name": "Change Fruit",
@@ -23,7 +21,6 @@
     {
       "price": 2500,
       "type": "boost",
-      "duration": 3600,
       "currency": "coins",
       "id": "boost_swap",
       "name": "Swap",
@@ -33,7 +30,6 @@
     {
       "price": 3500,
       "type": "boost",
-      "duration": 3600,
       "currency": "coins",
       "id": "boost_double",
       "name": "Double",
@@ -43,7 +39,6 @@
     {
       "price": 3500,
       "type": "boost",
-      "duration": 3600,
       "currency": "coins",
       "id": "boost_size",
       "name": "Size Increase",

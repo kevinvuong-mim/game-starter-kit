@@ -48,7 +48,7 @@ class ShopService {
     }
 
     if (item.type === 'boost') {
-      return this.isBoostActive(id);
+      return this.getQuantity(id) > 0;
     }
 
     return !!usePlatformStore.getState().inventory.items[id];
@@ -58,13 +58,20 @@ class ShopService {
     return !!usePlatformStore.getState().inventory.items[id]?.equipped;
   }
 
-  isBoostActive(id: string, now = Date.now()): boolean {
-    const expiresAt = usePlatformStore.getState().inventory.items[id]?.expiresAt;
-    return typeof expiresAt === 'number' && expiresAt > now;
+  getQuantity(id: string): number {
+    return usePlatformStore.getState().inventory.items[id]?.quantity ?? 0;
   }
 
-  getActiveCoinMultiplier(now = Date.now()): number {
-    return this.isBoostActive('boost_double', now) ? 2 : 1;
+  /** Consume one use of a boost skill. Returns false if none left. */
+  consumeBoost(id: string): boolean {
+    if (this.getQuantity(id) <= 0) return false;
+    usePlatformStore.getState().removeItem(id, 1);
+    return true;
+  }
+
+  /** Timed coin multiplier is unused; skills are quantity-based. */
+  getActiveCoinMultiplier(_now = Date.now()): number {
+    return 1;
   }
 
   getEquippedSkinColor(): number {
@@ -143,7 +150,7 @@ class ShopService {
     }
 
     if (item.type === 'boost') {
-      store.activateBoost(item.id, item.duration ?? 3600);
+      store.addItem(item.id, 1);
     }
   }
 }

@@ -14,6 +14,8 @@
   },
   "game": {
     "score": "Score: {{score}}",
+    "scoreLabel": "SCORE",
+    "nextFruit": "NEXT",
     "yourScore": "YOUR SCORE",
     "gameOver": "GAME OVER",
     "newRecord": "NEW RECORD",
@@ -24,7 +26,13 @@
     "shareScoreTitle": "My score in {{gameName}}",
     "shareScoreText": "I scored {{score}} in {{gameName}}! Can you beat me?",
     "shareDialogTitle": "Share your score",
-    "shareUnavailable": "Sharing is not available"
+    "shareUnavailable": "Sharing is not available",
+    "skillHintHammer": "Tap a fruit to destroy it",
+    "skillHintSwap": "Tap two fruits to swap them",
+    "skillHintSwapSecond": "Tap the second fruit",
+    "skillHintDouble": "Tap a fruit to double its merge score",
+    "skillHintSize": "Tap a fruit to grow it",
+    "skillsTitle": "SKILLS"
   },
 
   "shop": {

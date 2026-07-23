@@ -14,6 +14,8 @@
   },
   "game": {
     "score": "Điểm: {{score}}",
+    "scoreLabel": "ĐIỂM",
+    "nextFruit": "TIẾP THEO",
     "yourScore": "ĐIỂM CỦA BẠN",
     "gameOver": "KẾT THÚC",
     "newRecord": "KỶ LỤC MỚI",
@@ -24,7 +26,13 @@
     "shareScoreTitle": "Điểm của tôi trong {{gameName}}",
     "shareScoreText": "Tôi đạt {{score}} điểm trong {{gameName}}! Bạn có vượt qua được không?",
     "shareDialogTitle": "Chia sẻ điểm số",
-    "shareUnavailable": "Không thể chia sẻ trên thiết bị này"
+    "shareUnavailable": "Không thể chia sẻ trên thiết bị này",
+    "skillHintHammer": "Chọn trái để phá hủy",
+    "skillHintSwap": "Chọn 2 trái để hoán đổi",
+    "skillHintSwapSecond": "Chọn trái thứ hai",
+    "skillHintDouble": "Chọn trái để nhân đôi điểm ghép",
+    "skillHintSize": "Chọn trái để tăng cấp",
+    "skillsTitle": "KỸ NĂNG"
   },
 
   "shop": {

@@ -70,6 +70,14 @@ class GameEngine {
       },
       height: gameConfig.height,
       backgroundColor: '#1a1a2e',
+      physics: {
+        default: 'matter',
+        matter: {
+          gravity: { x: 0, y: 1.4 },
+          // Enable to tune container wall insets against glass-container.png
+          debug: false,
+        },
+      },
       scale: {
         autoCenter: PhaserLib.Scale.CENTER_BOTH,
         mode: isTablet ? PhaserLib.Scale.FIT : PhaserLib.Scale.ENVELOP,
