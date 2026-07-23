@@ -14,22 +14,23 @@ import { drawRoundedRect } from '../panel/graphics';
 import { createUIButton } from '../button/UIButton';
 import { soundManager } from '@platform/ui/audio/SoundManager';
 import { t, i18n } from '@platform/modules/i18n/i18n.service';
-import { settings } from '@platform/modules/settings/settings.service';
+import { settings } from '@platform/modules/settings';
+import { shop } from '@platform/modules/shop';
+import { ads } from '@platform/core/advertising';
 
 const LANGUAGE_GLOBE_KEY = 'language-globe-icon';
 
 const SECTION_TITLE_COLOR = '#1c1b18';
 const LABEL_COLOR = '#3a372f';
 const DIVIDER_COLOR = 0xb5974f;
-const INPUT_BG = '#ffffff';
 const INPUT_TEXT = '#1c1b18';
-const INPUT_BORDER = '#d4c09a';
 
 const TOGGLE_WIDTH = 72;
 const TOGGLE_HEIGHT = 36;
 const TOGGLE_KNOB = 14;
 const TOGGLE_ON = 0x1f6b32;
 const TOGGLE_OFF = 0x8a8a8a;
+const TOGGLE_LOCKED_ALPHA = 0.45;
 
 const MAX_NAME_LENGTH = 32;
 const SAVE_BTN_WIDTH = 100;
@@ -39,6 +40,9 @@ const LEGAL_BTN_HEIGHT = 78;
 const LEGAL_BTN_GAP = 12;
 const ROW_ICON_SIZE = 36;
 const DIVIDER_GAP = 30;
+const REMOVE_ADS_ITEM_ID = 'remove_ads';
+/** Display price for mock / until store catalog is fetched. */
+const REMOVE_ADS_PRICE = '$4.99';
 
 const LANGUAGES = [
   { code: 'en', labelKey: 'settings.languageEn' as const },
@@ -53,11 +57,17 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   private readonly onNavigate: (sceneKey: string, data?: Record<string, unknown>) => void;
 
   private saving = false;
+  private purchasingAds = false;
   private languageOpen = false;
-  private inputElement?: HTMLInputElement;
-  private domElement?: Phaser.GameObjects.DOMElement;
+  private nameEditing = false;
+  private draftName = '';
+  private nameFieldText?: Phaser.GameObjects.Text;
+  private nameCaret?: Phaser.GameObjects.Text;
+  private nameCaretTimer?: Phaser.Time.TimerEvent;
+  private editInput?: HTMLInputElement;
   private languageMenu?: Phaser.GameObjects.Container;
   private languageLabel?: Phaser.GameObjects.Text;
+  private purchaseModal?: Phaser.GameObjects.Container;
 
   constructor(
     scene: Phaser.Scene,
@@ -80,9 +90,17 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private cleanup(): void {
-    this.domElement?.destroy();
-    this.domElement = undefined;
-    this.inputElement = undefined;
+    this.endNameEdit();
+    this.hidePurchaseModal();
+  }
+
+  isPurchaseModalOpen(): boolean {
+    return !!this.purchaseModal?.visible;
+  }
+
+  hidePurchaseModal(): void {
+    this.purchaseModal?.destroy(true);
+    this.purchaseModal = undefined;
   }
 
   private build(): void {
@@ -111,6 +129,8 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     cursorY = this.buildProfileSection(contentLeft, contentRight, contentWidth, cursorY);
     cursorY = this.addDivider(width / 2, cursorY + DIVIDER_GAP, contentWidth + 24) + DIVIDER_GAP;
     cursorY = this.buildAudioSection(contentLeft, contentRight, cursorY);
+    cursorY = this.addDivider(width / 2, cursorY + DIVIDER_GAP, contentWidth + 24) + DIVIDER_GAP;
+    cursorY = this.buildAdsSection(contentLeft, contentRight, cursorY);
     cursorY = this.addDivider(width / 2, cursorY + DIVIDER_GAP, contentWidth + 24) + DIVIDER_GAP;
     cursorY = this.buildLanguageSection(contentLeft, contentRight, contentWidth, cursorY);
     cursorY = this.addDivider(width / 2, cursorY + DIVIDER_GAP, contentWidth + 24) + DIVIDER_GAP;
@@ -186,38 +206,54 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
 
     const saveWidth = SAVE_BTN_WIDTH;
     const gap = 10;
-    const inputWidth = Math.max(140, contentWidth - saveWidth - gap);
+    const fieldWidth = Math.max(140, contentWidth - saveWidth - gap);
     const rowCenterY = y + INPUT_HEIGHT / 2;
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.maxLength = MAX_NAME_LENGTH;
-    input.placeholder = t('settings.playerNamePlaceholder');
-    input.value = guest.getName() ?? '';
-    input.autocomplete = 'off';
-    input.spellcheck = false;
-    input.style.cssText = [
-      `width: ${inputWidth}px`,
-      `height: ${INPUT_HEIGHT}px`,
-      'padding: 0 14px',
-      `border: 2px solid ${INPUT_BORDER}`,
-      'border-radius: 12px',
-      `background: ${INPUT_BG}`,
-      `color: ${INPUT_TEXT}`,
-      'font-size: 18px',
-      'font-weight: 600',
-      'font-family: Fredoka, sans-serif',
-      'outline: none',
-      'box-sizing: border-box',
-      `caret-color: ${INPUT_TEXT}`,
-      '-webkit-user-select: text',
-      'user-select: text',
-    ].join(';');
-    this.inputElement = input;
+    this.draftName = guest.getName() ?? '';
 
-    this.domElement = this.scene.add.dom(left + inputWidth / 2, rowCenterY, input);
-    this.domElement.setOrigin(0.5);
-    this.domElement.updateSize();
+    const nameField = this.scene.add.container(left + fieldWidth / 2, rowCenterY);
+    const fieldBg = this.scene.add.graphics();
+    drawRoundedRect(
+      fieldBg,
+      -fieldWidth / 2,
+      -INPUT_HEIGHT / 2,
+      fieldWidth,
+      INPUT_HEIGHT,
+      12,
+      0xffffff,
+      DIVIDER_COLOR,
+      2
+    );
+    nameField.add(fieldBg);
+
+    this.nameFieldText = this.scene.add
+      .text(-fieldWidth / 2 + 14, 0, '', {
+        fontSize: '18px',
+        fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
+        color: INPUT_TEXT,
+      })
+      .setOrigin(0, 0.5);
+    nameField.add(this.nameFieldText);
+
+    this.nameCaret = this.scene.add
+      .text(0, 0, '|', {
+        fontSize: '18px',
+        fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
+        color: INPUT_TEXT,
+      })
+      .setOrigin(0, 0.5)
+      .setVisible(false);
+    nameField.add(this.nameCaret);
+
+    const hit = this.scene.add
+      .rectangle(0, 0, fieldWidth, INPUT_HEIGHT, 0x000000, 0)
+      .setInteractive({ useHandCursor: true });
+    hit.on('pointerdown', () => this.beginNameEdit());
+    nameField.add(hit);
+    this.add(nameField);
+    this.refreshNameFieldText();
 
     this.add(
       createUIButton({
@@ -240,6 +276,106 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     );
 
     return y + INPUT_HEIGHT;
+  }
+
+  private refreshNameFieldText(): void {
+    if (!this.nameFieldText) return;
+
+    const trimmed = this.draftName;
+    const empty = trimmed.length === 0;
+    this.nameFieldText.setColor(empty && !this.nameEditing ? LABEL_COLOR : INPUT_TEXT);
+    this.nameFieldText.setText(
+      empty && !this.nameEditing ? t('settings.playerNamePlaceholder') : trimmed
+    );
+
+    if (this.nameCaret && this.nameFieldText) {
+      const caretX = this.nameFieldText.x + this.nameFieldText.width + (empty ? 0 : 1);
+      this.nameCaret.setPosition(caretX, 0);
+    }
+  }
+
+  private beginNameEdit(): void {
+    if (this.nameEditing || this.purchaseModal) return;
+
+    this.nameEditing = true;
+    this.refreshNameFieldText();
+    this.startCaretBlink();
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = MAX_NAME_LENGTH;
+    input.value = this.draftName;
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('aria-label', t('settings.playerName'));
+    // Off-canvas: opens the OS keyboard without drawing over Phaser UI.
+    input.style.cssText = [
+      'position: fixed',
+      'left: 0',
+      'top: 0',
+      'width: 1px',
+      'height: 1px',
+      'opacity: 0',
+      'border: 0',
+      'padding: 0',
+      'margin: 0',
+      'pointer-events: none',
+      'z-index: 0',
+    ].join(';');
+
+    const onInput = (): void => {
+      this.draftName = input.value.slice(0, MAX_NAME_LENGTH);
+      this.refreshNameFieldText();
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        input.blur();
+      }
+    };
+    const onBlur = (): void => {
+      input.removeEventListener('input', onInput);
+      input.removeEventListener('keydown', onKeyDown);
+      input.removeEventListener('blur', onBlur);
+      this.endNameEdit();
+    };
+
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', onKeyDown);
+    input.addEventListener('blur', onBlur);
+    document.body.appendChild(input);
+    this.editInput = input;
+    input.focus({ preventScroll: true });
+  }
+
+  private endNameEdit(): void {
+    const input = this.editInput;
+    this.editInput = undefined;
+    if (input?.isConnected) {
+      input.remove();
+    }
+    this.nameEditing = false;
+    this.stopCaretBlink();
+    this.refreshNameFieldText();
+  }
+
+  private startCaretBlink(): void {
+    this.stopCaretBlink();
+    this.nameCaret?.setVisible(true);
+    this.nameCaretTimer = this.scene.time.addEvent({
+      delay: 500,
+      loop: true,
+      callback: () => {
+        if (!this.nameCaret) return;
+        this.nameCaret.setVisible(!this.nameCaret.visible);
+      },
+    });
+  }
+
+  private stopCaretBlink(): void {
+    this.nameCaretTimer?.remove(false);
+    this.nameCaretTimer = undefined;
+    this.nameCaret?.setVisible(false);
   }
 
   private buildAudioSection(left: number, right: number, startY: number): number {
@@ -314,12 +450,180 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     );
 
     this.add(
-      createToggle(this.scene, right - TOGGLE_WIDTH / 2, centerY, enabled, (next) => {
-        void onToggle(next);
+      createToggle(this.scene, right - TOGGLE_WIDTH / 2, centerY, {
+        initial: enabled,
+        onChange: (next) => {
+          void onToggle(next);
+        },
       })
     );
 
     return y + rowHeight + 8;
+  }
+
+  private buildAdsSection(left: number, right: number, startY: number): number {
+    let y = startY;
+    const hasRemoveAds = shop.isOwned(REMOVE_ADS_ITEM_ID);
+
+    this.add(
+      this.scene.add
+        .text(left, y, t('settings.ads').toUpperCase(), {
+          fontSize: '22px',
+          fontStyle: 'bold',
+          color: SECTION_TITLE_COLOR,
+          fontFamily: FREDOKA_FONT,
+        })
+        .setOrigin(0, 0)
+    );
+    y += 40;
+
+    const rowHeight = 48;
+    const centerY = y + rowHeight / 2;
+
+    this.add(
+      this.scene.add
+        .text(left, centerY, t('settings.hideAds'), {
+          fontSize: '20px',
+          fontStyle: 'bold',
+          color: TEXT_COLOR,
+          fontFamily: FREDOKA_FONT,
+        })
+        .setOrigin(0, 0.5)
+    );
+
+    this.add(
+      createToggle(this.scene, right - TOGGLE_WIDTH / 2, centerY, {
+        initial: hasRemoveAds && ads.isAdsRemoved(),
+        locked: !hasRemoveAds,
+        onChange: (hideAds) => {
+          ads.setAdsRemoved(hideAds);
+        },
+        onLockedTap: () => {
+          this.showRemoveAdsPurchaseModal();
+        },
+      })
+    );
+
+    return y + rowHeight + 8;
+  }
+
+  private showRemoveAdsPurchaseModal(): void {
+    if (this.purchaseModal || this.purchasingAds || shop.isOwned(REMOVE_ADS_ITEM_ID)) return;
+
+    this.endNameEdit();
+
+    const { width, height } = this.scene.cameras.main;
+    const panelWidth = Math.min(340, width * 0.82);
+    const panelHeight = 280;
+    const panelX = width / 2 - panelWidth / 2;
+    const panelY = height / 2 - panelHeight / 2;
+    const modal = this.scene.add.container(0, 0).setDepth(200);
+
+    const overlay = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.55);
+    overlay.setInteractive();
+    overlay.on('pointerdown', () => this.hidePurchaseModal());
+
+    const panelGfx = this.scene.add.graphics();
+    drawRoundedRect(panelGfx, panelX, panelY, panelWidth, panelHeight, 20, PANEL_BG, PANEL_BORDER);
+
+    const panelHit = this.scene.add
+      .rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x000000, 0)
+      .setInteractive();
+
+    modal.add([overlay, panelGfx, panelHit]);
+
+    modal.add(
+      createUIButton({
+        scene: this.scene,
+        position: { x: panelX + panelWidth - 6, y: panelY + 6 },
+        size: { width: 56, height: 56 },
+        background: { key: 'close-icon' },
+        onClick: () => this.hidePurchaseModal(),
+      })
+    );
+
+    modal.add(
+      this.scene.add
+        .text(width / 2, panelY + 56, t('shop.items.remove_ads.name'), {
+          fontSize: '24px',
+          fontStyle: 'bold',
+          color: TEXT_COLOR,
+          fontFamily: FREDOKA_FONT,
+          align: 'center',
+          wordWrap: { width: panelWidth - 40 },
+        })
+        .setOrigin(0.5, 0)
+    );
+
+    modal.add(
+      this.scene.add
+        .text(width / 2, panelY + 100, t('shop.items.remove_ads.description'), {
+          fontSize: '15px',
+          color: LABEL_COLOR,
+          fontFamily: FREDOKA_FONT,
+          align: 'center',
+          wordWrap: { width: panelWidth - 48 },
+        })
+        .setOrigin(0.5, 0)
+    );
+
+    modal.add(
+      this.scene.add
+        .text(width / 2, panelY + 148, t('settings.removeAdsPrice', { price: REMOVE_ADS_PRICE }), {
+          fontSize: '22px',
+          fontStyle: 'bold',
+          color: SECTION_TITLE_COLOR,
+          fontFamily: FREDOKA_FONT,
+        })
+        .setOrigin(0.5, 0)
+    );
+
+    const buyWidth = Math.min(220, panelWidth * 0.7);
+    modal.add(
+      createUIButton({
+        scene: this.scene,
+        position: { x: width / 2, y: panelY + panelHeight - 52 },
+        size: { width: buyWidth, height: 64 },
+        background: { key: 'leaderboard-button-background' },
+        text: {
+          content: t('shop.buy').toUpperCase(),
+          style: {
+            fontSize: 22,
+            fontStyle: 'bold',
+            border: { width: 3, color: '#000000' },
+          },
+        },
+        onClick: () => {
+          this.hidePurchaseModal();
+          void this.purchaseRemoveAds();
+        },
+      })
+    );
+
+    this.purchaseModal = modal;
+    this.add(modal);
+  }
+
+  private async purchaseRemoveAds(): Promise<void> {
+    if (this.purchasingAds || shop.isOwned(REMOVE_ADS_ITEM_ID)) return;
+    this.purchasingAds = true;
+
+    toast.show({ message: t('settings.purchasingAds'), type: 'info', duration: 2500 });
+
+    try {
+      const success = await shop.purchase(REMOVE_ADS_ITEM_ID);
+      const itemName = t('shop.items.remove_ads.name');
+      toast.show(
+        success
+          ? { type: 'success', message: t('shop.purchaseSuccess', { name: itemName }) }
+          : { message: t('shop.purchaseFailed'), type: 'error' }
+      );
+      if (success) {
+        this.scene.scene.restart();
+      }
+    } finally {
+      this.purchasingAds = false;
+    }
   }
 
   private buildLanguageSection(
@@ -509,7 +813,8 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   private async handleSave(): Promise<void> {
     if (this.saving) return;
 
-    const name = this.inputElement?.value.trim() ?? '';
+    this.endNameEdit();
+    const name = this.draftName.trim();
     if (!name) {
       toast.show({ message: t('settings.playerNameRequired'), type: 'warning' });
       return;
@@ -523,6 +828,8 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     this.saving = true;
     try {
       const result = await guest.updateName(name);
+      this.draftName = name;
+      this.refreshNameFieldText();
       toast.show({
         message: result.synced
           ? t('settings.playerNameUpdated')
@@ -541,10 +848,15 @@ function createToggle(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  initial: boolean,
-  onChange: (enabled: boolean) => void
+  options: {
+    initial: boolean;
+    locked?: boolean;
+    onChange: (enabled: boolean) => void;
+    onLockedTap?: () => void;
+  }
 ): Phaser.GameObjects.Container {
-  let enabled = initial;
+  let enabled = options.initial;
+  const locked = !!options.locked;
   const container = scene.add.container(x, y);
   const track = scene.add.graphics();
   const knob = scene.add.circle(0, 0, TOGGLE_KNOB, 0xffffff);
@@ -577,15 +889,22 @@ function createToggle(
 
   draw();
   container.add([track, knob]);
+  if (locked) {
+    container.setAlpha(TOGGLE_LOCKED_ALPHA);
+  }
 
   const hit = scene.add
     .rectangle(0, 0, TOGGLE_WIDTH + 8, TOGGLE_HEIGHT + 8, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
   hit.on('pointerdown', () => {
+    soundManager.playPop();
+    if (locked) {
+      options.onLockedTap?.();
+      return;
+    }
     enabled = !enabled;
     draw();
-    soundManager.playPop();
-    onChange(enabled);
+    options.onChange(enabled);
   });
   container.add(hit);
 

@@ -83,6 +83,12 @@ export interface PlatformEventMap {
   'daily:status': { canClaim: boolean; timeManipulated: boolean };
   'game:sync:dropped': { clientResultId: string; attempts: number };
   'ad:show:result': { placement: string; shown: boolean; error?: string };
+  /** Modules emit; bootstrap binds ToastManager (avoids modules → UI imports). */
+  'ui:toast': {
+    message: string;
+    type?: 'info' | 'success' | 'warning' | 'error';
+    duration?: number;
+  };
 }
 
 export interface IEventBus {

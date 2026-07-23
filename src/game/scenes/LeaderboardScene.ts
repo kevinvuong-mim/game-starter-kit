@@ -1,5 +1,4 @@
-import { eventBus } from '@platform/core/events';
-import { LeaderboardPanel } from '@platform/ui/index';
+import { LeaderboardPanel } from '@platform/ui';
 import { BasePanelScene, type PanelSceneData } from './BasePanelScene';
 
 export class LeaderboardScene extends BasePanelScene {
@@ -9,15 +8,12 @@ export class LeaderboardScene extends BasePanelScene {
     super({
       sceneKey: 'Leaderboard',
       defaultReturnTo: 'Home',
+      adContext: 'LEADERBOARD',
     });
   }
 
   protected resolveReturnData(data: PanelSceneData): Record<string, unknown> | undefined {
     return data.returnTo ? data.returnData : undefined;
-  }
-
-  protected onBeforePanel(): void {
-    eventBus.emit('ad:context:change', { context: 'LEADERBOARD' });
   }
 
   protected createPanel(): void {

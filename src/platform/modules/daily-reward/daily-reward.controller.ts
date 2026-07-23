@@ -1,6 +1,6 @@
 import { logger } from '@platform/core/error';
 import type { IEventBus } from '@platform/core/events';
-import { saveService } from '@platform/modules/save/save.service';
+import { saveService } from '@platform/modules/save';
 import { trackDailyClaim } from '@platform/core/analytics/events';
 import { dailyRewards, type DailyRewardService } from './daily-reward.service';
 

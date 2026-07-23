@@ -9,7 +9,7 @@ import { logger } from '@platform/core/error';
 import { eventBus } from '@platform/core/events';
 import { getLocalDateKey } from '@platform/core/utils';
 import { usePlatformStore } from '@platform/core/state';
-import { saveService } from '@platform/modules/save/save.service';
+import { saveService } from '@platform/modules/save';
 import { rewardResolver, type RewardResolver, type ResolvedReward } from './reward-resolver';
 import { dailyRewardRepository, type DailyRewardRepository } from './daily-reward.repository';
 

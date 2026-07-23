@@ -106,7 +106,11 @@
     "playerNameUpdated": "Đã cập nhật tên",
     "playerNameSavedLocally": "Đã lưu tên — sẽ đồng bộ khi có mạng",
     "playerNameFailed": "Không thể cập nhật tên",
-    "playerNameOffline": "Hãy tạo hồ sơ guest khi có mạng trước"
+    "playerNameOffline": "Hãy tạo hồ sơ guest khi có mạng trước",
+    "ads": "Quảng cáo",
+    "hideAds": "Ẩn quảng cáo",
+    "removeAdsPrice": "{{price}}",
+    "purchasingAds": "Đang xử lý mua hàng…"
   },
   "missions": {
     "title": "Nhiệm vụ",

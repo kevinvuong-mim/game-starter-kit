@@ -10,9 +10,9 @@ import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { services } from '@platform/core/services';
 import { usePlatformStore } from '@platform/core/state';
-import { shop } from '@platform/modules/shop/shop.service';
+import { shop } from '@platform/modules/shop';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
-import { saveService } from '@platform/modules/save/save.service';
+import { saveService } from '@platform/modules/save';
 
 const { events, analytics } = services;
 

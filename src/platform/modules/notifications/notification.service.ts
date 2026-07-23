@@ -8,11 +8,11 @@ import { t } from '@platform/modules/i18n';
 import { Capacitor } from '@capacitor/core';
 import { logger } from '@platform/core/error';
 import { getConfig } from '@platform/core/config';
-import { toast } from '@platform/ui/toast/ToastManager';
+import { eventBus } from '@platform/core/events';
 import { deviceSyncService } from './device-sync.service';
 import { pushNotificationService } from './push-notification.service';
 import { localNotificationService } from './local-notification.service';
-import { navigationService } from '@platform/modules/navigation/navigation.service';
+import { navigationService } from '@platform/modules/navigation';
 
 type NotificationStatus = 'off' | 'active' | 'denied' | 'pending';
 
@@ -172,7 +172,7 @@ class NotificationService {
 
     const message = this.resolveForegroundMessage(payload);
     if (message) {
-      toast.show({ message, type: 'info', duration: 4000 });
+      eventBus.emit('ui:toast', { message, type: 'info', duration: 4000 });
     }
   }
 

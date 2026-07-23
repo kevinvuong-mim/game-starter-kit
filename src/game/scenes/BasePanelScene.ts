@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/index';
+import { t } from '@platform/ui';
 import { eventBus } from '@platform/core/events';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
@@ -13,6 +13,8 @@ export interface PanelSceneOptions {
   sceneKey: string;
   backgroundKey?: string;
   defaultReturnTo: string;
+  /** When set, emits `ad:context:change` before the panel builds. */
+  adContext?: string;
 }
 
 export abstract class BasePanelScene extends Phaser.Scene {
@@ -42,6 +44,10 @@ export abstract class BasePanelScene extends Phaser.Scene {
     this.cleanupEventListeners();
 
     const { width, height } = this.cameras.main;
+
+    if (this.options.adContext) {
+      eventBus.emit('ad:context:change', { context: this.options.adContext });
+    }
 
     this.onBeforePanel();
 

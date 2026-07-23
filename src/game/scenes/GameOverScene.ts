@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 
-import { gameConfig } from '../config';
+import { gameConfig } from '@game/config';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
-import { t, toast, shareService, i18n } from '@platform/ui/index';
+import { t, toast, shareService, i18n } from '@platform/ui';
 import { createUIButton } from '@platform/ui/button/UIButton';
 import { drawRoundedRect } from '@platform/ui/panel/graphics';
 import {

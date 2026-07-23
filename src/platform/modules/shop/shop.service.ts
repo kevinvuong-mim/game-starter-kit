@@ -4,7 +4,7 @@ import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 import type { ProductKey } from '@platform/modules/iap';
 import { iap, getProductByKey } from '@platform/modules/iap';
-import { saveService } from '@platform/modules/save/save.service';
+import { saveService } from '@platform/modules/save';
 
 type ShopItemType = 'skin' | 'boost' | 'entitlement';
 

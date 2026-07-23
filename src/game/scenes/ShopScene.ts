@@ -1,6 +1,5 @@
-import { eventBus } from '@platform/core/events';
 import { BasePanelScene } from './BasePanelScene';
-import { ShopPanel } from '@platform/ui/shop/ShopPanel';
+import { ShopPanel } from '@platform/ui';
 
 export class ShopScene extends BasePanelScene {
   private panel?: ShopPanel;
@@ -9,11 +8,8 @@ export class ShopScene extends BasePanelScene {
     super({
       sceneKey: 'Shop',
       defaultReturnTo: 'Home',
+      adContext: 'SHOP',
     });
-  }
-
-  protected onBeforePanel(): void {
-    eventBus.emit('ad:context:change', { context: 'SHOP' });
   }
 
   protected createPanel(): void {

@@ -1,4 +1,4 @@
-import { shop } from '@platform/modules/shop/shop.service';
+import { consumeBoost, getBoostQuantity } from '@platform/ui/shop/boostInventory';
 
 export const SKILL_IDS = [
   'boost_hammer',
@@ -11,9 +11,9 @@ export const SKILL_IDS = [
 export type SkillId = (typeof SKILL_IDS)[number];
 
 export function getSkillQuantity(id: SkillId): number {
-  return shop.getQuantity(id);
+  return getBoostQuantity(id);
 }
 
 export function consumeSkill(id: SkillId): boolean {
-  return shop.consumeBoost(id);
+  return consumeBoost(id);
 }

@@ -1,5 +1,5 @@
 import { BasePanelScene } from './BasePanelScene';
-import { DailyRewardPanel } from '@platform/ui/daily-reward/DailyRewardPanel';
+import { DailyRewardPanel } from '@platform/ui';
 
 export class DailyRewardScene extends BasePanelScene {
   private panel?: DailyRewardPanel;

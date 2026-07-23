@@ -16,7 +16,7 @@ import { drawRoundedRect } from '../panel/graphics';
 import { formatNumber } from '@platform/core/utils';
 import type { MissionProgress } from '@platform/core/state';
 import { t, i18n } from '@platform/modules/i18n/i18n.service';
-import { saveService } from '@platform/modules/save/save.service';
+import { saveService } from '@platform/modules/save';
 import { missions } from '@platform/modules/missions/mission.service';
 
 const ACTION_BTN_WIDTH = 88;

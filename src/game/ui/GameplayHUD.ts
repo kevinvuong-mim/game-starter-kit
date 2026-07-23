@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui/index';
+import { t } from '@platform/ui';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
-import { formatNumber } from '@platform/core/utils';
 import { createUIButton } from '@platform/ui/button/UIButton';
 import type { UIButton } from '@platform/ui/types';
 
@@ -10,19 +9,23 @@ const PANEL_FILL = 0xf5e6c8;
 const PANEL_STROKE = 0xd4b896;
 const TEXT_DARK = '#1a1a1a';
 
-export interface HUDOptions {
+function formatScore(score: number): string {
+  return score.toLocaleString('en-US');
+}
+
+export interface GameplayHUDOptions {
   onBack: () => void;
 }
 
 /**
- * Gameplay HUD — back button, score panel, next-fruit preview (Suika layout).
+ * Suika gameplay HUD — back button, score panel, next-fruit preview.
  */
-export class HUD extends Phaser.GameObjects.Container {
+export class GameplayHUD extends Phaser.GameObjects.Container {
   private scoreValue?: Phaser.GameObjects.Text;
   private nextFruitPreview?: Phaser.GameObjects.Image;
   private backButton?: UIButton;
 
-  constructor(scene: Phaser.Scene, options: HUDOptions) {
+  constructor(scene: Phaser.Scene, options: GameplayHUDOptions) {
     super(scene, 0, 0);
     scene.add.existing(this);
     this.setDepth(500);
@@ -30,7 +33,7 @@ export class HUD extends Phaser.GameObjects.Container {
     this.build(options);
   }
 
-  private build(options: HUDOptions): void {
+  private build(options: GameplayHUDOptions): void {
     const { width } = this.scene.cameras.main;
     const topY = 120;
 
@@ -96,7 +99,7 @@ export class HUD extends Phaser.GameObjects.Container {
   }
 
   setScore(score: number): void {
-    this.scoreValue?.setText(formatNumber(score));
+    this.scoreValue?.setText(formatScore(score));
   }
 
   setNextFruit(textureKey: string, displaySize = 36): void {
