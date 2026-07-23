@@ -149,7 +149,7 @@ export class GameplayScene extends Phaser.Scene {
     this.hud = new GameplayHUD(this, {
       onBack: () => {
         if (this.gameActive) {
-          this.endSession();
+          this.abortSession();
           this.scene.start(this.returnTo);
         }
       },
@@ -176,14 +176,16 @@ export class GameplayScene extends Phaser.Scene {
           this.skills.clear();
           return;
         }
-        this.endSession();
+        this.abortSession();
         this.scene.start(this.returnTo);
       })
     );
   }
 
   shutdown(): void {
-    this.endSession();
+    // Leaving via back already aborted; leaving via GameOver already completed.
+    // Any other teardown should not fire interstitial / sync as a finished match.
+    this.abortSession();
     this.cleanupEventListeners();
     this.fruits.clear();
   }
@@ -207,7 +209,18 @@ export class GameplayScene extends Phaser.Scene {
     this.unsubscribers = [];
   }
 
-  private endSession(): void {
+  /** Quit / leave mid-run — keep high-score checkpoint, do not treat as a finished match. */
+  private abortSession(): void {
+    if (this.sessionEnded) return;
+    this.sessionEnded = true;
+    this.gameActive = false;
+
+    if (!this.sessionStarted) return;
+    eventBus.emit('score:update', { score: this.score });
+  }
+
+  /** Real game-over — analytics, interstitial, offline score sync. */
+  private completeSession(): void {
     if (this.sessionEnded) return;
     this.sessionEnded = true;
     this.gameActive = false;
@@ -312,7 +325,7 @@ export class GameplayScene extends Phaser.Scene {
     this.dangerLine.flashViolators(this, violators);
 
     this.time.delayedCall(3000, () => {
-      this.endSession();
+      this.completeSession();
       this.scene.start('GameOver', {
         score: this.score,
         jumps: this.merges,

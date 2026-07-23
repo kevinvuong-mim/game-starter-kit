@@ -210,9 +210,9 @@ export class GuestService {
     this.guestId = null;
     this.playerName = null;
 
-    // Keep offline score queue — next flush re-signs with the new guestId.
+    // Offline score queue is keyed by guestId — flush drops orphans after identity change.
     await notificationRepository.saveState(createDefaultNotificationState());
-    logger.info('[Guest] Auth recovery — credentials cleared, score queue preserved');
+    logger.info('[Guest] Auth recovery — credentials cleared');
 
     await this.init();
     const recovered = this.getStatus() === 'ready';

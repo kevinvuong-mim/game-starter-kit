@@ -119,6 +119,28 @@ class ToastManager {
         return;
       }
 
+      let settled = false;
+
+      const finish = (): void => {
+        if (settled) return;
+        settled = true;
+        scene.events.off(Phaser.Scenes.Events.SHUTDOWN, onSceneEnd);
+        scene.events.off(Phaser.Scenes.Events.DESTROY, onSceneEnd);
+        if (container.active) {
+          scene.tweens.killTweensOf(container);
+          container.destroy(true);
+        }
+        resolve();
+      };
+
+      const onSceneEnd = (): void => {
+        finish();
+      };
+
+      // Scene restart/shutdown kills tweens without onComplete — must unblock the queue.
+      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, onSceneEnd);
+      scene.events.once(Phaser.Scenes.Events.DESTROY, onSceneEnd);
+
       const { width, height } = scene.cameras.main;
       const type = options.type ?? 'info';
       const duration = options.duration ?? 2500;
@@ -184,7 +206,6 @@ class ToastManager {
         3
       );
 
-      // Soft inner highlight along the top edge
       panel.lineStyle(2, 0xffffff, 0.35);
       panel.beginPath();
       panel.moveTo(-contentWidth / 2 + TOAST_CORNER_RADIUS, -contentHeight / 2 + 2);
@@ -229,7 +250,9 @@ class ToastManager {
         duration: 280,
         ease: 'Back.easeOut',
         onComplete: () => {
+          if (settled) return;
           scene.time.delayedCall(duration, () => {
+            if (settled) return;
             scene.tweens.add({
               targets: container,
               alpha: 0,
@@ -239,8 +262,7 @@ class ToastManager {
               duration: 220,
               ease: 'Cubic.easeIn',
               onComplete: () => {
-                container.destroy();
-                resolve();
+                finish();
               },
             });
           });

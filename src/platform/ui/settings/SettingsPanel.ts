@@ -56,6 +56,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   private readonly onBack: () => void;
   private readonly onNavigate: (sceneKey: string, data?: Record<string, unknown>) => void;
 
+  private disposed = false;
   private saving = false;
   private purchasingAds = false;
   private languageOpen = false;
@@ -64,6 +65,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   private nameFieldText?: Phaser.GameObjects.Text;
   private nameCaret?: Phaser.GameObjects.Text;
   private nameCaretTimer?: Phaser.Time.TimerEvent;
+  private focusCheckTimer?: Phaser.Time.TimerEvent;
   private editInput?: HTMLInputElement;
   private languageMenu?: Phaser.GameObjects.Container;
   private languageLabel?: Phaser.GameObjects.Text;
@@ -81,7 +83,6 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     this.onNavigate = options.onNavigate;
     scene.add.existing(this);
     this.build();
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
   }
 
   destroy(fromScene?: boolean): void {
@@ -90,8 +91,66 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private cleanup(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+
+    this.focusCheckTimer?.remove(false);
+    this.focusCheckTimer = undefined;
+    this.stopCaretBlink();
+    this.teardownNameEditInput();
+    this.nameEditing = false;
+
+    // Parent destroy will tear down children — clear refs so we don't double-destroy
+    // interactive nodes mid-input (which nulls the canvas context Phaser still draws to).
+    this.languageMenu = undefined;
+    this.languageOpen = false;
+    this.purchaseModal = undefined;
+    this.nameFieldText = undefined;
+    this.nameCaret = undefined;
+    this.languageLabel = undefined;
+  }
+
+  /**
+   * Scene changes must not run inside the same pointer/render stack — destroying
+   * Text/Canvas objects mid-frame causes `ctx.drawImage` on a null canvas context.
+   */
+  private deferSceneAction(action: () => void): void {
+    if (this.disposed) return;
+    const scene = this.scene;
+    if (!scene?.sys?.isActive()) return;
+
     this.endNameEdit();
-    this.hidePurchaseModal();
+    this.scheduleDestroy(this.languageMenu);
+    this.languageMenu = undefined;
+    this.languageOpen = false;
+    this.scheduleDestroy(this.purchaseModal);
+    this.purchaseModal = undefined;
+
+    scene.time.delayedCall(0, () => {
+      if (!scene.sys.isActive()) return;
+      action();
+    });
+  }
+
+  private goBack(): void {
+    this.deferSceneAction(() => this.onBack());
+  }
+
+  private navigateTo(sceneKey: string, data?: Record<string, unknown>): void {
+    this.deferSceneAction(() => this.onNavigate(sceneKey, data));
+  }
+
+  /** Destroy after the current input/render tick so hit targets aren't torn down mid-event. */
+  private scheduleDestroy(target?: Phaser.GameObjects.GameObject): void {
+    if (!target) return;
+    const scene = this.scene;
+    if (!scene?.sys?.isActive()) {
+      if (target.scene) target.destroy(true);
+      return;
+    }
+    scene.time.delayedCall(0, () => {
+      if (target.scene) target.destroy(true);
+    });
   }
 
   isPurchaseModalOpen(): boolean {
@@ -99,8 +158,9 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   hidePurchaseModal(): void {
-    this.purchaseModal?.destroy(true);
+    const modal = this.purchaseModal;
     this.purchaseModal = undefined;
+    this.scheduleDestroy(modal);
   }
 
   private build(): void {
@@ -116,7 +176,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
         scene: this.scene,
         size: { width: 80, height: 80 },
         background: { key: 'back-icon' },
-        onClick: this.onBack,
+        onClick: () => this.goBack(),
         position: { x: width * 0.18, y: height * 0.08 },
       })
     );
@@ -279,7 +339,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private refreshNameFieldText(): void {
-    if (!this.nameFieldText) return;
+    if (this.disposed || !this.nameFieldText?.active) return;
 
     const trimmed = this.draftName;
     const empty = trimmed.length === 0;
@@ -288,14 +348,20 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
       empty && !this.nameEditing ? t('settings.playerNamePlaceholder') : trimmed
     );
 
-    if (this.nameCaret && this.nameFieldText) {
+    if (this.nameCaret?.active && this.nameFieldText) {
       const caretX = this.nameFieldText.x + this.nameFieldText.width + (empty ? 0 : 1);
       this.nameCaret.setPosition(caretX, 0);
     }
   }
 
   private beginNameEdit(): void {
-    if (this.nameEditing || this.purchaseModal) return;
+    if (this.disposed || this.purchaseModal) return;
+    if (this.nameEditing && this.editInput) return;
+    // Recover if a previous focus attempt left editing stuck without an input.
+    if (this.nameEditing && !this.editInput) {
+      this.nameEditing = false;
+      this.stopCaretBlink();
+    }
 
     this.nameEditing = true;
     this.refreshNameFieldText();
@@ -324,6 +390,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     ].join(';');
 
     const onInput = (): void => {
+      if (this.disposed || this.editInput !== input) return;
       this.draftName = input.value.slice(0, MAX_NAME_LENGTH);
       this.refreshNameFieldText();
     };
@@ -337,7 +404,9 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
       input.removeEventListener('input', onInput);
       input.removeEventListener('keydown', onKeyDown);
       input.removeEventListener('blur', onBlur);
-      this.endNameEdit();
+      if (this.editInput === input) {
+        this.endNameEdit();
+      }
     };
 
     input.addEventListener('input', onInput);
@@ -346,27 +415,43 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
     document.body.appendChild(input);
     this.editInput = input;
     input.focus({ preventScroll: true });
+
+    this.focusCheckTimer?.remove(false);
+    this.focusCheckTimer = this.scene.time.delayedCall(150, () => {
+      this.focusCheckTimer = undefined;
+      if (this.disposed || this.editInput !== input) return;
+      if (document.activeElement !== input) {
+        this.endNameEdit();
+      }
+    });
   }
 
-  private endNameEdit(): void {
+  private teardownNameEditInput(): void {
     const input = this.editInput;
     this.editInput = undefined;
     if (input?.isConnected) {
       input.remove();
     }
+  }
+
+  private endNameEdit(): void {
+    this.teardownNameEditInput();
     this.nameEditing = false;
     this.stopCaretBlink();
-    this.refreshNameFieldText();
+    if (!this.disposed) {
+      this.refreshNameFieldText();
+    }
   }
 
   private startCaretBlink(): void {
     this.stopCaretBlink();
+    if (this.disposed || !this.scene?.sys?.isActive()) return;
     this.nameCaret?.setVisible(true);
     this.nameCaretTimer = this.scene.time.addEvent({
       delay: 500,
       loop: true,
       callback: () => {
-        if (!this.nameCaret) return;
+        if (this.disposed || !this.nameCaret?.active) return;
         this.nameCaret.setVisible(!this.nameCaret.visible);
       },
     });
@@ -375,7 +460,9 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   private stopCaretBlink(): void {
     this.nameCaretTimer?.remove(false);
     this.nameCaretTimer = undefined;
-    this.nameCaret?.setVisible(false);
+    if (this.nameCaret?.active) {
+      this.nameCaret.setVisible(false);
+    }
   }
 
   private buildAudioSection(left: number, right: number, startY: number): number {
@@ -508,9 +595,17 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private showRemoveAdsPurchaseModal(): void {
-    if (this.purchaseModal || this.purchasingAds || shop.isOwned(REMOVE_ADS_ITEM_ID)) return;
+    if (
+      this.disposed ||
+      this.purchaseModal ||
+      this.purchasingAds ||
+      shop.isOwned(REMOVE_ADS_ITEM_ID)
+    ) {
+      return;
+    }
 
     this.endNameEdit();
+    this.closeLanguageMenu();
 
     const { width, height } = this.scene.cameras.main;
     const panelWidth = Math.min(340, width * 0.82);
@@ -618,8 +713,18 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
           ? { type: 'success', message: t('shop.purchaseSuccess', { name: itemName }) }
           : { message: t('shop.purchaseFailed'), type: 'error' }
       );
-      if (success) {
-        this.scene.scene.restart();
+      // Only refresh Settings if the user is still on this scene after the async IAP sheet.
+      if (
+        success &&
+        !this.disposed &&
+        this.scene.sys.isActive() &&
+        this.scene.scene.key === 'Settings'
+      ) {
+        this.deferSceneAction(() => {
+          if (this.scene.sys.isActive() && this.scene.scene.key === 'Settings') {
+            this.scene.scene.restart();
+          }
+        });
       }
     } finally {
       this.purchasingAds = false;
@@ -724,7 +829,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
             border: { width: 3, color: '#000000' },
           },
         },
-        onClick: () => this.onNavigate('Legal', { tab: 'terms' }),
+        onClick: () => this.navigateTo('Legal', { tab: 'terms' }),
       })
     );
 
@@ -742,7 +847,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
             border: { width: 3, color: '#000000' },
           },
         },
-        onClick: () => this.onNavigate('Legal', { tab: 'privacy' }),
+        onClick: () => this.navigateTo('Legal', { tab: 'privacy' }),
       })
     );
 
@@ -750,11 +855,13 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private toggleLanguageMenu(left: number, right: number, top: number): void {
+    if (this.disposed) return;
     if (this.languageOpen) {
       this.closeLanguageMenu();
       return;
     }
 
+    this.endNameEdit();
     this.languageOpen = true;
     const menuWidth = right - left;
     const rowHeight = 48;
@@ -786,12 +893,19 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
           .setOrigin(0, 0.5)
       );
 
-      rowHit.on('pointerdown', async () => {
-        this.closeLanguageMenu();
-        if (active) return;
-        await settings.setLanguage(lang.code);
-        toast.show({ message: label, type: 'success', duration: 1500 });
-        this.scene.scene.restart();
+      rowHit.on('pointerdown', () => {
+        void (async () => {
+          this.closeLanguageMenu();
+          if (active || this.disposed) return;
+          await settings.setLanguage(lang.code);
+          if (this.disposed || !this.scene.sys.isActive()) return;
+          toast.show({ message: label, type: 'success', duration: 1500 });
+          this.deferSceneAction(() => {
+            if (this.scene.sys.isActive()) {
+              this.scene.scene.restart();
+            }
+          });
+        })();
       });
     });
 
@@ -800,9 +914,10 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private closeLanguageMenu(): void {
-    this.languageMenu?.destroy(true);
+    const menu = this.languageMenu;
     this.languageMenu = undefined;
     this.languageOpen = false;
+    this.scheduleDestroy(menu);
   }
 
   private addDivider(centerX: number, y: number, width: number): number {
@@ -811,7 +926,7 @@ export class SettingsPanel extends Phaser.GameObjects.Container {
   }
 
   private async handleSave(): Promise<void> {
-    if (this.saving) return;
+    if (this.disposed || this.saving) return;
 
     this.endNameEdit();
     const name = this.draftName.trim();

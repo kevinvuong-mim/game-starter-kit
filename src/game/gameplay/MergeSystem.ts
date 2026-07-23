@@ -101,7 +101,7 @@ export class MergeSystem {
     this.factory.destroy(a);
     this.factory.destroy(b);
 
-    const created = this.factory.spawn(midX, midY, nextLevel, 1);
+    const created = this.factory.spawn(midX, midY, nextLevel, multiplier);
     if (created.body) {
       created.setVelocity(0, -2);
     }

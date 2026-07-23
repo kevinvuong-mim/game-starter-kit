@@ -14,6 +14,8 @@ interface SaveData {
 class SaveService {
   /** Blocks saveLocal until loadLocal has run, preventing boot races from wiping progress. */
   private hydrated = false;
+  private writing = false;
+  private dirty = false;
 
   async saveLocal(): Promise<void> {
     if (!this.hydrated) {
@@ -21,13 +23,27 @@ class SaveService {
       return;
     }
 
-    const data: SaveData = {
-      version: 1,
-      timestamp: Date.now(),
-      state: this.extractSaveableState(),
-    };
-    await storage.save(SAVE_KEY, data, storage.getDurableProviderType());
-    logger.debug('[Save] Local save complete');
+    // Coalesce concurrent callers — always persist the latest snapshot.
+    if (this.writing) {
+      this.dirty = true;
+      return;
+    }
+
+    this.writing = true;
+    try {
+      do {
+        this.dirty = false;
+        const data: SaveData = {
+          version: 1,
+          timestamp: Date.now(),
+          state: this.extractSaveableState(),
+        };
+        await storage.save(SAVE_KEY, data, storage.getDurableProviderType());
+        logger.debug('[Save] Local save complete');
+      } while (this.dirty);
+    } finally {
+      this.writing = false;
+    }
   }
 
   async loadLocal(): Promise<boolean> {

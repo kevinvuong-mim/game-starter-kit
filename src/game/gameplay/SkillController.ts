@@ -124,8 +124,9 @@ export class SkillController {
       if (!consumeSkill(skillId)) return;
       const next = fruit.fruitLevel + 1;
       const { x, y } = fruit;
+      const multiplier = fruit.scoreMultiplier;
       this.factory.destroy(fruit);
-      this.factory.spawn(x, y, next);
+      this.factory.spawn(x, y, next, multiplier);
       this.skillBar.refreshInventory(skillId);
       this.clear();
       return;

@@ -92,19 +92,44 @@ export class GameSyncService {
     }
 
     let queue = await this.repository.loadQueue();
+
+    // Never re-attribute results from a previous guest (e.g. after 401 recovery).
+    const orphanCount = queue.filter(
+      (item) =>
+        !item.synced && item.gameId === gameId && !!item.guestId && item.guestId !== guestId
+    ).length;
+    if (orphanCount > 0) {
+      logger.warn('[GameSync] Dropping orphaned results from a previous guest', {
+        count: orphanCount,
+      });
+      queue = queue.filter(
+        (item) =>
+          item.synced ||
+          item.gameId !== gameId ||
+          !item.guestId ||
+          item.guestId === guestId
+      );
+      await this.repository.saveQueue(queue);
+    }
+
+    // Bind unsigned/local rows that never got a guestId to the current identity.
+    queue = queue.map((item) =>
+      !item.synced && item.gameId === gameId && !item.guestId ? { ...item, guestId } : item
+    );
+
     const now = Date.now();
     const pending = queue.filter(
       (r) =>
         !r.synced &&
         r.gameId === gameId &&
+        r.guestId === guestId &&
         r.syncAttempts < MAX_SYNC_ATTEMPTS &&
         (!r.nextAttemptAt || Date.parse(r.nextAttemptAt) <= now)
     );
-    if (pending.length === 0) return;
-
-    queue = queue.map((item) =>
-      !item.synced && item.gameId === gameId ? { ...item, guestId } : item
-    );
+    if (pending.length === 0) {
+      await this.repository.saveQueue(queue);
+      return;
+    }
 
     for (let i = 0; i < pending.length; i += MAX_BATCH_SIZE) {
       const batch = pending.slice(i, i + MAX_BATCH_SIZE);

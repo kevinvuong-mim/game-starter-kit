@@ -279,7 +279,9 @@ class AdsService {
 
     const result = await this.getProvider().showAppOpen(placement);
     manager.state.markCompleted();
-    this.appOpenShownThisSession = true;
+    if (result.shown) {
+      this.appOpenShownThisSession = true;
+    }
     return result;
   }
 

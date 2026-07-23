@@ -23,7 +23,10 @@ export class SettingsScene extends BasePanelScene {
       this.panel.hidePurchaseModal();
       return;
     }
-    this.goBack();
+    // Defer so scene teardown is not mid-input (avoids canvas drawImage null crash).
+    this.time.delayedCall(0, () => {
+      if (this.sys.isActive()) this.goBack();
+    });
   }
 
   protected onPanelShutdown(): void {
