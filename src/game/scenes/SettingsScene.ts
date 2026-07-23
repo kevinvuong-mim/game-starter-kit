@@ -3,7 +3,9 @@ import Phaser from 'phaser';
 import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
+import { screenManager } from '@platform/ui/screen/ScreenManager';
 import { NameSettingsPanel } from '@platform/ui/settings/NameSettingsPanel';
+import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
 import { SoundSettingsPanel } from '@platform/ui/settings/SoundSettingsPanel';
 import { LanguageSettingsPanel } from '@platform/ui/settings/LanguageSettingsPanel';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
@@ -38,7 +40,7 @@ export class SettingsScene extends Phaser.Scene {
 
     let sectionY = height * 0.16;
 
-    new NameSettingsPanel(this, 0, sectionY);
+    const namePanel = new NameSettingsPanel(this, 0, sectionY);
     sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
 
     new LanguageSettingsPanel(this, 0, sectionY);
@@ -48,6 +50,25 @@ export class SettingsScene extends Phaser.Scene {
     sectionY += TWO_ROW_SECTION_HEIGHT + SETTINGS_PANEL_GAP;
 
     new HelpAndLegalSettingsPanel(this, 0, sectionY);
+
+    screenManager.register(new RateAppModalScreen(this));
+
+    createUIButton({
+      scene: this,
+      position: { x: width / 2, y: height * 0.84 },
+      size: { width: 200, height: 48 },
+      background: { key: UIButtonBackgroundKey.Rounded },
+      text: {
+        content: t('home.rateApp'),
+      },
+      onClick: () => {
+        namePanel.endEdit();
+        screenManager.open('rate-app', {
+          height: height / 2,
+          width: (2 * width) / 3,
+        });
+      },
+    });
 
     createUIButton({
       scene: this,

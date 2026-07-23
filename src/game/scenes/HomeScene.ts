@@ -3,8 +3,6 @@ import Phaser from 'phaser';
 import { t } from '@platform/ui/index';
 import { eventBus } from '@platform/core/events';
 import { NUNITO_FONT } from '@platform/ui/fonts';
-import { screenManager } from '@platform/ui/screen/ScreenManager';
-import { RateAppModalScreen } from '@platform/ui/rate-app/RateAppModalScreen';
 import { createUIButton, UIButtonBackgroundKey } from '@platform/ui/button/UIButton';
 
 export class HomeScene extends Phaser.Scene {
@@ -23,8 +21,6 @@ export class HomeScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
 
     this.addBackgroundImage(width, height);
-
-    screenManager.register(new RateAppModalScreen(this));
 
     createUIButton({
       scene: this,
@@ -125,21 +121,6 @@ export class HomeScene extends Phaser.Scene {
       onClick: () => this.openScreen('DailyReward'),
     });
 
-    createUIButton({
-      scene: this,
-      position: { x: width / 2, y: height * 0.92 },
-      size: { width: 256, height: 78 },
-      background: { key: UIButtonBackgroundKey.Rounded },
-      text: {
-        content: t('home.rateApp'),
-        style: { fontSize: 36, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
-      },
-      onClick: () =>
-        screenManager.open('rate-app', {
-          height: height / 2,
-          width: (2 * width) / 3,
-        }),
-    });
   }
 
   private addBackgroundImage(width: number, height: number): void {
