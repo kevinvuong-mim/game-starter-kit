@@ -214,7 +214,6 @@ export class ShopPanel extends Phaser.GameObjects.Container {
   }
 
   private async purchaseItem(item: ShopItem): Promise<void> {
-    const itemName = t(`shop.items.${item.id}.name`);
     const coins = usePlatformStore.getState().currency.coins;
 
     if (item.currency === 'coins' && coins < item.price) {
@@ -223,14 +222,11 @@ export class ShopPanel extends Phaser.GameObjects.Container {
     }
 
     const success = await shop.purchase(item.id);
-    toast.show(
-      success
-        ? { type: 'success', message: t('shop.purchaseSuccess', { name: itemName }) }
-        : { message: t('shop.purchaseFailed'), type: 'error' }
-    );
-
-    if (success) {
-      this.renderItems();
+    if (!success) {
+      toast.show({ message: t('shop.purchaseFailed'), type: 'error' });
+      return;
     }
+
+    this.renderItems();
   }
 }
