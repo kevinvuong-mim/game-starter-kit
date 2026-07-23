@@ -15,7 +15,7 @@
   "game": {
     "score": "Điểm: {{score}}",
     "yourScore": "ĐIỂM CỦA BẠN",
-    "gameOver": "GAME OVER",
+    "gameOver": "KẾT THÚC",
     "newRecord": "KỶ LỤC MỚI",
     "retry": "CHƠI LẠI",
     "leaderboard": "XẾP HẠNG",

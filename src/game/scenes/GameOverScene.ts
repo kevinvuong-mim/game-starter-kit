@@ -69,7 +69,7 @@ export class GameOverScene extends Phaser.Scene {
     this.addBanner(centerX, panelTop);
 
     this.add
-      .text(centerX, contentTop + 40, t('game.yourScore'), {
+      .text(centerX, contentTop + 60, t('game.yourScore'), {
         color: TEXT_COLOR,
         fontSize: '26px',
         fontStyle: 'bold',
@@ -79,7 +79,7 @@ export class GameOverScene extends Phaser.Scene {
       .setDepth(2);
 
     this.add
-      .text(centerX, contentTop + 92, formatScore(score), {
+      .text(centerX, contentTop + 112, formatScore(score), {
         color: TEXT_COLOR,
         fontSize: '64px',
         fontStyle: 'bold',
@@ -89,7 +89,7 @@ export class GameOverScene extends Phaser.Scene {
       .setDepth(2);
 
     this.rankText = this.add
-      .text(centerX, contentTop + 138, '', {
+      .text(centerX, contentTop + 158, '', {
         color: '#8a7a5a',
         fontSize: '20px',
         fontFamily: FREDOKA_FONT,
@@ -102,7 +102,7 @@ export class GameOverScene extends Phaser.Scene {
       this.showRank(rank);
     });
 
-    let buttonY = buttonsStartY;
+    let buttonY = buttonsStartY + 12;
 
     if (isNewRecord) {
       this.addNewRecordBadge(centerX, buttonY);
@@ -223,7 +223,7 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   private getButtonsStartY(contentTop: number, isNewRecord: boolean): number {
-    return contentTop + (isNewRecord ? 150 : 190);
+    return contentTop + (isNewRecord ? 170 : 210);
   }
 
   private async handleShareScore(score: number): Promise<void> {
