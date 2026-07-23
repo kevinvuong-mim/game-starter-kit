@@ -21,12 +21,6 @@ export const CONTAINER_INSET = {
   bottom: 0.1,
 };
 
-export const SKILL_PILL_HEIGHT = 40;
-export const SKILL_PILL_RADIUS = 18;
-export const SKILL_PILL_OVERLAP = 18;
-export const SKILL_TAB_GREEN = 0x1f6b32;
-export const SKILL_TAB_GREEN_BORDER = 0x145024;
-
 export type ContainerBounds = {
   left: number;
   right: number;

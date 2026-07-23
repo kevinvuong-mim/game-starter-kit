@@ -243,12 +243,13 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private createContainer(width: number, height: number): void {
-    const displayW = Math.min(width * 0.78, 560);
+    const baseW = Math.min(width * 0.78, 560);
     const texture = this.textures.get('glass-container').getSourceImage() as HTMLImageElement;
     const aspect = texture.height / texture.width;
-    const displayH = displayW * aspect;
+    const displayH = baseW * aspect;
+    const displayW = baseW * 0.92;
     const centerX = width / 2;
-    const centerY = Math.min(height * 0.46, height - 220 - displayH / 2);
+    const centerY = Math.min(height * 0.49, height - 200 - displayH / 2);
 
     const container = this.add.image(centerX, centerY, 'glass-container');
     container.setDisplaySize(displayW, displayH);

@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "price": 2000,
+      "price": 1,
       "type": "boost",
       "currency": "coins",
       "id": "boost_hammer",
@@ -10,7 +10,7 @@
       "description": "Destroy the fruit you choose!"
     },
     {
-      "price": 2000,
+      "price": 1,
       "type": "boost",
       "currency": "coins",
       "id": "boost_change",
@@ -19,7 +19,7 @@
       "description": "Swap the current fruit with the next one!"
     },
     {
-      "price": 2500,
+      "price": 1,
       "type": "boost",
       "currency": "coins",
       "id": "boost_swap",
@@ -28,7 +28,7 @@
       "description": "Swap the positions of any fruits!"
     },
     {
-      "price": 3500,
+      "price": 1,
       "type": "boost",
       "currency": "coins",
       "id": "boost_double",
@@ -37,7 +37,7 @@
       "description": "Double the score of the fruit!"
     },
     {
-      "price": 3500,
+      "price": 1,
       "type": "boost",
       "currency": "coins",
       "id": "boost_size",

@@ -31,8 +31,7 @@
     "skillHintSwap": "Tap two fruits to swap them",
     "skillHintSwapSecond": "Tap the second fruit",
     "skillHintDouble": "Tap a fruit to double its merge score",
-    "skillHintSize": "Tap a fruit to grow it",
-    "skillsTitle": "SKILLS"
+    "skillHintSize": "Tap a fruit to grow it"
   },
 
   "shop": {

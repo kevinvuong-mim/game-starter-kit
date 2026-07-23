@@ -1,13 +1,11 @@
 import Phaser from 'phaser';
 
-import { t } from '@platform/ui';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { createUIButton } from '@platform/ui/button/UIButton';
 import type { UIButton } from '@platform/ui/types';
 import { drawRoundedRect } from '@platform/ui/panel/graphics';
 import {
   PANEL_BG,
-  TEXT_COLOR,
   PANEL_BORDER,
   PANEL_CORNER_RADIUS,
 } from '@platform/ui/panel/panelTheme';
@@ -16,13 +14,6 @@ import {
   type SkillId,
   getSkillQuantity,
 } from '@game/skills/skillInventory';
-import {
-  SKILL_PILL_HEIGHT,
-  SKILL_PILL_RADIUS,
-  SKILL_PILL_OVERLAP,
-  SKILL_TAB_GREEN,
-  SKILL_TAB_GREEN_BORDER,
-} from './types';
 
 const SKILL_ICONS: Record<SkillId, string> = {
   boost_hammer: 'shop-item-1',
@@ -96,20 +87,19 @@ export class SkillBarView {
 
     const visible = this.skillVisibleCount;
     const btnSize = 72;
-    const nameGap = 34;
-    const slotHeight = btnSize + nameGap;
+    const slotHeight = btnSize;
     const arrowPad = 36;
-    const panelPadTop = SKILL_PILL_OVERLAP + 16;
+    const panelPadTop = 16;
     const panelPadBottom = 18;
-    const panelWidth = Math.min(width * 0.94, 560);
+    const panelWidth = Math.min(width * 0.88, 520);
     const panelLeft = width / 2 - panelWidth / 2;
     const innerWidth = panelWidth - arrowPad * 2;
     const spacing = innerWidth / visible;
     this.skillSlotSpacing = spacing;
 
     const panelHeight = panelPadTop + slotHeight + panelPadBottom;
-    const panelTop = height - panelHeight - 120;
-    this.skillBarTop = panelTop - SKILL_PILL_HEIGHT + SKILL_PILL_OVERLAP;
+    const panelTop = height - panelHeight - 140;
+    this.skillBarTop = panelTop;
     this.skillBarBottom = panelTop + panelHeight;
 
     const panelGfx = this.scene.add.graphics().setDepth(400);
@@ -124,31 +114,7 @@ export class SkillBarView {
       PANEL_BORDER
     );
 
-    const pillWidth = Math.min(220, panelWidth * 0.58);
-    const pillY = panelTop - SKILL_PILL_HEIGHT + SKILL_PILL_OVERLAP;
-    const pillGfx = this.scene.add.graphics().setDepth(401);
-    drawRoundedRect(
-      pillGfx,
-      width / 2 - pillWidth / 2,
-      pillY,
-      pillWidth,
-      SKILL_PILL_HEIGHT,
-      SKILL_PILL_RADIUS,
-      SKILL_TAB_GREEN,
-      SKILL_TAB_GREEN_BORDER,
-      2
-    );
-    this.scene.add
-      .text(width / 2, pillY + SKILL_PILL_HEIGHT / 2 - 1, t('game.skillsTitle').toUpperCase(), {
-        fontSize: '18px',
-        fontStyle: 'bold',
-        color: '#ffffff',
-        fontFamily: FREDOKA_FONT,
-      })
-      .setOrigin(0.5)
-      .setDepth(402);
-
-    const trackCenterY = panelTop + panelPadTop + slotHeight / 2 - 4;
+    const trackCenterY = panelTop + panelPadTop + slotHeight / 2;
     this.skillTrackBaseX = width / 2;
     this.skillTrack = this.scene.add.container(this.skillTrackBaseX, trackCenterY).setDepth(403);
     this.skillBtnSize = btnSize;
@@ -170,22 +136,22 @@ export class SkillBarView {
       fontFamily: FREDOKA_FONT,
     };
     this.skillLeftArrow = this.scene.add
-      .text(panelLeft + 22, trackCenterY - 10, '‹', arrowStyle)
+      .text(panelLeft + 22, trackCenterY, '‹', arrowStyle)
       .setOrigin(0.5)
       .setDepth(404);
     this.skillRightArrow = this.scene.add
-      .text(panelLeft + panelWidth - 22, trackCenterY - 10, '›', arrowStyle)
+      .text(panelLeft + panelWidth - 22, trackCenterY, '›', arrowStyle)
       .setOrigin(0.5)
       .setDepth(404);
 
     const arrowHitW = arrowPad + 8;
     const arrowHitH = slotHeight + 24;
     this.skillLeftArrowZone = this.scene.add
-      .zone(panelLeft + arrowPad / 2, trackCenterY - 4, arrowHitW, arrowHitH)
+      .zone(panelLeft + arrowPad / 2, trackCenterY, arrowHitW, arrowHitH)
       .setDepth(405)
       .setInteractive({ useHandCursor: true });
     this.skillRightArrowZone = this.scene.add
-      .zone(panelLeft + panelWidth - arrowPad / 2, trackCenterY - 4, arrowHitW, arrowHitH)
+      .zone(panelLeft + panelWidth - arrowPad / 2, trackCenterY, arrowHitW, arrowHitH)
       .setDepth(405)
       .setInteractive({ useHandCursor: true });
 
@@ -195,7 +161,7 @@ export class SkillBarView {
     this.applyScroll(false);
 
     this.skillHint = this.scene.add
-      .text(width / 2, this.skillBarBottom + 16, '', {
+      .text(width / 2, this.skillBarTop - 16, '', {
         color: '#ffffff',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -203,7 +169,7 @@ export class SkillBarView {
         stroke: '#000000',
         strokeThickness: 3,
       })
-      .setOrigin(0.5)
+      .setOrigin(0.5, 1)
       .setDepth(520);
   }
 
@@ -325,7 +291,7 @@ export class SkillBarView {
 
     const button = createUIButton({
       scene: this.scene,
-      position: { x: 0, y: -14 },
+      position: { x: 0, y: 0 },
       size: { width: btnSize, height: btnSize },
       background: { key: SKILL_ICONS[id] },
       badge: {
@@ -350,18 +316,6 @@ export class SkillBarView {
     slot.add(button);
     this.skillButtons.set(id, button);
     this.skillSlots.set(id, slot);
-
-    const label = this.scene.add
-      .text(0, btnSize / 2 - 2, t(`shop.items.${id}.name`), {
-        color: TEXT_COLOR,
-        fontSize: '14px',
-        fontStyle: 'bold',
-        fontFamily: FREDOKA_FONT,
-        align: 'center',
-        wordWrap: { width: this.skillSlotSpacing - 6 },
-      })
-      .setOrigin(0.5, 0);
-    slot.add(label);
 
     return slot;
   }
