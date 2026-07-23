@@ -91,6 +91,12 @@ export class DropController {
     this.dropGuide?.clear();
   }
 
+  /** Restore dropper X after loading a mid-run save. */
+  setDropperX(x: number): void {
+    this.dropperX = this.clampX(x);
+    this.dropperFruit?.setX(this.dropperX);
+  }
+
   handlePointerMove(pointer: Phaser.Input.Pointer): void {
     if (!this.callbacks.isActive() || !this.callbacks.canDrop() || this.callbacks.hasActiveSkill()) {
       return;

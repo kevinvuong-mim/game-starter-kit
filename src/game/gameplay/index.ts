@@ -6,3 +6,12 @@ export { DropController } from './DropController';
 export { DangerLineSystem } from './DangerLineSystem';
 export { SkillBarView } from './SkillBarView';
 export { SkillController } from './SkillController';
+export {
+  hasGameRunSave,
+  loadGameRunSave,
+  saveGameRun,
+  clearGameRunSave,
+  isMeaningfulRun,
+  type GameRunSnapshot,
+  type SavedFruit,
+} from './GameRunSave';

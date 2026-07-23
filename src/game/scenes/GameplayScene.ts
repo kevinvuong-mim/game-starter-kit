@@ -13,7 +13,12 @@ import {
   MergeSystem,
   SkillBarView,
   SkillController,
+  clearGameRunSave,
+  isMeaningfulRun,
+  loadGameRunSave,
+  saveGameRun,
   type FruitBody,
+  type GameRunSnapshot,
 } from '@game/gameplay';
 
 /**
@@ -68,6 +73,8 @@ export class GameplayScene extends Phaser.Scene {
     this.fruits.clear();
 
     const { width, height } = this.cameras.main;
+    const saved = loadGameRunSave();
+
     this.startTime = Date.now();
     this.score = 0;
     this.merges = 0;
@@ -154,12 +161,16 @@ export class GameplayScene extends Phaser.Scene {
         }
       },
     });
-    this.hud.setScore(0);
 
-    this.currentLevel = randomSpawnLevel();
-    this.nextLevel = randomSpawnLevel();
-    this.dropController.refreshVisual();
-    this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
+    if (saved && isMeaningfulRun(saved)) {
+      this.restoreRun(saved);
+    } else {
+      this.hud.setScore(0);
+      this.currentLevel = randomSpawnLevel();
+      this.nextLevel = randomSpawnLevel();
+      this.dropController.refreshVisual();
+      this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
+    }
 
     this.input.on('pointerdown', this.onPointerDown);
     this.input.on('pointermove', this.onPointerMove);
@@ -178,6 +189,10 @@ export class GameplayScene extends Phaser.Scene {
         }
         this.abortSession();
         this.scene.start(this.returnTo);
+      }),
+      eventBus.on('app:pause', () => {
+        if (!this.gameActive || this.sessionEnded) return;
+        this.persistRun();
       })
     );
   }
@@ -215,6 +230,8 @@ export class GameplayScene extends Phaser.Scene {
     this.sessionEnded = true;
     this.gameActive = false;
 
+    this.persistRun();
+
     if (!this.sessionStarted) return;
     eventBus.emit('score:update', { score: this.score });
   }
@@ -224,6 +241,7 @@ export class GameplayScene extends Phaser.Scene {
     if (this.sessionEnded) return;
     this.sessionEnded = true;
     this.gameActive = false;
+    clearGameRunSave();
 
     if (!this.sessionStarted) return;
 
@@ -234,6 +252,65 @@ export class GameplayScene extends Phaser.Scene {
       duration,
       jumps: this.merges,
     });
+  }
+
+  private captureRun(): GameRunSnapshot {
+    const fruits = [...this.fruits]
+      .filter((fruit) => fruit.active && !fruit.isMerging)
+      .map((fruit) => {
+        const body = fruit.body as MatterJS.BodyType;
+        return {
+          x: fruit.x,
+          y: fruit.y,
+          level: fruit.fruitLevel,
+          scoreMultiplier: fruit.scoreMultiplier,
+          vx: body.velocity?.x ?? 0,
+          vy: body.velocity?.y ?? 0,
+          angularVelocity: body.angularVelocity ?? 0,
+        };
+      });
+
+    return {
+      version: 1,
+      score: this.score,
+      merges: this.merges,
+      elapsedMs: this.sessionStarted ? Date.now() - this.startTime : 0,
+      sessionStarted: this.sessionStarted,
+      currentLevel: this.currentLevel,
+      nextLevel: this.nextLevel,
+      dropperX: this.dropController.x,
+      fruits,
+    };
+  }
+
+  private persistRun(): void {
+    const snapshot = this.captureRun();
+    if (!isMeaningfulRun(snapshot)) {
+      clearGameRunSave();
+      return;
+    }
+    saveGameRun(snapshot);
+  }
+
+  private restoreRun(saved: GameRunSnapshot): void {
+    this.score = saved.score;
+    this.merges = saved.merges;
+    this.sessionStarted = saved.sessionStarted;
+    this.startTime = Date.now() - saved.elapsedMs;
+    this.currentLevel = saved.currentLevel;
+    this.nextLevel = saved.nextLevel;
+    this.canDrop = true;
+
+    this.hud.setScore(this.score);
+    this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
+    this.dropController.setDropperX(saved.dropperX);
+    this.dropController.refreshVisual();
+
+    for (const fruit of saved.fruits) {
+      const spawned = this.factory.spawn(fruit.x, fruit.y, fruit.level, fruit.scoreMultiplier);
+      spawned.setVelocity(fruit.vx, fruit.vy);
+      spawned.setAngularVelocity(fruit.angularVelocity);
+    }
   }
 
   private addBackgroundImage(width: number, height: number): void {
@@ -315,6 +392,8 @@ export class GameplayScene extends Phaser.Scene {
 
   private triggerGameOver(violators: FruitBody[]): void {
     if (!this.gameActive) return;
+
+    clearGameRunSave();
 
     const isNewRecord = this.score > this.startingHighScore;
     this.gameActive = false;
