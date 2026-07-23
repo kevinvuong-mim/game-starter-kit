@@ -69,6 +69,7 @@ export class GameplayScene extends Phaser.Scene {
   private gameActive = true;
   private returnTo = 'Home';
   private sessionEnded = false;
+  private sessionStarted = false;
   private startingHighScore = 0;
 
   private currentLevel = 0;
@@ -87,6 +88,7 @@ export class GameplayScene extends Phaser.Scene {
   private fruitSeq = 0;
 
   private skillButtons = new Map<SkillId, UIButton>();
+  private skillSlots = new Map<SkillId, Phaser.GameObjects.Container>();
   private ownedSkillIds: SkillId[] = [];
   private activeSkill: ActiveSkill = null;
   private skillHint?: Phaser.GameObjects.Text;
@@ -94,6 +96,8 @@ export class GameplayScene extends Phaser.Scene {
   private skillTrackBaseX = 0;
   private skillLeftArrow?: Phaser.GameObjects.Text;
   private skillRightArrow?: Phaser.GameObjects.Text;
+  private skillLeftArrowZone?: Phaser.GameObjects.Zone;
+  private skillRightArrowZone?: Phaser.GameObjects.Zone;
   private skillScrollIndex = 0;
   private skillSlotSpacing = 110;
   private skillBtnSize = 72;
@@ -102,7 +106,10 @@ export class GameplayScene extends Phaser.Scene {
   private skillSwipeStartX = 0;
   private skillSwipeActive = false;
   private skillDidSwipe = false;
+  /** True while a prev/next tap is being handled — blocks skill hits underneath. */
+  private skillNavConsumed = false;
   private readonly skillVisibleCount = 4;
+  private readonly selectedSkillScale = 1.16;
 
   private unsubscribers: Array<() => void> = [];
   private readonly onPointerMove = (pointer: Phaser.Input.Pointer) =>
@@ -128,13 +135,17 @@ export class GameplayScene extends Phaser.Scene {
     this.pendingMerges.clear();
     this.mergeQueue = [];
     this.skillButtons.clear();
+    this.skillSlots.clear();
     this.ownedSkillIds = [];
     this.skillTrack = undefined;
     this.skillLeftArrow = undefined;
     this.skillRightArrow = undefined;
+    this.skillLeftArrowZone = undefined;
+    this.skillRightArrowZone = undefined;
     this.skillScrollIndex = 0;
     this.skillSwipeActive = false;
     this.skillDidSwipe = false;
+    this.skillNavConsumed = false;
     this.activeSkill = null;
 
     const { width, height } = this.cameras.main;
@@ -143,6 +154,7 @@ export class GameplayScene extends Phaser.Scene {
     this.merges = 0;
     this.gameActive = true;
     this.sessionEnded = false;
+    this.sessionStarted = false;
     this.canDrop = true;
     this.startingHighScore = getHighScore();
 
@@ -187,7 +199,6 @@ export class GameplayScene extends Phaser.Scene {
     this.matter.world.on('collisionstart', this.onCollision);
     this.matter.world.on('collisionactive', this.onCollision);
 
-    eventBus.emit('game:start', { gameId: gameConfig.id });
     eventBus.emit('ad:context:change', { context: 'GAMEPLAY' });
 
     this.unsubscribers.push(
@@ -234,6 +245,9 @@ export class GameplayScene extends Phaser.Scene {
     if (this.sessionEnded) return;
     this.sessionEnded = true;
     this.gameActive = false;
+
+    // Backing out before the first drop is a cancel, not a completed run.
+    if (!this.sessionStarted) return;
 
     const duration = Date.now() - this.startTime;
     eventBus.emit('score:update', { score: this.score });
@@ -410,23 +424,47 @@ export class GameplayScene extends Phaser.Scene {
     this.skillLeftArrow = this.add
       .text(panelLeft + 22, trackCenterY - 10, '‹', arrowStyle)
       .setOrigin(0.5)
-      .setDepth(404)
-      .setInteractive({ useHandCursor: true });
+      .setDepth(404);
     this.skillRightArrow = this.add
       .text(panelLeft + panelWidth - 22, trackCenterY - 10, '›', arrowStyle)
       .setOrigin(0.5)
-      .setDepth(404)
+      .setDepth(404);
+
+    // Full arrow-pad hit zones sit above skills so taps never activate slots underneath.
+    const arrowHitW = arrowPad + 8;
+    const arrowHitH = slotHeight + 24;
+    this.skillLeftArrowZone = this.add
+      .zone(panelLeft + arrowPad / 2, trackCenterY - 4, arrowHitW, arrowHitH)
+      .setDepth(405)
       .setInteractive({ useHandCursor: true });
-    this.skillLeftArrow.on('pointerup', () => {
-      if (this.skillDidSwipe) return;
-      this.scrollSkills(-1);
-    });
-    this.skillRightArrow.on('pointerup', () => {
-      if (this.skillDidSwipe) return;
-      this.scrollSkills(1);
-    });
+    this.skillRightArrowZone = this.add
+      .zone(panelLeft + panelWidth - arrowPad / 2, trackCenterY - 4, arrowHitW, arrowHitH)
+      .setDepth(405)
+      .setInteractive({ useHandCursor: true });
+
+    this.bindSkillNavZone(this.skillLeftArrowZone, -1);
+    this.bindSkillNavZone(this.skillRightArrowZone, 1);
 
     this.applySkillScroll(false);
+  }
+
+  private bindSkillNavZone(zone: Phaser.GameObjects.Zone, delta: number): void {
+    zone.on('pointerdown', () => {
+      this.skillNavConsumed = true;
+      this.skillSwipeActive = false;
+      this.skillDidSwipe = false;
+    });
+    zone.on('pointerup', () => {
+      if (!this.skillNavConsumed) return;
+      this.scrollSkills(delta);
+      // Keep the flag until after any same-frame skill onClick has been skipped.
+      this.time.delayedCall(0, () => {
+        this.skillNavConsumed = false;
+      });
+    });
+    zone.on('pointerout', () => {
+      this.skillNavConsumed = false;
+    });
   }
 
   /** Skills the player currently owns (quantity > 0). */
@@ -439,6 +477,7 @@ export class GameplayScene extends Phaser.Scene {
 
     this.skillTrack.removeAll(true);
     this.skillButtons.clear();
+    this.skillSlots.clear();
     this.ownedSkillIds = this.getOwnedSkillIds();
 
     this.ownedSkillIds.forEach((id, index) => {
@@ -449,6 +488,7 @@ export class GameplayScene extends Phaser.Scene {
 
     this.skillScrollIndex = Phaser.Math.Clamp(this.skillScrollIndex, 0, this.maxSkillScrollIndex());
     this.applySkillScroll(false);
+    this.updateSkillSelectionVisual(false);
   }
 
   private createSkillSlot(id: SkillId, btnSize: number): Phaser.GameObjects.Container {
@@ -475,12 +515,13 @@ export class GameplayScene extends Phaser.Scene {
         },
       },
       onClick: () => {
-        if (this.skillDidSwipe) return;
+        if (this.skillDidSwipe || this.skillNavConsumed) return;
         this.onSkillPressed(id);
       },
     });
     slot.add(button);
     this.skillButtons.set(id, button);
+    this.skillSlots.set(id, slot);
 
     const label = this.add
       .text(0, btnSize / 2 - 2, t(`shop.items.${id}.name`), {
@@ -538,10 +579,13 @@ export class GameplayScene extends Phaser.Scene {
         x: targetX,
         duration: 220,
         ease: 'Cubic.easeOut',
+        onComplete: () => this.updateSkillSlotInput(),
       });
     } else {
       this.skillTrack.x = targetX;
     }
+
+    this.updateSkillSlotInput();
 
     const canScroll = this.maxSkillScrollIndex() > 0;
     const atStart = this.skillScrollIndex <= 0;
@@ -550,6 +594,53 @@ export class GameplayScene extends Phaser.Scene {
     this.skillRightArrow?.setVisible(canScroll);
     this.skillLeftArrow?.setAlpha(atStart ? 0.35 : 0.9);
     this.skillRightArrow?.setAlpha(atEnd ? 0.35 : 0.9);
+    this.skillLeftArrowZone?.setVisible(canScroll).setActive(canScroll);
+    this.skillRightArrowZone?.setVisible(canScroll).setActive(canScroll);
+    if (canScroll) {
+      if (atStart) this.skillLeftArrowZone?.disableInteractive();
+      else this.skillLeftArrowZone?.setInteractive({ useHandCursor: true });
+      if (atEnd) this.skillRightArrowZone?.disableInteractive();
+      else this.skillRightArrowZone?.setInteractive({ useHandCursor: true });
+    } else {
+      this.skillLeftArrowZone?.disableInteractive();
+      this.skillRightArrowZone?.disableInteractive();
+    }
+  }
+
+  /** Masked-off slots still receive input unless we disable their hit zones. */
+  private updateSkillSlotInput(): void {
+    const start = this.skillScrollIndex;
+    const end = start + this.skillVisibleCount - 1;
+
+    this.ownedSkillIds.forEach((id, index) => {
+      const button = this.skillButtons.get(id);
+      if (!button) return;
+      const inWindow = index >= start && index <= end;
+      button.each((child: Phaser.GameObjects.GameObject) => {
+        if (!(child instanceof Phaser.GameObjects.Zone)) return;
+        if (inWindow) child.setInteractive({ useHandCursor: true });
+        else child.disableInteractive();
+      });
+    });
+  }
+
+  private updateSkillSelectionVisual(animate = true): void {
+    const selectedId = this.activeSkill ? this.skillKindToId(this.activeSkill) : null;
+
+    for (const [id, slot] of this.skillSlots) {
+      const targetScale = id === selectedId ? this.selectedSkillScale : 1;
+      this.tweens.killTweensOf(slot);
+      if (animate) {
+        this.tweens.add({
+          targets: slot,
+          scale: targetScale,
+          duration: 140,
+          ease: 'Back.easeOut',
+        });
+      } else {
+        slot.setScale(targetScale);
+      }
+    }
   }
 
   private scrollSkills(delta: number): void {
@@ -663,6 +754,12 @@ export class GameplayScene extends Phaser.Scene {
 
   private dropFruit(): void {
     if (!this.canDrop || !this.gameActive) return;
+
+    if (!this.sessionStarted) {
+      this.sessionStarted = true;
+      this.startTime = Date.now();
+      eventBus.emit('game:start', { gameId: gameConfig.id });
+    }
 
     this.canDrop = false;
     this.dropperFruit?.setVisible(false);
@@ -825,6 +922,7 @@ export class GameplayScene extends Phaser.Scene {
   private checkDangerLine(): void {
     if (!this.gameActive || !this.canDrop) return;
 
+    const violators: FruitBody[] = [];
     for (const fruit of this.fruits) {
       if (fruit.isMerging || !fruit.active || !fruit.body) continue;
       const body = fruit.body as MatterJS.BodyType;
@@ -832,18 +930,44 @@ export class GameplayScene extends Phaser.Scene {
       const speed = Math.hypot(body.velocity.x, body.velocity.y);
       if (speed > 0.35) continue;
       if (fruit.y - FRUIT_TYPES[fruit.fruitLevel].radius < this.dangerY) {
-        this.triggerGameOver();
-        return;
+        violators.push(fruit);
       }
+    }
+
+    if (violators.length > 0) {
+      this.triggerGameOver(violators);
     }
   }
 
-  private triggerGameOver(): void {
+  private triggerGameOver(violators: FruitBody[]): void {
     if (!this.gameActive) return;
-    const isNewRecord = this.score > this.startingHighScore;
-    this.endSession();
 
-    this.time.delayedCall(400, () => {
+    const isNewRecord = this.score > this.startingHighScore;
+    this.gameActive = false;
+    this.canDrop = false;
+    this.clearActiveSkill();
+    this.dropperFruit?.setVisible(false);
+    this.dropGuide?.clear();
+
+    // Freeze settled piles so the flash reads clearly.
+    this.matter.world.pause();
+
+    const FLASH_MS = 3000;
+    const BLINK_MS = 180;
+    const targets = violators.filter((fruit) => fruit.active);
+    for (const fruit of targets) {
+      fruit.setTint(0xff3b3b);
+      this.tweens.add({
+        targets: fruit,
+        alpha: 0.2,
+        duration: BLINK_MS,
+        yoyo: true,
+        repeat: Math.ceil(FLASH_MS / (BLINK_MS * 2)) - 1,
+      });
+    }
+
+    this.time.delayedCall(FLASH_MS, () => {
+      this.endSession();
       this.scene.start('GameOver', {
         score: this.score,
         jumps: this.merges,
@@ -893,6 +1017,7 @@ export class GameplayScene extends Phaser.Scene {
     this.setSkillHint(hints[this.activeSkill.kind] ?? '');
     this.dropperFruit?.setVisible(false);
     this.dropGuide?.clear();
+    this.updateSkillSelectionVisual();
   }
 
   private skillKindToId(skill: Exclude<ActiveSkill, null>): SkillId {
@@ -911,6 +1036,7 @@ export class GameplayScene extends Phaser.Scene {
   private clearActiveSkill(): void {
     this.activeSkill = null;
     this.setSkillHint('');
+    this.updateSkillSelectionVisual();
     if (this.canDrop) this.refreshDropperVisual();
   }
 

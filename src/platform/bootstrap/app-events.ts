@@ -35,11 +35,17 @@ export function bindAppEvents(): () => void {
     }),
 
     events.on('coin:spend', ({ amount }) => {
+      // Shop spends coins directly via spendCoins(); this keeps other emitters working.
       usePlatformStore.getState().spendCoins(amount);
     }),
 
     events.on('score:update', ({ score }) => {
+      const before = usePlatformStore.getState().progress.highScore;
       usePlatformStore.getState().setHighScore(score);
+      // Checkpoint new PBs mid-run — OS may not deliver pause before a kill.
+      if (usePlatformStore.getState().progress.highScore > before) {
+        void saveService.saveLocal();
+      }
     }),
 
     events.on('game:start', () => {

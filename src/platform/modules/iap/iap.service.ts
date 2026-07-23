@@ -134,21 +134,31 @@ class IapService {
         'Purchase timed out'
       );
 
-      await this.grantEntitlement(product.entitlement);
+      const matched = getProductById(providerPurchase.productId) ?? product;
+      await this.grantEntitlement(matched.entitlement);
 
       this.emit(IAP_EVENTS.PURCHASE_SUCCESS, {
         productId: providerPurchase.productId,
-        entitlement: product.entitlement,
+        entitlement: matched.entitlement,
       });
 
       logger.info('[IAP] Purchase succeeded', {
-        productId: product.id,
-        entitlement: product.entitlement,
+        productId: matched.id,
+        entitlement: matched.entitlement,
       });
 
-      return { success: true, cancelled: false, entitlement: product.entitlement };
+      return { success: true, cancelled: false, entitlement: matched.entitlement };
     } catch (error) {
       const result = this.normalizePurchaseError(error, product.id);
+
+      // Store purchase may still complete after a client timeout — sync entitlements.
+      if (result.error && /timed out/i.test(result.error)) {
+        const recovered = await this.tryRecoverTimedOutPurchase(product);
+        if (recovered) {
+          return { success: true, cancelled: false, entitlement: product.entitlement };
+        }
+      }
+
       this.emit(IAP_EVENTS.PURCHASE_FAILED, {
         productId: product.id,
         cancelled: result.cancelled,
@@ -158,6 +168,35 @@ class IapService {
       return result;
     } finally {
       this.purchasing = false;
+    }
+  }
+
+  /** After a client timeout, re-check store entitlements in case the charge succeeded. */
+  private async tryRecoverTimedOutPurchase(product: ProductDefinition): Promise<boolean> {
+    if (!this.provider) return false;
+
+    try {
+      const remote = await this.provider.fetchEntitlements();
+      if (!remote.includes(product.entitlement)) {
+        logger.warn('[IAP] Timeout recovery: entitlement not present yet', {
+          productId: product.id,
+        });
+        return false;
+      }
+
+      await this.grantEntitlement(product.entitlement);
+      this.emit(IAP_EVENTS.PURCHASE_SUCCESS, {
+        productId: product.id,
+        entitlement: product.entitlement,
+      });
+      logger.info('[IAP] Recovered entitlement after purchase timeout', {
+        productId: product.id,
+        entitlement: product.entitlement,
+      });
+      return true;
+    } catch (error) {
+      logger.warn('[IAP] Timeout recovery failed', error);
+      return false;
     }
   }
 

@@ -76,6 +76,10 @@
       "boost_size": {
         "name": "Size Increase",
         "description": "Increase the size of the fruit!"
+      },
+      "remove_ads": {
+        "name": "Remove Ads",
+        "description": "Remove all ads permanently"
       }
     }
   },

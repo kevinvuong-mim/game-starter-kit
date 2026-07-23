@@ -4,6 +4,7 @@ import { eventBus } from '@platform/core/events';
 import { usePlatformStore } from '@platform/core/state';
 import type { ProductKey } from '@platform/modules/iap';
 import { iap, getProductByKey } from '@platform/modules/iap';
+import { saveService } from '@platform/modules/save/save.service';
 
 type ShopItemType = 'skin' | 'boost' | 'entitlement';
 
@@ -66,6 +67,8 @@ class ShopService {
   consumeBoost(id: string): boolean {
     if (this.getQuantity(id) <= 0) return false;
     usePlatformStore.getState().removeItem(id, 1);
+    // Persist immediately so force-quit mid-match cannot restore spent boosts.
+    void saveService.saveLocal();
     return true;
   }
 
@@ -123,9 +126,7 @@ class ShopService {
     }
 
     if (item.currency === 'coins') {
-      const coinsBefore = usePlatformStore.getState().currency.coins;
-      await eventBus.emitAsync('coin:spend', { amount: item.price, reason: `shop:${itemId}` });
-      if (usePlatformStore.getState().currency.coins === coinsBefore) return false;
+      if (!usePlatformStore.getState().spendCoins(item.price)) return false;
     } else {
       return false;
     }

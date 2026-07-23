@@ -76,6 +76,10 @@
       "boost_size": {
         "name": "Tăng Kích Cỡ",
         "description": "Tăng kích thước của trái cây!"
+      },
+      "remove_ads": {
+        "name": "Gỡ Quảng Cáo",
+        "description": "Gỡ toàn bộ quảng cáo vĩnh viễn"
       }
     }
   },

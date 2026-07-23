@@ -19,6 +19,7 @@ import { drawRoundedRect, measureTextWidth } from '../panel/graphics';
 import { shop, type ShopItem } from '@platform/modules/shop/shop.service';
 
 const ITEM_ROW_HEIGHT = 120;
+const RESTORE_ROW_HEIGHT = 56;
 
 const PRICE_BTN_GAP = 6;
 const PRICE_BTN_PAD_X = 14;
@@ -37,6 +38,7 @@ export class ShopPanel extends Phaser.GameObjects.Container {
 
   private header?: PanelHeader;
   private listContainer?: Phaser.GameObjects.Container;
+  private restoring = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -71,7 +73,10 @@ export class ShopPanel extends Phaser.GameObjects.Container {
     const panelWidth = Math.min(width * 0.97, 460);
     const itemCount = Math.max(shop.getItems().length, 1);
     const panelHeight =
-      PANEL_LIST_PADDING * 2 + ITEM_ROW_HEIGHT * (itemCount - 1) + ITEM_ROW_HEIGHT * 0.85;
+      PANEL_LIST_PADDING * 2 +
+      ITEM_ROW_HEIGHT * (itemCount - 1) +
+      ITEM_ROW_HEIGHT * 0.85 +
+      RESTORE_ROW_HEIGHT;
     const panelTop = height * 0.24;
     const panelY = panelTop + panelHeight / 2;
 
@@ -127,6 +132,8 @@ export class ShopPanel extends Phaser.GameObjects.Container {
         );
       }
     });
+
+    this.listContainer.add(this.createRestoreButton(items.length * ITEM_ROW_HEIGHT - 20, rowWidth));
   }
 
   private createItemRow(item: ShopItem, y: number, rowWidth: number): Phaser.GameObjects.Container {
@@ -158,12 +165,27 @@ export class ShopPanel extends Phaser.GameObjects.Container {
       })
     );
 
-    container.add(this.createPriceButton(item, rowHalf));
+    if (item.type === 'entitlement' && shop.isOwned(item.id)) {
+      container.add(
+        this.scene.add
+          .text(rowHalf - PRICE_BTN_RIGHT_MARGIN, 0, t('shop.owned'), {
+            fontSize: '16px',
+            fontStyle: 'bold',
+            color: TEXT_COLOR,
+            fontFamily: FREDOKA_FONT,
+          })
+          .setOrigin(1, 0.5)
+      );
+    } else {
+      container.add(this.createPriceButton(item, rowHalf));
+    }
+
     return container;
   }
 
   private createPriceButton(item: ShopItem, rowHalf: number): UIButton {
-    const priceLabel = formatNumber(item.price);
+    const isIap = item.currency === 'iap';
+    const priceLabel = isIap ? t('shop.buy') : formatNumber(item.price);
     const priceTextWidth = measureTextWidth(this.scene, priceLabel, {
       fontSize: '16px',
       fontStyle: 'bold',
@@ -174,7 +196,9 @@ export class ShopPanel extends Phaser.GameObjects.Container {
 
     const priceButtonWidth = Math.max(
       PRICE_BTN_MIN_WIDTH,
-      PRICE_BTN_PAD_X + PRICE_ICON_SIZE + PRICE_BTN_GAP + priceTextWidth + PRICE_BTN_PAD_X
+      isIap
+        ? PRICE_BTN_PAD_X * 2 + priceTextWidth
+        : PRICE_BTN_PAD_X + PRICE_ICON_SIZE + PRICE_BTN_GAP + priceTextWidth + PRICE_BTN_PAD_X
     );
 
     return createUIButton({
@@ -185,15 +209,21 @@ export class ShopPanel extends Phaser.GameObjects.Container {
       },
       size: { width: priceButtonWidth, height: PRICE_BTN_HEIGHT },
       background: { key: 'leaderboard-button-background' },
-      icon: {
-        key: 'coin-icon',
-        size: { width: PRICE_ICON_SIZE, height: PRICE_ICON_SIZE },
-        offset: { x: PRICE_BTN_PAD_X + PRICE_ICON_SIZE / 2, y: PRICE_BTN_HEIGHT / 2 },
-      },
+      ...(isIap
+        ? {}
+        : {
+            icon: {
+              key: 'coin-icon',
+              size: { width: PRICE_ICON_SIZE, height: PRICE_ICON_SIZE },
+              offset: { x: PRICE_BTN_PAD_X + PRICE_ICON_SIZE / 2, y: PRICE_BTN_HEIGHT / 2 },
+            },
+          }),
       text: {
         content: priceLabel,
         offset: {
-          x: PRICE_BTN_PAD_X + PRICE_ICON_SIZE + PRICE_BTN_GAP + priceTextWidth / 2,
+          x: isIap
+            ? priceButtonWidth / 2
+            : PRICE_BTN_PAD_X + PRICE_ICON_SIZE + PRICE_BTN_GAP + priceTextWidth / 2,
           y: PRICE_BTN_HEIGHT / 2,
         },
         style: {
@@ -204,6 +234,37 @@ export class ShopPanel extends Phaser.GameObjects.Container {
       },
       onClick: () => {
         void this.purchaseItem(item);
+      },
+    });
+  }
+
+  private createRestoreButton(y: number, rowWidth: number): UIButton {
+    const label = t('shop.restore');
+    const textWidth = measureTextWidth(this.scene, label, {
+      fontSize: '15px',
+      fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
+      stroke: '#000000',
+      strokeThickness: 2,
+    });
+    const buttonWidth = Math.min(rowWidth * 0.72, Math.max(180, textWidth + 40));
+
+    return createUIButton({
+      scene: this.scene,
+      position: { x: 0, y },
+      size: { width: buttonWidth, height: 48 },
+      background: { key: 'leaderboard-button-background' },
+      text: {
+        content: label,
+        offset: { x: buttonWidth / 2, y: 24 },
+        style: {
+          fontSize: 15,
+          fontStyle: 'bold',
+          border: { width: 2, color: '#000000' },
+        },
+      },
+      onClick: () => {
+        void this.restorePurchases();
       },
     });
   }
@@ -223,5 +284,28 @@ export class ShopPanel extends Phaser.GameObjects.Container {
         ? { type: 'success', message: t('shop.purchaseSuccess', { name: itemName }) }
         : { message: t('shop.purchaseFailed'), type: 'error' }
     );
+
+    if (success) {
+      this.renderItems();
+    }
+  }
+
+  private async restorePurchases(): Promise<void> {
+    if (this.restoring) return;
+    this.restoring = true;
+
+    try {
+      const count = await shop.restore();
+      toast.show(
+        count > 0
+          ? { type: 'success', message: t('shop.restoreSuccess', { count }) }
+          : { type: 'info', message: t('shop.restoreEmpty') }
+      );
+      this.renderItems();
+    } catch {
+      toast.show({ message: t('shop.purchaseFailed'), type: 'error' });
+    } finally {
+      this.restoring = false;
+    }
   }
 }
