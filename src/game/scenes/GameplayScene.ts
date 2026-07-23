@@ -6,6 +6,13 @@ import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { createUIButton } from '@platform/ui/button/UIButton';
 import type { UIButton } from '@platform/ui/types';
+import { drawRoundedRect } from '@platform/ui/panel/graphics';
+import {
+  PANEL_BG,
+  TEXT_COLOR,
+  PANEL_BORDER,
+  PANEL_CORNER_RADIUS,
+} from '@platform/ui/panel/panelTheme';
 import {
   SKILL_IDS,
   type SkillId,
@@ -37,12 +44,18 @@ const SKILL_ICONS: Record<SkillId, string> = {
   boost_size: 'shop-item-5',
 };
 
+const SKILL_PILL_HEIGHT = 40;
+const SKILL_PILL_RADIUS = 18;
+const SKILL_PILL_OVERLAP = 18;
+const SKILL_TAB_GREEN = 0x1f6b32;
+const SKILL_TAB_GREEN_BORDER = 0x145024;
+
 /** Inner play-area ratios relative to glass-container.png display size. */
 const CONTAINER_INSET = {
   left: 0.09,
   right: 0.09,
   top: 0.06,
-  bottom: 0.14,
+  bottom: 0.1,
 };
 
 /**
@@ -74,8 +87,22 @@ export class GameplayScene extends Phaser.Scene {
   private fruitSeq = 0;
 
   private skillButtons = new Map<SkillId, UIButton>();
+  private ownedSkillIds: SkillId[] = [];
   private activeSkill: ActiveSkill = null;
   private skillHint?: Phaser.GameObjects.Text;
+  private skillTrack?: Phaser.GameObjects.Container;
+  private skillTrackBaseX = 0;
+  private skillLeftArrow?: Phaser.GameObjects.Text;
+  private skillRightArrow?: Phaser.GameObjects.Text;
+  private skillScrollIndex = 0;
+  private skillSlotSpacing = 110;
+  private skillBtnSize = 72;
+  private skillBarTop = 0;
+  private skillBarBottom = 0;
+  private skillSwipeStartX = 0;
+  private skillSwipeActive = false;
+  private skillDidSwipe = false;
+  private readonly skillVisibleCount = 4;
 
   private unsubscribers: Array<() => void> = [];
   private readonly onPointerMove = (pointer: Phaser.Input.Pointer) =>
@@ -101,6 +128,13 @@ export class GameplayScene extends Phaser.Scene {
     this.pendingMerges.clear();
     this.mergeQueue = [];
     this.skillButtons.clear();
+    this.ownedSkillIds = [];
+    this.skillTrack = undefined;
+    this.skillLeftArrow = undefined;
+    this.skillRightArrow = undefined;
+    this.skillScrollIndex = 0;
+    this.skillSwipeActive = false;
+    this.skillDidSwipe = false;
     this.activeSkill = null;
 
     const { width, height } = this.cameras.main;
@@ -136,7 +170,7 @@ export class GameplayScene extends Phaser.Scene {
     this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
 
     this.skillHint = this.add
-      .text(width / 2, height - 28, '', {
+      .text(width / 2, this.skillBarBottom + 16, '', {
         color: '#ffffff',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -147,6 +181,7 @@ export class GameplayScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(520);
 
+    this.input.on('pointerdown', this.onSkillPointerDown);
     this.input.on('pointermove', this.onPointerMove);
     this.input.on('pointerup', this.onPointerUp);
     this.matter.world.on('collisionstart', this.onCollision);
@@ -188,6 +223,7 @@ export class GameplayScene extends Phaser.Scene {
   private cleanupEventListeners(): void {
     this.input.off('pointermove', this.onPointerMove);
     this.input.off('pointerup', this.onPointerUp);
+    this.input.off('pointerdown', this.onSkillPointerDown);
     this.matter.world?.off('collisionstart', this.onCollision);
     this.matter.world?.off('collisionactive', this.onCollision);
     for (const unsub of this.unsubscribers) unsub();
@@ -251,7 +287,8 @@ export class GameplayScene extends Phaser.Scene {
     const aspect = texture.height / texture.width;
     const displayH = displayW * aspect;
     const centerX = width / 2;
-    const centerY = height * 0.52;
+    // Leave room for the bottom skills panel (~220px).
+    const centerY = Math.min(height * 0.46, height - 220 - displayH / 2);
 
     const container = this.add.image(centerX, centerY, 'glass-container');
     container.setDisplaySize(displayW, displayH);
@@ -294,48 +331,250 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private createSkillBar(width: number, height: number): void {
-    const y = this.containerBounds.bottom + 180;
-    const count = SKILL_IDS.length;
-    const spacing = Math.min(110, (width - 80) / count);
-    const startX = width / 2 - ((count - 1) * spacing) / 2;
-    const btnSize = 88;
+    const visible = this.skillVisibleCount;
+    const btnSize = 72;
+    const nameGap = 34;
+    const slotHeight = btnSize + nameGap;
+    const arrowPad = 36;
+    const panelPadTop = SKILL_PILL_OVERLAP + 16;
+    const panelPadBottom = 18;
+    const panelWidth = Math.min(width * 0.94, 560);
+    const panelLeft = width / 2 - panelWidth / 2;
+    const innerWidth = panelWidth - arrowPad * 2;
+    const spacing = innerWidth / visible;
+    this.skillSlotSpacing = spacing;
 
-    SKILL_IDS.forEach((id, index) => {
-      const qty = getSkillQuantity(id);
-      const button = createUIButton({
-        scene: this,
-        position: { x: startX + index * spacing, y: Math.min(y, height - 70) },
-        size: { width: btnSize, height: btnSize },
-        background: { key: SKILL_ICONS[id] },
-        depth: 400,
-        badge: {
-          content: String(qty),
-          visible: true,
-          position: { x: btnSize - 28, y: btnSize - 28 },
-          minSize: { width: 28, height: 28 },
-          padding: { horizontal: 4, vertical: 2 },
-          background: { color: '#e53935', radius: 14 },
-          textStyle: {
-            fontSize: 14,
-            fontStyle: 'bold',
-            color: '#ffffff',
-            border: { width: 2, color: '#000000' },
-          },
-        },
-        onClick: () => this.onSkillPressed(id),
-      });
-      this.skillButtons.set(id, button);
-      this.refreshSkillBadge(id);
+    const panelHeight = panelPadTop + slotHeight + panelPadBottom;
+    const panelTop = height - panelHeight - 120;
+    this.skillBarTop = panelTop - SKILL_PILL_HEIGHT + SKILL_PILL_OVERLAP;
+    this.skillBarBottom = panelTop + panelHeight;
+
+    // Same section panel + overlapping green pill as LeaderboardPanel
+    const panelGfx = this.add.graphics().setDepth(400);
+    drawRoundedRect(
+      panelGfx,
+      panelLeft,
+      panelTop,
+      panelWidth,
+      panelHeight,
+      PANEL_CORNER_RADIUS,
+      PANEL_BG,
+      PANEL_BORDER
+    );
+
+    const pillWidth = Math.min(220, panelWidth * 0.58);
+    const pillY = panelTop - SKILL_PILL_HEIGHT + SKILL_PILL_OVERLAP;
+    const pillGfx = this.add.graphics().setDepth(401);
+    drawRoundedRect(
+      pillGfx,
+      width / 2 - pillWidth / 2,
+      pillY,
+      pillWidth,
+      SKILL_PILL_HEIGHT,
+      SKILL_PILL_RADIUS,
+      SKILL_TAB_GREEN,
+      SKILL_TAB_GREEN_BORDER,
+      2
+    );
+    this.add
+      .text(width / 2, pillY + SKILL_PILL_HEIGHT / 2 - 1, t('game.skillsTitle').toUpperCase(), {
+        fontSize: '18px',
+        fontStyle: 'bold',
+        color: '#ffffff',
+        fontFamily: FREDOKA_FONT,
+      })
+      .setOrigin(0.5)
+      .setDepth(402);
+
+    const trackCenterY = panelTop + panelPadTop + slotHeight / 2 - 4;
+    this.skillTrackBaseX = width / 2;
+    this.skillTrack = this.add.container(this.skillTrackBaseX, trackCenterY).setDepth(403);
+    this.skillBtnSize = btnSize;
+    this.rebuildSkillTrack();
+
+    const windowWidth = spacing * visible;
+    const windowHeight = slotHeight + 8;
+    const maskShape = this.add.graphics();
+    maskShape.setPosition(width / 2, trackCenterY);
+    maskShape.fillStyle(0xffffff, 1);
+    maskShape.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
+    maskShape.setVisible(false);
+    this.skillTrack.setMask(maskShape.createGeometryMask());
+
+    const arrowStyle = {
+      color: '#9e9e9e',
+      fontSize: '42px',
+      fontStyle: 'bold',
+      fontFamily: FREDOKA_FONT,
+    };
+    this.skillLeftArrow = this.add
+      .text(panelLeft + 22, trackCenterY - 10, '‹', arrowStyle)
+      .setOrigin(0.5)
+      .setDepth(404)
+      .setInteractive({ useHandCursor: true });
+    this.skillRightArrow = this.add
+      .text(panelLeft + panelWidth - 22, trackCenterY - 10, '›', arrowStyle)
+      .setOrigin(0.5)
+      .setDepth(404)
+      .setInteractive({ useHandCursor: true });
+    this.skillLeftArrow.on('pointerup', () => {
+      if (this.skillDidSwipe) return;
+      this.scrollSkills(-1);
     });
+    this.skillRightArrow.on('pointerup', () => {
+      if (this.skillDidSwipe) return;
+      this.scrollSkills(1);
+    });
+
+    this.applySkillScroll(false);
   }
 
-  private refreshSkillBadge(id: SkillId): void {
-    const button = this.skillButtons.get(id);
-    if (!button) return;
+  /** Skills the player currently owns (quantity > 0). */
+  private getOwnedSkillIds(): SkillId[] {
+    return SKILL_IDS.filter((id) => getSkillQuantity(id) > 0);
+  }
+
+  private rebuildSkillTrack(): void {
+    if (!this.skillTrack) return;
+
+    this.skillTrack.removeAll(true);
+    this.skillButtons.clear();
+    this.ownedSkillIds = this.getOwnedSkillIds();
+
+    this.ownedSkillIds.forEach((id, index) => {
+      const slot = this.createSkillSlot(id, this.skillBtnSize);
+      slot.setPosition(this.skillSlotX(index), 0);
+      this.skillTrack!.add(slot);
+    });
+
+    this.skillScrollIndex = Phaser.Math.Clamp(this.skillScrollIndex, 0, this.maxSkillScrollIndex());
+    this.applySkillScroll(false);
+  }
+
+  private createSkillSlot(id: SkillId, btnSize: number): Phaser.GameObjects.Container {
+    const slot = this.add.container(0, 0);
     const qty = getSkillQuantity(id);
-    button.setBadgeContent(String(qty));
-    button.setBadgeVisible(true);
-    button.setAlpha(qty > 0 ? 1 : 0.45);
+
+    const button = createUIButton({
+      scene: this,
+      position: { x: 0, y: -14 },
+      size: { width: btnSize, height: btnSize },
+      background: { key: SKILL_ICONS[id] },
+      badge: {
+        content: String(qty),
+        visible: true,
+        position: { x: btnSize - 24, y: btnSize - 24 },
+        minSize: { width: 26, height: 26 },
+        padding: { horizontal: 4, vertical: 2 },
+        background: { color: '#e53935', radius: 13 },
+        textStyle: {
+          fontSize: 13,
+          fontStyle: 'bold',
+          color: '#ffffff',
+          border: { width: 2, color: '#000000' },
+        },
+      },
+      onClick: () => {
+        if (this.skillDidSwipe) return;
+        this.onSkillPressed(id);
+      },
+    });
+    slot.add(button);
+    this.skillButtons.set(id, button);
+
+    const label = this.add
+      .text(0, btnSize / 2 - 2, t(`shop.items.${id}.name`), {
+        color: TEXT_COLOR,
+        fontSize: '14px',
+        fontStyle: 'bold',
+        fontFamily: FREDOKA_FONT,
+        align: 'center',
+        wordWrap: { width: this.skillSlotSpacing - 6 },
+      })
+      .setOrigin(0.5, 0);
+    slot.add(label);
+
+    return slot;
+  }
+
+  private readonly onSkillPointerDown = (pointer: Phaser.Input.Pointer) => {
+    if (!this.isPointerOnSkillBar(pointer)) return;
+    this.skillSwipeStartX = pointer.x;
+    this.skillSwipeActive = true;
+    this.skillDidSwipe = false;
+  };
+
+  private isPointerOnSkillBar(pointer: Phaser.Input.Pointer): boolean {
+    const { width } = this.cameras.main;
+    return (
+      pointer.y >= this.skillBarTop &&
+      pointer.y <= this.skillBarBottom &&
+      pointer.x > 20 &&
+      pointer.x < width - 20
+    );
+  }
+
+  private skillSlotX(index: number): number {
+    const owned = this.ownedSkillIds.length;
+    const alignCount =
+      owned <= this.skillVisibleCount ? Math.max(owned, 1) : this.skillVisibleCount;
+    const leftmost = alignCount <= 1 ? 0 : -((alignCount - 1) * this.skillSlotSpacing) / 2;
+    return leftmost + index * this.skillSlotSpacing;
+  }
+
+  private maxSkillScrollIndex(): number {
+    return Math.max(0, this.ownedSkillIds.length - this.skillVisibleCount);
+  }
+
+  private applySkillScroll(animate: boolean): void {
+    if (!this.skillTrack) return;
+    this.skillScrollIndex = Phaser.Math.Clamp(this.skillScrollIndex, 0, this.maxSkillScrollIndex());
+    const targetX = this.skillTrackBaseX - this.skillScrollIndex * this.skillSlotSpacing;
+
+    this.tweens.killTweensOf(this.skillTrack);
+    if (animate) {
+      this.tweens.add({
+        targets: this.skillTrack,
+        x: targetX,
+        duration: 220,
+        ease: 'Cubic.easeOut',
+      });
+    } else {
+      this.skillTrack.x = targetX;
+    }
+
+    const canScroll = this.maxSkillScrollIndex() > 0;
+    const atStart = this.skillScrollIndex <= 0;
+    const atEnd = this.skillScrollIndex >= this.maxSkillScrollIndex();
+    this.skillLeftArrow?.setVisible(canScroll);
+    this.skillRightArrow?.setVisible(canScroll);
+    this.skillLeftArrow?.setAlpha(atStart ? 0.35 : 0.9);
+    this.skillRightArrow?.setAlpha(atEnd ? 0.35 : 0.9);
+  }
+
+  private scrollSkills(delta: number): void {
+    const next = Phaser.Math.Clamp(this.skillScrollIndex + delta, 0, this.maxSkillScrollIndex());
+    if (next === this.skillScrollIndex) return;
+    this.skillScrollIndex = next;
+    this.applySkillScroll(true);
+  }
+
+  /** Update badge counts; drop skills that hit 0 from the bar. */
+  private refreshSkillInventory(id?: SkillId): void {
+    if (id !== undefined) {
+      const qty = getSkillQuantity(id);
+      if (qty <= 0) {
+        this.rebuildSkillTrack();
+        return;
+      }
+      const button = this.skillButtons.get(id);
+      if (button) {
+        button.setBadgeContent(String(qty));
+        button.setBadgeVisible(true);
+      }
+      return;
+    }
+    this.rebuildSkillTrack();
   }
 
   private refreshDropperVisual(): void {
@@ -383,6 +622,13 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    if (this.skillSwipeActive && pointer.isDown) {
+      if (Math.abs(pointer.x - this.skillSwipeStartX) > 14) {
+        this.skillDidSwipe = true;
+      }
+      return;
+    }
+
     if (!this.gameActive || !this.canDrop || this.activeSkill) return;
     if (pointer.y > this.containerBounds.bottom + 20) return;
     this.dropperX = this.clampDropperX(pointer.x);
@@ -390,6 +636,17 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
+    if (this.skillSwipeActive) {
+      const dx = pointer.x - this.skillSwipeStartX;
+      this.skillSwipeActive = false;
+      if (this.skillDidSwipe && Math.abs(dx) > 40) {
+        // Swipe left → next skills; swipe right → previous
+        this.scrollSkills(dx < 0 ? 1 : -1);
+      }
+      // skillDidSwipe stays until next pointerdown so late button clicks are ignored.
+      return;
+    }
+
     if (!this.gameActive) return;
 
     if (this.activeSkill) {
@@ -608,7 +865,7 @@ export class GameplayScene extends Phaser.Scene {
       this.nextLevel = prev;
       this.refreshDropperVisual();
       this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
-      this.refreshSkillBadge(id);
+      this.refreshSkillInventory(id);
       this.setSkillHint('');
       return;
     }
@@ -672,7 +929,7 @@ export class GameplayScene extends Phaser.Scene {
     if (this.activeSkill.kind === 'hammer') {
       if (!consumeSkill(skillId)) return;
       this.burstFruit(fruit);
-      this.refreshSkillBadge(skillId);
+      this.refreshSkillInventory(skillId);
       this.clearActiveSkill();
       return;
     }
@@ -687,7 +944,7 @@ export class GameplayScene extends Phaser.Scene {
         yoyo: true,
         repeat: 2,
       });
-      this.refreshSkillBadge(skillId);
+      this.refreshSkillInventory(skillId);
       this.clearActiveSkill();
       return;
     }
@@ -699,7 +956,7 @@ export class GameplayScene extends Phaser.Scene {
       const { x, y } = fruit;
       this.destroyFruit(fruit);
       this.spawnPhysicsFruit(x, y, next);
-      this.refreshSkillBadge(skillId);
+      this.refreshSkillInventory(skillId);
       this.clearActiveSkill();
       return;
     }
@@ -729,7 +986,7 @@ export class GameplayScene extends Phaser.Scene {
       a.setVelocity(0, 0);
       fruit.setVelocity(0, 0);
 
-      this.refreshSkillBadge(skillId);
+      this.refreshSkillInventory(skillId);
       this.clearActiveSkill();
     }
   }
