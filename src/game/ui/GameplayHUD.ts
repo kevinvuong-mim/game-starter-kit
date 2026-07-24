@@ -15,15 +15,16 @@ function formatScore(score: number): string {
 
 export interface GameplayHUDOptions {
   onBack: () => void;
+  onQuit: () => void;
 }
 
 /**
- * Suika gameplay HUD — back button, score panel, next-fruit preview.
+ * Suika gameplay HUD — back/quit buttons and score panel.
  */
 export class GameplayHUD extends Phaser.GameObjects.Container {
   private scoreValue?: Phaser.GameObjects.Text;
-  private nextFruitPreview?: Phaser.GameObjects.Image;
   private backButton?: UIButton;
+  private quitButton?: UIButton;
 
   constructor(scene: Phaser.Scene, options: GameplayHUDOptions) {
     super(scene, 0, 0);
@@ -35,7 +36,7 @@ export class GameplayHUD extends Phaser.GameObjects.Container {
 
   private build(options: GameplayHUDOptions): void {
     const { width } = this.scene.cameras.main;
-    const topY = 120;
+    const topY = 124;
 
     this.backButton = createUIButton({
       scene: this.scene,
@@ -46,6 +47,16 @@ export class GameplayHUD extends Phaser.GameObjects.Container {
       onClick: options.onBack,
     });
     this.add(this.backButton);
+
+    this.quitButton = createUIButton({
+      scene: this.scene,
+      position: { x: width * 0.8, y: topY },
+      size: { width: 72, height: 72 },
+      background: { key: 'quit-icon' },
+      depth: 501,
+      onClick: options.onQuit,
+    });
+    this.add(this.quitButton);
 
     const scorePanel = this.makePanel(width * 0.5, topY, 200, 96);
     scorePanel.add(
@@ -68,23 +79,6 @@ export class GameplayHUD extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
     scorePanel.add(this.scoreValue);
     this.add(scorePanel);
-
-    const nextPanel = this.makePanel(width * 0.8, topY, 100, 100);
-    nextPanel.add(
-      this.scene.add
-        .text(0, -30, t('game.nextFruit'), {
-          color: TEXT_DARK,
-          fontSize: '14px',
-          fontStyle: 'bold',
-          fontFamily: FREDOKA_FONT,
-          align: 'center',
-          wordWrap: { width: 130 },
-        })
-        .setOrigin(0.5)
-    );
-    this.nextFruitPreview = this.scene.add.image(0, 18, '__fruit_0').setDisplaySize(36, 36);
-    nextPanel.add(this.nextFruitPreview);
-    this.add(nextPanel);
   }
 
   private makePanel(x: number, y: number, w: number, h: number): Phaser.GameObjects.Container {
@@ -100,13 +94,5 @@ export class GameplayHUD extends Phaser.GameObjects.Container {
 
   setScore(score: number): void {
     this.scoreValue?.setText(formatScore(score));
-  }
-
-  setNextFruit(textureKey: string, displaySize = 36): void {
-    if (!this.nextFruitPreview) return;
-    if (this.scene.textures.exists(textureKey)) {
-      this.nextFruitPreview.setTexture(textureKey);
-    }
-    this.nextFruitPreview.setDisplaySize(displaySize, displaySize);
   }
 }

@@ -15,7 +15,6 @@
   "game": {
     "score": "Điểm: {{score}}",
     "scoreLabel": "ĐIỂM",
-    "nextFruit": "TIẾP THEO",
     "yourScore": "ĐIỂM CỦA BẠN",
     "gameOver": "KẾT THÚC",
     "newRecord": "KỶ LỤC MỚI",

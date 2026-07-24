@@ -162,7 +162,7 @@ export class SkillBarView {
     this.applyScroll(false);
 
     this.skillHint = this.scene.add
-      .text(width / 2, this.skillBarTop - 16, '', {
+      .text(width / 2, this.skillBarBottom + 12, '', {
         color: '#ffffff',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -170,7 +170,7 @@ export class SkillBarView {
         stroke: '#000000',
         strokeThickness: 3,
       })
-      .setOrigin(0.5, 1)
+      .setOrigin(0.5, 0)
       .setDepth(520);
   }
 

@@ -15,7 +15,6 @@ export type SkillControllerCallbacks = {
   getNextLevel: () => number;
   setLevels: (current: number, next: number) => void;
   refreshDropper: () => void;
-  setNextFruitPreview: () => void;
   hideDropper: () => void;
   pushUndoCheckpoint: () => void;
   canUndo: () => boolean;
@@ -62,7 +61,6 @@ export class SkillController {
       const prev = this.callbacks.getCurrentLevel();
       this.callbacks.setLevels(this.callbacks.getNextLevel(), prev);
       this.callbacks.refreshDropper();
-      this.callbacks.setNextFruitPreview();
       this.skillBar.refreshInventory(id);
       this.skillBar.setHint('');
       return;

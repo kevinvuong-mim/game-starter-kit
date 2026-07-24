@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { gameConfig } from '@game/config';
 import { eventBus } from '@platform/core/events';
 import { getHighScore } from '@platform/ui';
-import { fruitTextureKey, randomSpawnLevel } from '@game/fruits';
+import { randomSpawnLevel } from '@game/fruits';
 import { GameplayHUD } from '@game/ui/GameplayHUD';
 import {
   CONTAINER_INSET,
@@ -119,7 +119,6 @@ export class GameplayScene extends Phaser.Scene {
       advanceLevels: () => {
         this.currentLevel = this.nextLevel;
         this.nextLevel = randomSpawnLevel();
-        this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
       },
     });
 
@@ -144,7 +143,6 @@ export class GameplayScene extends Phaser.Scene {
         this.nextLevel = next;
       },
       refreshDropper: () => this.dropController.refreshVisual(),
-      setNextFruitPreview: () => this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40),
       hideDropper: () => this.dropController.hide(),
       pushUndoCheckpoint: () => this.pushUndoCheckpoint(),
       canUndo: () => this.undoSnapshot != null,
@@ -166,6 +164,12 @@ export class GameplayScene extends Phaser.Scene {
           this.scene.start(this.returnTo);
         }
       },
+      onQuit: () => {
+        if (this.gameActive) {
+          this.quitSession();
+          this.scene.start(this.returnTo);
+        }
+      },
     });
 
     if (saved && isMeaningfulRun(saved)) {
@@ -175,7 +179,6 @@ export class GameplayScene extends Phaser.Scene {
       this.currentLevel = randomSpawnLevel();
       this.nextLevel = randomSpawnLevel();
       this.dropController.refreshVisual();
-      this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
     }
 
     this.input.on('pointerdown', this.onPointerDown);
@@ -230,13 +233,24 @@ export class GameplayScene extends Phaser.Scene {
     this.unsubscribers = [];
   }
 
-  /** Quit / leave mid-run — keep high-score checkpoint, do not treat as a finished match. */
+  /** Leave mid-run and persist progress — keep high-score checkpoint, not a finished match. */
   private abortSession(): void {
     if (this.sessionEnded) return;
     this.sessionEnded = true;
     this.gameActive = false;
 
     this.persistRun();
+
+    if (!this.sessionStarted) return;
+    eventBus.emit('score:update', { score: this.score });
+  }
+
+  /** Explicit quit — discard run save and return home without restoring later. */
+  private quitSession(): void {
+    if (this.sessionEnded) return;
+    this.sessionEnded = true;
+    this.gameActive = false;
+    clearGameRunSave();
 
     if (!this.sessionStarted) return;
     eventBus.emit('score:update', { score: this.score });
@@ -323,7 +337,6 @@ export class GameplayScene extends Phaser.Scene {
     this.canDrop = true;
 
     this.hud.setScore(this.score);
-    this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40);
     this.dropController.setDropperX(saved.dropperX);
     this.dropController.refreshVisual();
 
@@ -347,7 +360,7 @@ export class GameplayScene extends Phaser.Scene {
     const displayH = baseW * aspect;
     const displayW = baseW * 0.92;
     const centerX = width / 2;
-    const centerY = Math.min(height * 0.49, height - 200 - displayH / 2);
+    const centerY = Math.min(height * 0.50, height - 200 - displayH / 2);
 
     const container = this.add.image(centerX, centerY, 'glass-container');
     container.setDisplaySize(displayW, displayH);

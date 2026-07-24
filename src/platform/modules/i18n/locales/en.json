@@ -15,7 +15,6 @@
   "game": {
     "score": "Score: {{score}}",
     "scoreLabel": "SCORE",
-    "nextFruit": "NEXT",
     "yourScore": "YOUR SCORE",
     "gameOver": "GAME OVER",
     "newRecord": "NEW RECORD",
