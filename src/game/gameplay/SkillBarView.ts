@@ -234,15 +234,19 @@ export class SkillBarView {
 
   /** Returns true if the skill bar handled the pointer up. */
   onPointerUp(pointer: Phaser.Input.Pointer): boolean {
-    if (this.skillSwipeActive) {
-      const dx = pointer.x - this.skillSwipeStartX;
-      this.skillSwipeActive = false;
-      if (this.skillDidSwipe && Math.abs(dx) > 40) {
-        this.scroll(dx < 0 ? 1 : -1);
-      }
+    if (!this.skillSwipeActive) return false;
+
+    const dx = pointer.x - this.skillSwipeStartX;
+    const didSwipe = this.skillDidSwipe && Math.abs(dx) > 40;
+    this.skillSwipeActive = false;
+
+    if (didSwipe) {
+      this.scroll(dx < 0 ? 1 : -1);
       return true;
     }
-    return false;
+
+    // Press started on the bar but released in the playfield — allow drop/skill targeting.
+    return this.isPointerOnBar(pointer);
   }
 
   private bindNavZone(zone: Phaser.GameObjects.Zone, delta: number): void {

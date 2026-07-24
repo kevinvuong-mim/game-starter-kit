@@ -1,3 +1,4 @@
+import { FRUIT_TYPES, SPAWN_MAX_LEVEL } from '@game/fruits';
 import {
   clearPersistedGameRun,
   getPersistedGameRun,
@@ -30,10 +31,55 @@ export type GameRunSnapshot = {
 
 let memory: GameRunSnapshot | null = null;
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isValidSpawnLevel(level: unknown): level is number {
+  return (
+    typeof level === 'number' &&
+    Number.isInteger(level) &&
+    level >= 0 &&
+    level <= SPAWN_MAX_LEVEL
+  );
+}
+
+function isValidFruitLevel(level: unknown): level is number {
+  return (
+    typeof level === 'number' &&
+    Number.isInteger(level) &&
+    level >= 0 &&
+    level < FRUIT_TYPES.length
+  );
+}
+
+function isSavedFruit(value: unknown): value is SavedFruit {
+  if (!value || typeof value !== 'object') return false;
+  const fruit = value as Partial<SavedFruit>;
+  return (
+    isFiniteNumber(fruit.x) &&
+    isFiniteNumber(fruit.y) &&
+    isValidFruitLevel(fruit.level) &&
+    isFiniteNumber(fruit.scoreMultiplier) &&
+    fruit.scoreMultiplier > 0 &&
+    isFiniteNumber(fruit.vx) &&
+    isFiniteNumber(fruit.vy) &&
+    isFiniteNumber(fruit.angularVelocity)
+  );
+}
+
 function isGameRunSnapshot(value: unknown): value is GameRunSnapshot {
   if (!value || typeof value !== 'object') return false;
-  const snap = value as GameRunSnapshot;
-  return snap.version === 1 && Array.isArray(snap.fruits);
+  const snap = value as Partial<GameRunSnapshot>;
+  if (snap.version !== 1 || !Array.isArray(snap.fruits)) return false;
+  if (!snap.fruits.every(isSavedFruit)) return false;
+  if (!isFiniteNumber(snap.score) || snap.score < 0) return false;
+  if (!isFiniteNumber(snap.merges) || snap.merges < 0) return false;
+  if (!isFiniteNumber(snap.elapsedMs) || snap.elapsedMs < 0) return false;
+  if (typeof snap.sessionStarted !== 'boolean') return false;
+  if (!isValidSpawnLevel(snap.currentLevel) || !isValidSpawnLevel(snap.nextLevel)) return false;
+  if (!isFiniteNumber(snap.dropperX)) return false;
+  return true;
 }
 
 function readLegacySession(): GameRunSnapshot | null {
@@ -70,6 +116,11 @@ export function loadGameRunSave(): GameRunSnapshot | null {
     return memory;
   }
 
+  // Corrupt / schema-drifted durable save — drop it so Play can start fresh.
+  if (persisted != null) {
+    clearPersistedGameRun();
+  }
+
   // One-time migration from the old sessionStorage-only save.
   const legacy = readLegacySession();
   if (legacy) {
@@ -79,6 +130,7 @@ export function loadGameRunSave(): GameRunSnapshot | null {
     return memory;
   }
 
+  clearLegacySession();
   return null;
 }
 

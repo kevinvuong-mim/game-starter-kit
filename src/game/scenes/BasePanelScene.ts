@@ -42,6 +42,8 @@ export abstract class BasePanelScene extends Phaser.Scene {
 
   create(): void {
     this.cleanupEventListeners();
+    this.events.off('shutdown', this.shutdown, this);
+    this.events.once('shutdown', this.shutdown, this);
 
     const { width, height } = this.cameras.main;
 

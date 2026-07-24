@@ -5,12 +5,13 @@ import type { FruitBody } from './types';
 
 export type DangerLineCallbacks = {
   isActive: () => boolean;
-  canDrop: () => boolean;
   onGameOver: (violators: FruitBody[]) => void;
 };
 
 export class DangerLineSystem {
   private dangerY = 0;
+  /** Epoch ms — lose checks skipped until this time (post-drop settle grace). */
+  private graceUntil = 0;
 
   constructor(
     private readonly fruits: Set<FruitBody>,
@@ -21,8 +22,17 @@ export class DangerLineSystem {
     this.dangerY = y;
   }
 
+  /** Brief settle window after a drop so the pile can fall before lose checks. */
+  armGrace(ms: number): void {
+    this.graceUntil = Date.now() + ms;
+  }
+
+  clearGrace(): void {
+    this.graceUntil = 0;
+  }
+
   check(): void {
-    if (!this.callbacks.isActive() || !this.callbacks.canDrop()) return;
+    if (!this.callbacks.isActive() || Date.now() < this.graceUntil) return;
 
     const violators: FruitBody[] = [];
     for (const fruit of this.fruits) {
@@ -31,7 +41,9 @@ export class DangerLineSystem {
       if (!body.velocity) continue;
       const speed = Math.hypot(body.velocity.x, body.velocity.y);
       if (speed > 0.35) continue;
-      if (fruit.y - FRUIT_TYPES[fruit.fruitLevel].radius < this.dangerY) {
+      const def = FRUIT_TYPES[fruit.fruitLevel];
+      if (!def) continue;
+      if (fruit.y - def.radius < this.dangerY) {
         violators.push(fruit);
       }
     }

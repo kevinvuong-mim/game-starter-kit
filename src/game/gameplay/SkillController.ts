@@ -40,10 +40,12 @@ export class SkillController {
   }
 
   reset(): void {
+    this.clearSelectionTint();
     this.activeSkill = null;
   }
 
   clear(): void {
+    this.clearSelectionTint();
     this.activeSkill = null;
     this.skillBar.setHint('');
     this.skillBar.updateSelectionVisual();
@@ -56,8 +58,9 @@ export class SkillController {
 
     if (id === 'boost_change') {
       if (!this.callbacks.canDrop()) return;
-      this.callbacks.pushUndoCheckpoint();
+      // Consume before checkpoint so a failed consume never clobbers undo state.
       if (!consumeSkill(id)) return;
+      this.callbacks.pushUndoCheckpoint();
       const prev = this.callbacks.getCurrentLevel();
       this.callbacks.setLevels(this.callbacks.getNextLevel(), prev);
       this.callbacks.refreshDropper();
@@ -84,6 +87,7 @@ export class SkillController {
       return;
     }
 
+    this.clearSelectionTint();
     this.activeSkill =
       id === 'boost_hammer'
         ? { kind: 'hammer' }
@@ -113,8 +117,8 @@ export class SkillController {
     const skillId = this.skillKindToId(this.activeSkill);
 
     if (this.activeSkill.kind === 'hammer') {
-      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
+      this.callbacks.pushUndoCheckpoint();
       this.factory.burst(fruit);
       this.skillBar.refreshInventory(skillId);
       this.clear();
@@ -122,8 +126,8 @@ export class SkillController {
     }
 
     if (this.activeSkill.kind === 'double') {
-      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
+      this.callbacks.pushUndoCheckpoint();
       fruit.scoreMultiplier = 2;
       this.scene.tweens.add({
         targets: fruit,
@@ -139,8 +143,8 @@ export class SkillController {
 
     if (this.activeSkill.kind === 'size') {
       if (fruit.fruitLevel >= FRUIT_TYPES.length - 1) return;
-      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
+      this.callbacks.pushUndoCheckpoint();
       const next = fruit.fruitLevel + 1;
       const { x, y } = fruit;
       const multiplier = fruit.scoreMultiplier;
@@ -166,16 +170,29 @@ export class SkillController {
       return;
     }
 
+    // First pick may have been merged/destroyed while waiting for the second tap.
+    if (!this.factory.isAlive(this.activeSkill.selected)) {
+      this.activeSkill.selected = fruit;
+      fruit.setTint(0x90caf9);
+      this.skillBar.setHint(t('game.skillHintSwapSecond'));
+      return;
+    }
+
     if (this.activeSkill.selected === fruit) return;
 
-    this.callbacks.pushUndoCheckpoint();
-    if (!consumeSkill(skillId)) {
-      this.activeSkill.selected.clearTint();
+    const a = this.activeSkill.selected;
+    if (!this.factory.isAlive(a) || !this.factory.isAlive(fruit)) {
       this.clear();
       return;
     }
 
-    const a = this.activeSkill.selected;
+    if (!consumeSkill(skillId)) {
+      this.clear();
+      return;
+    }
+
+    this.callbacks.pushUndoCheckpoint();
+
     a.clearTint();
     const ax = a.x;
     const ay = a.y;
@@ -186,6 +203,15 @@ export class SkillController {
 
     this.skillBar.refreshInventory(skillId);
     this.clear();
+  }
+
+  private clearSelectionTint(): void {
+    if (this.activeSkill?.kind === 'swap' && this.activeSkill.selected) {
+      const selected = this.activeSkill.selected;
+      if (selected.active) {
+        selected.clearTint();
+      }
+    }
   }
 
   private skillKindToId(skill: Exclude<ActiveSkill, null>): SkillId {

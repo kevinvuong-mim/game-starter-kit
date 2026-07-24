@@ -72,6 +72,8 @@ export class GameplayScene extends Phaser.Scene {
   create(): void {
     this.cleanupEventListeners();
     this.fruits.clear();
+    this.events.off('shutdown', this.shutdown, this);
+    this.events.once('shutdown', this.shutdown, this);
 
     const { width, height } = this.cameras.main;
     const saved = loadGameRunSave();
@@ -114,6 +116,7 @@ export class GameplayScene extends Phaser.Scene {
       },
       onDropped: (level) => {
         this.factory.spawn(this.dropController.x, this.dropController.y, level);
+        this.dangerLine.armGrace(600);
       },
       getCurrentLevel: () => this.currentLevel,
       advanceLevels: () => {
@@ -124,7 +127,6 @@ export class GameplayScene extends Phaser.Scene {
 
     this.dangerLine = new DangerLineSystem(this.fruits, {
       isActive: () => this.gameActive,
-      canDrop: () => this.canDrop,
       onGameOver: (violators) => this.triggerGameOver(violators),
     });
 
@@ -349,8 +351,14 @@ export class GameplayScene extends Phaser.Scene {
 
   private createContainer(width: number, height: number): void {
     const displayW = Math.min(width * 0.88, 520);
-    const texture = this.textures.get('glass-container').getSourceImage() as HTMLImageElement;
-    const aspect = texture.height / texture.width;
+    // Fallback matches PreloadScene glass-container placeholder (479×592).
+    let aspect = 592 / 479;
+    if (this.textures.exists('glass-container')) {
+      const source = this.textures.get('glass-container').getSourceImage() as HTMLImageElement;
+      if (source?.width > 0 && source?.height > 0) {
+        aspect = source.height / source.width;
+      }
+    }
     const displayH = displayW * aspect;
     const centerX = width / 2;
     const centerY = Math.min(height * 0.50, height - 200 - displayH / 2);
@@ -418,12 +426,12 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private triggerGameOver(violators: FruitBody[]): void {
-    if (!this.gameActive) return;
-
-    clearGameRunSave();
+    if (!this.gameActive || this.sessionEnded) return;
 
     const isNewRecord = this.score > this.startingHighScore;
-    this.gameActive = false;
+    // Complete immediately so deeplink/pause during the flash still syncs the match
+    // and abortSession cannot re-persist a cleared lose-state run.
+    this.completeSession();
     this.canDrop = false;
     this.skills.clear();
     this.dropController.hide();
@@ -432,7 +440,7 @@ export class GameplayScene extends Phaser.Scene {
     this.dangerLine.flashViolators(this, violators);
 
     this.time.delayedCall(3000, () => {
-      this.completeSession();
+      if (!this.sys.isActive()) return;
       this.scene.start('GameOver', {
         score: this.score,
         jumps: this.merges,

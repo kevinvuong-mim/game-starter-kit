@@ -47,6 +47,9 @@ export class FruitFactory {
 
   spawn(x: number, y: number, level: number, scoreMultiplier = 1): FruitBody {
     const def = FRUIT_TYPES[level];
+    if (!def) {
+      throw new Error(`Invalid fruit level: ${level}`);
+    }
     const image = this.scene.matter.add.image(x, y, fruitTextureKey(level)) as FruitBody;
 
     image.setCircle(def.radius, {
@@ -74,6 +77,11 @@ export class FruitFactory {
     if (fruit.active) {
       fruit.destroy();
     }
+  }
+
+  /** True when the body is still in the live fruit set and not mid-merge. */
+  isAlive(fruit: FruitBody): boolean {
+    return this.fruits.has(fruit) && fruit.active && !fruit.isMerging;
   }
 
   burst(fruit: FruitBody): void {

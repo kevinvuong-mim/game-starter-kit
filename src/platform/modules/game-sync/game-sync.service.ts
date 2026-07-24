@@ -39,6 +39,7 @@ export class GameSyncService {
 
   async recordResult(params: RecordResultParams): Promise<void> {
     const { gameId } = getConfig();
+    // Empty guestId is an unsigned marker; flush() rebinds when guest becomes ready.
     const guestId = this.guestService.getGuestId() ?? '';
     const score = toNonNegativeInt(params.score);
     const playedAt = params.playedAt ?? new Date().toISOString();
