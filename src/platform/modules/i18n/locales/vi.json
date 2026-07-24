@@ -49,7 +49,10 @@
     "restoreEmpty": "Không có giao dịch để khôi phục",
     "getCoins": {
       "missions": "Nhiệm vụ",
-      "dailyReward": "Quà hàng ngày"
+      "dailyReward": "Quà hàng ngày",
+      "buyCoins": "{{coins}} xu · {{price}}",
+      "purchasing": "Đang xử lý mua hàng…",
+      "purchaseSuccess": "Nhận {{coins}} xu!"
     },
     "currency": {
       "coins": "xu",
@@ -79,6 +82,10 @@
       "remove_ads": {
         "name": "Gỡ Quảng Cáo",
         "description": "Gỡ toàn bộ quảng cáo vĩnh viễn"
+      },
+      "coins_10000": {
+        "name": "10000 xu",
+        "description": "Nhận 10000 xu"
       }
     }
   },

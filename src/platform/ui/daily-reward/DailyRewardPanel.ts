@@ -1,12 +1,6 @@
 import Phaser from 'phaser';
 
-import {
-  PANEL_BG,
-  TEXT_COLOR,
-  PANEL_BORDER,
-  PANEL_CORNER_RADIUS,
-  PANEL_LIST_PADDING,
-} from '../panel/panelTheme';
+import { PANEL_BG, TEXT_COLOR, PANEL_BORDER, PANEL_CORNER_RADIUS } from '../panel/panelTheme';
 import { toast } from '../toast/ToastManager';
 import { eventBus } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
@@ -21,11 +15,13 @@ import type {
 
 const GRID_COLS = 2;
 const GRID_ROWS = 3;
-const CELL_GAP = 14;
+const CELL_GAP_X = 14;
+const CELL_GAP_Y = 28;
+const PANEL_CONTENT_PADDING_Y = 36;
 const CELL_BG = 0xf3d7a8;
 const CELL_BORDER = 0xc9a86a;
 const DAY7_BANNER = 0xffd54f;
-const DAY7_GAP = 24;
+const DAY7_GAP = 36;
 const CHECK_ICON_SIZE = 36;
 const DAY_COIN_SIZE = 56;
 const DAY7_COIN_SIZE = 28;
@@ -90,12 +86,12 @@ export class DailyRewardPanel extends Phaser.GameObjects.Container {
 
   private getCalendarLayout(screenWidth: number): CalendarLayout {
     const gridWidth = Math.min(screenWidth * 0.88, 400);
-    const cellWidth = (gridWidth - CELL_GAP * (GRID_COLS - 1)) / GRID_COLS;
+    const cellWidth = (gridWidth - CELL_GAP_X * (GRID_COLS - 1)) / GRID_COLS;
     const cellHeight = Math.min(cellWidth * 0.85, 130);
     const day7Width = Math.min(screenWidth * 0.94, 440);
     const day7Height = Math.min(cellWidth * 0.95, 200);
     const contentHeight =
-      GRID_ROWS * cellHeight + (GRID_ROWS - 1) * CELL_GAP + DAY7_GAP + day7Height;
+      GRID_ROWS * cellHeight + (GRID_ROWS - 1) * CELL_GAP_Y + DAY7_GAP + day7Height;
 
     return { gridWidth, cellWidth, cellHeight, day7Width, day7Height, contentHeight };
   }
@@ -123,7 +119,7 @@ export class DailyRewardPanel extends Phaser.GameObjects.Container {
     const { width, height } = this.scene.cameras.main;
     const panelWidth = Math.min(width * 0.97, 460);
     this.calendarLayout = this.getCalendarLayout(width);
-    const panelHeight = PANEL_LIST_PADDING * 2 + this.calendarLayout.contentHeight;
+    const panelHeight = PANEL_CONTENT_PADDING_Y * 2 + this.calendarLayout.contentHeight;
     const panelTop = height * 0.24;
 
     const panel = this.scene.add.graphics();
@@ -148,10 +144,13 @@ export class DailyRewardPanel extends Phaser.GameObjects.Container {
     });
     this.add(this.header);
 
-    this.calendarContainer = this.scene.add.container(width / 2, panelTop + PANEL_LIST_PADDING);
+    this.calendarContainer = this.scene.add.container(
+      width / 2,
+      panelTop + PANEL_CONTENT_PADDING_Y
+    );
     this.add(this.calendarContainer);
 
-    const footerY = panelTop + panelHeight + 48;
+    const footerY = panelTop + panelHeight + 60;
 
     this.statusText = this.scene.add
       .text(width / 2, footerY, '', {
@@ -216,13 +215,13 @@ export class DailyRewardPanel extends Phaser.GameObjects.Container {
     gridDays.forEach((entry, index) => {
       const col = index % GRID_COLS;
       const row = Math.floor(index / GRID_COLS);
-      const x = -gridWidth / 2 + cellWidth / 2 + col * (cellWidth + CELL_GAP);
-      const y = cellHeight / 2 + row * (cellHeight + CELL_GAP);
+      const x = -gridWidth / 2 + cellWidth / 2 + col * (cellWidth + CELL_GAP_X);
+      const y = cellHeight / 2 + row * (cellHeight + CELL_GAP_Y);
       this.calendarContainer!.add(this.createDayCell(entry, canClaim, x, y, cellWidth, cellHeight));
     });
 
     if (day7) {
-      const day7Top = GRID_ROWS * (cellHeight + CELL_GAP) - CELL_GAP + DAY7_GAP;
+      const day7Top = GRID_ROWS * (cellHeight + CELL_GAP_Y) - CELL_GAP_Y + DAY7_GAP;
       this.calendarContainer.add(
         this.createDay7Cell(day7, canClaim, 0, day7Top, day7Width, day7Height)
       );

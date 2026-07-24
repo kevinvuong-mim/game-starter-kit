@@ -12,6 +12,15 @@ const MOCK_PRODUCTS: ProviderProduct[] = [
     type: 'non_consumable',
     description: 'Permanent ad removal',
   },
+  {
+    price: '$0.99',
+    currency: 'USD',
+    id: 'coins_10000',
+    priceAmount: 0.99,
+    title: '10000 Coins',
+    type: 'consumable',
+    description: 'Get 10000 coins',
+  },
 ];
 
 export class MockIapAdapter implements IAPProvider {
@@ -43,10 +52,13 @@ export class MockIapAdapter implements IAPProvider {
       purchaseTime: Date.now(),
     };
 
-    this.restoredPurchases = [
-      ...this.restoredPurchases.filter((p) => p.productId !== productId),
-      purchase,
-    ];
+    // Only persist non-consumables for restore; coin packs are one-shot grants.
+    if (product.type !== 'consumable') {
+      this.restoredPurchases = [
+        ...this.restoredPurchases.filter((p) => p.productId !== productId),
+        purchase,
+      ];
+    }
 
     return purchase;
   }

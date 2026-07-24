@@ -6,7 +6,7 @@ import type { ProductKey } from '@platform/modules/iap';
 import { iap, getProductByKey } from '@platform/modules/iap';
 import { saveService } from '@platform/modules/save';
 
-type ShopItemType = 'skin' | 'boost' | 'entitlement';
+type ShopItemType = 'skin' | 'boost' | 'entitlement' | 'coins';
 
 export interface ShopItem {
   id: string;
@@ -17,6 +17,8 @@ export interface ShopItem {
   type: ShopItemType;
   description: string;
   productKey?: ProductKey;
+  /** Coins granted after a successful IAP coin-pack purchase. */
+  coinAmount?: number;
   currency: 'iap' | 'coins';
 }
 
@@ -108,13 +110,16 @@ class ShopService {
       return false;
     }
 
-    if (item.type === 'entitlement' && item.productKey) {
-      if (this.isOwned(itemId)) return false;
+    if (item.currency === 'iap' && item.productKey) {
+      if (item.type === 'entitlement' && this.isOwned(itemId)) return false;
 
       const product = getProductByKey(item.productKey);
       const result = await iap.purchase(product);
 
       if (result.success) {
+        if (item.type === 'coins') {
+          this.grantCoins(item);
+        }
         eventBus.emit('shop:purchase', { itemId, price: item.price });
         return true;
       }
@@ -153,6 +158,16 @@ class ShopService {
     if (item.type === 'boost') {
       store.addItem(item.id, 1);
     }
+  }
+
+  private grantCoins(item: ShopItem): void {
+    const amount = item.coinAmount ?? 0;
+    if (amount <= 0) {
+      logger.warn(`[Shop] Coin pack missing coinAmount: ${item.id}`);
+      return;
+    }
+    usePlatformStore.getState().addCoins(amount);
+    void saveService.saveLocal();
   }
 }
 

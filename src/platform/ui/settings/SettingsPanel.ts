@@ -17,7 +17,7 @@ import { t, i18n } from '@platform/modules/i18n/i18n.service';
 import { settings } from '@platform/modules/settings';
 import { shop } from '@platform/modules/shop';
 import { ads } from '@platform/core/advertising';
-
+import { REMOVE_ADS_PRICE } from '@platform/modules/iap/iap.config';
 const LANGUAGE_GLOBE_KEY = 'language-globe-icon';
 
 const SECTION_TITLE_COLOR = '#1c1b18';
@@ -41,9 +41,6 @@ const LEGAL_BTN_GAP = 12;
 const ROW_ICON_SIZE = 36;
 const DIVIDER_GAP = 30;
 const REMOVE_ADS_ITEM_ID = 'remove_ads';
-/** Display price for mock / until store catalog is fetched. */
-const REMOVE_ADS_PRICE = '$4.99';
-
 const LANGUAGES = [
   { code: 'en', labelKey: 'settings.languageEn' as const },
   { code: 'vi', labelKey: 'settings.languageVi' as const },

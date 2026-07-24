@@ -10,11 +10,19 @@ export const PRODUCTS = {
     type: 'non_consumable',
     entitlement: 'remove_ads',
   },
+  COINS_10000: {
+    id: 'coins_10000',
+    type: 'consumable',
+    entitlement: 'coins_10000',
+  },
 } as const satisfies Record<string, ProductDefinition>;
 
 export type ProductKey = keyof typeof PRODUCTS;
 
 export const ENTITLEMENT_REMOVE_ADS = PRODUCTS.REMOVE_ADS.entitlement;
+export const REMOVE_ADS_PRICE = '$4.99';
+export const COINS_10000_AMOUNT = 10_000;
+export const COINS_10000_PRICE = '$0.99';
 
 /** Default purchase timeout (ms). */
 export const IAP_PURCHASE_TIMEOUT_MS = 60_000;

@@ -49,7 +49,10 @@
     "restoreEmpty": "No purchases to restore",
     "getCoins": {
       "missions": "Missions",
-      "dailyReward": "Daily Reward"
+      "dailyReward": "Daily Reward",
+      "buyCoins": "{{coins}} Coins · {{price}}",
+      "purchasing": "Processing purchase…",
+      "purchaseSuccess": "Got {{coins}} coins!"
     },
     "currency": {
       "coins": "coins",
@@ -79,6 +82,10 @@
       "remove_ads": {
         "name": "Remove Ads",
         "description": "Remove all ads permanently"
+      },
+      "coins_10000": {
+        "name": "10000 Coins",
+        "description": "Get 10000 coins"
       }
     }
   },

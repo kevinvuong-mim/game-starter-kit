@@ -2,12 +2,15 @@ import Phaser from 'phaser';
 
 import type { UIButton } from '../types';
 import { drawRoundedRect } from './graphics';
+import { toast } from '../toast/ToastManager';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { createUIButton } from '../button/UIButton';
 import { formatNumber } from '@platform/core/utils';
+import { shop } from '@platform/modules/shop';
 import { t } from '@platform/modules/i18n/i18n.service';
 import { usePlatformStore } from '@platform/core/state';
 import { PANEL_BG, TEXT_COLOR, PANEL_BORDER } from './panelTheme';
+import { COINS_10000_AMOUNT, COINS_10000_PRICE } from '@platform/modules/iap/iap.config';
 
 const COIN_BAR_GAP = 10;
 const COIN_BAR_PAD_X = 8;
@@ -15,6 +18,14 @@ const COIN_ICON_SIZE = 48;
 const COIN_PLUS_SIZE = 48;
 const COIN_BAR_HEIGHT = 54;
 const COIN_BAR_MIN_WIDTH = 120;
+
+const COINS_PACK_ITEM_ID = 'coins_10000';
+const GET_COINS_BTN_HEIGHT = 80;
+const GET_COINS_PAD_TOP = 52;
+const GET_COINS_PAD_BOTTOM = 28;
+const GET_COINS_ACTION_GAP = 12;
+const GET_COINS_SECTION_GAP = 18;
+const GET_COINS_DIVIDER_THICKNESS = 2;
 
 const GET_COIN_ACTIONS = [
   { labelKey: 'shop.getCoins.missions', sceneKey: 'Missions' },
@@ -49,6 +60,7 @@ export class PanelHeader extends Phaser.GameObjects.Container {
   private coinIcon?: Phaser.GameObjects.Image;
   private coinBar?: Phaser.GameObjects.Graphics;
   private getCoinsModal?: Phaser.GameObjects.Container;
+  private purchasingCoins = false;
 
   constructor(scene: Phaser.Scene, options: PanelHeaderOptions) {
     super(scene, 0, 0);
@@ -99,9 +111,42 @@ export class PanelHeader extends Phaser.GameObjects.Container {
     const actions = GET_COIN_ACTIONS.filter(
       (action) => !this.excludeGetCoinScenes.has(action.sceneKey)
     );
-    const buttonGap = 90;
-    const panelWidth = Math.min(320, width * 0.78);
-    const panelHeight = Math.max(200, 80 + actions.length * buttonGap);
+    const navSections = actions.map((action) => ({
+      kind: 'nav' as const,
+      label: t(action.labelKey),
+      fontSize: 22,
+      backgroundKey: 'leaderboard-button-background',
+      onClick: () => {
+        this.hideGetCoinsModal();
+        this.onNavigate(action.sceneKey);
+      },
+    }));
+    const iapSection = {
+      kind: 'iap' as const,
+      label: t('shop.getCoins.buyCoins', {
+        coins: formatNumber(COINS_10000_AMOUNT),
+        price: COINS_10000_PRICE,
+      }),
+      fontSize: 18,
+      backgroundKey: 'settings-button-background',
+      onClick: () => {
+        void this.purchaseCoinPack();
+      },
+    };
+
+    const hasDivider = navSections.length > 0;
+    const panelWidth = Math.min(340, width * 0.82);
+    const navGapTotal = Math.max(0, navSections.length - 1) * GET_COINS_ACTION_GAP;
+    const dividerBlock = hasDivider
+      ? GET_COINS_SECTION_GAP * 2 + GET_COINS_DIVIDER_THICKNESS
+      : 0;
+    const panelHeight =
+      GET_COINS_PAD_TOP +
+      navSections.length * GET_COINS_BTN_HEIGHT +
+      navGapTotal +
+      dividerBlock +
+      GET_COINS_BTN_HEIGHT +
+      GET_COINS_PAD_BOTTOM;
     const panelX = width / 2 - panelWidth / 2;
     const panelY = height / 2 - panelHeight / 2;
 
@@ -128,37 +173,107 @@ export class PanelHeader extends Phaser.GameObjects.Container {
       })
     );
 
-    const buttonWidth = (panelWidth * 2) / 3;
-    const startY = height / 2 - ((actions.length - 1) * buttonGap) / 2;
+    const buttonWidth = Math.min(260, panelWidth * 0.78);
+    const dividerWidth = panelWidth * 0.72;
+    let cursorY = panelY + GET_COINS_PAD_TOP;
 
-    actions.forEach((action, index) => {
+    navSections.forEach((section, index) => {
+      if (index > 0) cursorY += GET_COINS_ACTION_GAP;
+
       modal.add(
         createUIButton({
           scene: this.scene,
-          position: { x: width / 2, y: startY + index * buttonGap },
-          size: { width: buttonWidth, height: 80 },
-          background: { key: 'leaderboard-button-background' },
+          position: { x: width / 2, y: cursorY + GET_COINS_BTN_HEIGHT / 2 },
+          size: { width: buttonWidth, height: GET_COINS_BTN_HEIGHT },
+          background: { key: section.backgroundKey },
           text: {
-            content: t(action.labelKey),
+            content: section.label,
             style: {
-              fontSize: 22,
+              fontSize: section.fontSize,
               fontStyle: 'bold',
               border: { width: 3, color: '#000000' },
             },
           },
-          onClick: () => {
-            this.hideGetCoinsModal();
-            this.onNavigate(action.sceneKey);
-          },
+          onClick: section.onClick,
         })
       );
+      cursorY += GET_COINS_BTN_HEIGHT;
     });
+
+    if (hasDivider) {
+      cursorY += GET_COINS_SECTION_GAP;
+      modal.add(
+        this.createGetCoinsDivider(
+          width / 2,
+          cursorY + GET_COINS_DIVIDER_THICKNESS / 2,
+          dividerWidth
+        )
+      );
+      cursorY += GET_COINS_DIVIDER_THICKNESS + GET_COINS_SECTION_GAP;
+    }
+
+    modal.add(
+      createUIButton({
+        scene: this.scene,
+        position: { x: width / 2, y: cursorY + GET_COINS_BTN_HEIGHT / 2 },
+        size: { width: buttonWidth, height: GET_COINS_BTN_HEIGHT },
+        background: { key: iapSection.backgroundKey },
+        text: {
+          content: iapSection.label,
+          style: {
+            fontSize: iapSection.fontSize,
+            fontStyle: 'bold',
+            border: { width: 3, color: '#000000' },
+          },
+        },
+        onClick: iapSection.onClick,
+      })
+    );
 
     this.getCoinsModal = modal;
   }
 
   hideGetCoinsModal(): void {
     this.getCoinsModal?.setVisible(false);
+  }
+
+  private createGetCoinsDivider(
+    centerX: number,
+    y: number,
+    width: number
+  ): Phaser.GameObjects.Graphics {
+    const line = this.scene.add.graphics();
+    line.lineStyle(2, PANEL_BORDER, 0.55);
+    line.beginPath();
+    line.moveTo(centerX - width / 2, y);
+    line.lineTo(centerX + width / 2, y);
+    line.strokePath();
+    return line;
+  }
+
+  private async purchaseCoinPack(): Promise<void> {
+    if (this.purchasingCoins) return;
+    this.purchasingCoins = true;
+
+    toast.show({ message: t('shop.getCoins.purchasing'), type: 'info', duration: 2500 });
+
+    try {
+      const success = await shop.purchase(COINS_PACK_ITEM_ID);
+      if (success) {
+        toast.show({
+          type: 'success',
+          message: t('shop.getCoins.purchaseSuccess', {
+            coins: formatNumber(COINS_10000_AMOUNT),
+          }),
+        });
+        this.hideGetCoinsModal();
+        return;
+      }
+
+      toast.show({ message: t('shop.purchaseFailed'), type: 'error' });
+    } finally {
+      this.purchasingCoins = false;
+    }
   }
 
   private buildHeader(width: number, height: number, onBack: () => void): void {

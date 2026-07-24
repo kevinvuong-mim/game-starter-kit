@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "price": 1,
+      "price": 2000,
       "type": "boost",
       "currency": "coins",
       "id": "boost_hammer",
@@ -10,7 +10,7 @@
       "description": "Destroy the fruit you choose!"
     },
     {
-      "price": 1,
+      "price": 2000,
       "type": "boost",
       "currency": "coins",
       "id": "boost_change",
@@ -19,7 +19,7 @@
       "description": "Swap the current fruit with the next one!"
     },
     {
-      "price": 1,
+      "price": 2500,
       "type": "boost",
       "currency": "coins",
       "id": "boost_swap",
@@ -28,7 +28,7 @@
       "description": "Swap the positions of any fruits!"
     },
     {
-      "price": 1,
+      "price": 3500,
       "type": "boost",
       "currency": "coins",
       "id": "boost_double",
@@ -37,7 +37,7 @@
       "description": "Double the score of the fruit!"
     },
     {
-      "price": 1,
+      "price": 3500,
       "type": "boost",
       "currency": "coins",
       "id": "boost_size",
@@ -46,7 +46,7 @@
       "description": "Increase the size of the fruit!"
     },
     {
-      "price": 0,
+      "price": 4.99,
       "type": "entitlement",
       "currency": "iap",
       "productKey": "REMOVE_ADS",
@@ -54,6 +54,17 @@
       "name": "Remove Ads",
       "icon": "shop-item-1",
       "description": "Remove all ads permanently"
+    },
+    {
+      "price": 0.99,
+      "type": "coins",
+      "currency": "iap",
+      "productKey": "COINS_10000",
+      "id": "coins_10000",
+      "name": "10000 Coins",
+      "icon": "coin-icon",
+      "description": "Get 10000 coins",
+      "coinAmount": 10000
     }
   ]
 }

@@ -135,7 +135,10 @@ class IapService {
       );
 
       const matched = getProductById(providerPurchase.productId) ?? product;
-      await this.grantEntitlement(matched.entitlement);
+      // Consumables (e.g. coin packs) grant once at purchase time — do not persist.
+      if (matched.type !== 'consumable') {
+        await this.grantEntitlement(matched.entitlement);
+      }
 
       this.emit(IAP_EVENTS.PURCHASE_SUCCESS, {
         productId: providerPurchase.productId,
@@ -145,6 +148,7 @@ class IapService {
       logger.info('[IAP] Purchase succeeded', {
         productId: matched.id,
         entitlement: matched.entitlement,
+        type: matched.type,
       });
 
       return { success: true, cancelled: false, entitlement: matched.entitlement };
@@ -174,6 +178,8 @@ class IapService {
   /** After a client timeout, re-check store entitlements in case the charge succeeded. */
   private async tryRecoverTimedOutPurchase(product: ProductDefinition): Promise<boolean> {
     if (!this.provider) return false;
+    // Consumables are not restored as entitlements — cannot recover after timeout.
+    if (product.type === 'consumable') return false;
 
     try {
       const remote = await this.provider.fetchEntitlements();
@@ -218,7 +224,7 @@ class IapService {
 
       for (const purchase of purchases) {
         const product = getProductById(purchase.productId);
-        if (!product?.entitlement) continue;
+        if (!product?.entitlement || product.type === 'consumable') continue;
 
         const wasNew = !this.has(product.entitlement);
         await this.grantEntitlement(product.entitlement, { emitChange: wasNew });
