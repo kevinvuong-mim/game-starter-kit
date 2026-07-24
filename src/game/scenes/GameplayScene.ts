@@ -165,10 +165,15 @@ export class GameplayScene extends Phaser.Scene {
         }
       },
       onQuit: () => {
-        if (this.gameActive) {
-          this.quitSession();
-          this.scene.start(this.returnTo);
-        }
+        if (!this.gameActive) return;
+        const isNewRecord = this.score > this.startingHighScore;
+        this.completeSession();
+        this.scene.start('GameOver', {
+          score: this.score,
+          jumps: this.merges,
+          returnTo: this.returnTo,
+          isNewRecord,
+        });
       },
     });
 
@@ -240,17 +245,6 @@ export class GameplayScene extends Phaser.Scene {
     this.gameActive = false;
 
     this.persistRun();
-
-    if (!this.sessionStarted) return;
-    eventBus.emit('score:update', { score: this.score });
-  }
-
-  /** Explicit quit — discard run save and return home without restoring later. */
-  private quitSession(): void {
-    if (this.sessionEnded) return;
-    this.sessionEnded = true;
-    this.gameActive = false;
-    clearGameRunSave();
 
     if (!this.sessionStarted) return;
     eventBus.emit('score:update', { score: this.score });
