@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 
+import { FRUIT_TYPES, fruitImagePath, fruitTextureKey } from '@game/fruits';
 import { eventBus, getBootNavigationTarget } from '@platform/core/events';
 import { FREDOKA_FONT } from '@platform/ui/fonts';
 import { t } from '@platform/ui';
@@ -13,7 +14,13 @@ import {
 type ImageAsset = { key: string; path: string };
 type FallbackTexture = { key: string; width: number; height: number; color: number };
 
+const FRUIT_IMAGE_ASSETS: ImageAsset[] = FRUIT_TYPES.map((_, level) => ({
+  key: fruitTextureKey(level),
+  path: fruitImagePath(level),
+}));
+
 const IMAGE_ASSETS: ImageAsset[] = [
+  ...FRUIT_IMAGE_ASSETS,
   { key: 'coin-icon', path: '/assets/images/coin.png' },
   { key: 'chest-icon', path: '/assets/images/chest.png' },
   { key: 'shop-banner', path: '/assets/images/banner.png' },

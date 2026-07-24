@@ -15,6 +15,7 @@ export class FruitFactory {
     this.fruitSeq = 0;
   }
 
+  /** Prefer preloaded fruit-n.png; fall back to a colored circle if the image is missing. */
   ensureTextures(): void {
     for (let level = 0; level < FRUIT_TYPES.length; level++) {
       const key = fruitTextureKey(level);
@@ -51,6 +52,7 @@ export class FruitFactory {
       throw new Error(`Invalid fruit level: ${level}`);
     }
     const image = this.scene.matter.add.image(x, y, fruitTextureKey(level)) as FruitBody;
+    image.setDisplaySize(def.radius * 2, def.radius * 2);
 
     image.setCircle(def.radius, {
       restitution: 0.12,
