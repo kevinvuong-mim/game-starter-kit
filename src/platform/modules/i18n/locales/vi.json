@@ -31,7 +31,8 @@
     "skillHintSwap": "Chọn 2 trái để hoán đổi",
     "skillHintSwapSecond": "Chọn trái thứ hai",
     "skillHintDouble": "Chọn trái để nhân đôi điểm ghép",
-    "skillHintSize": "Chọn trái để tăng cấp"
+    "skillHintSize": "Chọn trái để tăng cấp",
+    "skillUndoNothing": "Không có gì để hoàn tác"
   },
 
   "shop": {
@@ -78,6 +79,10 @@
       "boost_size": {
         "name": "Tăng Kích Cỡ",
         "description": "Tăng kích thước của trái cây!"
+      },
+      "boost_undo": {
+        "name": "Hoàn tác",
+        "description": "Hoàn tác nước đi gần nhất!"
       },
       "remove_ads": {
         "name": "Gỡ Quảng Cáo",

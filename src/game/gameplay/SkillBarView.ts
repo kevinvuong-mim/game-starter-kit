@@ -21,6 +21,7 @@ const SKILL_ICONS: Record<SkillId, string> = {
   boost_swap: 'shop-item-3',
   boost_double: 'shop-item-4',
   boost_size: 'shop-item-5',
+  boost_undo: 'shop-item-6',
 };
 
 export type SkillBarViewCallbacks = {

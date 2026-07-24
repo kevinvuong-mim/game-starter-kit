@@ -31,7 +31,8 @@
     "skillHintSwap": "Tap two fruits to swap them",
     "skillHintSwapSecond": "Tap the second fruit",
     "skillHintDouble": "Tap a fruit to double its merge score",
-    "skillHintSize": "Tap a fruit to grow it"
+    "skillHintSize": "Tap a fruit to grow it",
+    "skillUndoNothing": "Nothing to undo"
   },
 
   "shop": {
@@ -78,6 +79,10 @@
       "boost_size": {
         "name": "Size Increase",
         "description": "Increase the size of the fruit!"
+      },
+      "boost_undo": {
+        "name": "Undo",
+        "description": "Undo your last move!"
       },
       "remove_ads": {
         "name": "Remove Ads",

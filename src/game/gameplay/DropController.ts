@@ -8,6 +8,7 @@ export type DropControllerCallbacks = {
   canDrop: () => boolean;
   setCanDrop: (value: boolean) => void;
   hasActiveSkill: () => boolean;
+  onBeforeDrop: () => void;
   onFirstDrop: () => void;
   onDropped: (level: number) => void;
   getCurrentLevel: () => number;
@@ -123,6 +124,7 @@ export class DropController {
   private dropFruit(): void {
     if (!this.callbacks.canDrop() || !this.callbacks.isActive()) return;
 
+    this.callbacks.onBeforeDrop();
     this.callbacks.onFirstDrop();
 
     this.callbacks.setCanDrop(false);

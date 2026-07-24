@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 
 import { t } from '@platform/ui';
+import { toast } from '@platform/ui/toast/ToastManager';
 import { FRUIT_TYPES } from '@game/fruits';
 import { type SkillId, getSkillQuantity, consumeSkill } from '@game/skills/skillInventory';
 import type { FruitFactory } from './FruitFactory';
@@ -16,6 +17,9 @@ export type SkillControllerCallbacks = {
   refreshDropper: () => void;
   setNextFruitPreview: () => void;
   hideDropper: () => void;
+  pushUndoCheckpoint: () => void;
+  canUndo: () => boolean;
+  undoLastMove: () => void;
 };
 
 export class SkillController {
@@ -53,11 +57,25 @@ export class SkillController {
 
     if (id === 'boost_change') {
       if (!this.callbacks.canDrop()) return;
+      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(id)) return;
       const prev = this.callbacks.getCurrentLevel();
       this.callbacks.setLevels(this.callbacks.getNextLevel(), prev);
       this.callbacks.refreshDropper();
       this.callbacks.setNextFruitPreview();
+      this.skillBar.refreshInventory(id);
+      this.skillBar.setHint('');
+      return;
+    }
+
+    if (id === 'boost_undo') {
+      if (!this.callbacks.canUndo()) {
+        toast.show({ message: t('game.skillUndoNothing'), type: 'error' });
+        return;
+      }
+      if (!consumeSkill(id)) return;
+      this.callbacks.undoLastMove();
+      this.clear();
       this.skillBar.refreshInventory(id);
       this.skillBar.setHint('');
       return;
@@ -97,6 +115,7 @@ export class SkillController {
     const skillId = this.skillKindToId(this.activeSkill);
 
     if (this.activeSkill.kind === 'hammer') {
+      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
       this.factory.burst(fruit);
       this.skillBar.refreshInventory(skillId);
@@ -105,6 +124,7 @@ export class SkillController {
     }
 
     if (this.activeSkill.kind === 'double') {
+      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
       fruit.scoreMultiplier = 2;
       this.scene.tweens.add({
@@ -121,6 +141,7 @@ export class SkillController {
 
     if (this.activeSkill.kind === 'size') {
       if (fruit.fruitLevel >= FRUIT_TYPES.length - 1) return;
+      this.callbacks.pushUndoCheckpoint();
       if (!consumeSkill(skillId)) return;
       const next = fruit.fruitLevel + 1;
       const { x, y } = fruit;
@@ -149,6 +170,7 @@ export class SkillController {
 
     if (this.activeSkill.selected === fruit) return;
 
+    this.callbacks.pushUndoCheckpoint();
     if (!consumeSkill(skillId)) {
       this.activeSkill.selected.clearTint();
       this.clear();

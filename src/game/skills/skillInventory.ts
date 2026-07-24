@@ -6,6 +6,7 @@ export const SKILL_IDS = [
   'boost_swap',
   'boost_double',
   'boost_size',
+  'boost_undo',
 ] as const;
 
 export type SkillId = (typeof SKILL_IDS)[number];

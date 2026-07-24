@@ -47,6 +47,7 @@ export class GameplayScene extends Phaser.Scene {
   private dangerLine!: DangerLineSystem;
   private skillBar!: SkillBarView;
   private skills!: SkillController;
+  private undoSnapshot: GameRunSnapshot | null = null;
 
   private unsubscribers: Array<() => void> = [];
   private readonly onPointerMove = (pointer: Phaser.Input.Pointer) =>
@@ -83,6 +84,7 @@ export class GameplayScene extends Phaser.Scene {
     this.sessionStarted = false;
     this.canDrop = true;
     this.startingHighScore = getHighScore();
+    this.undoSnapshot = null;
 
     this.factory = new FruitFactory(this, this.fruits);
     this.factory.reset();
@@ -103,6 +105,7 @@ export class GameplayScene extends Phaser.Scene {
         this.canDrop = value;
       },
       hasActiveSkill: () => this.skills.active !== null,
+      onBeforeDrop: () => this.pushUndoCheckpoint(),
       onFirstDrop: () => {
         if (this.sessionStarted) return;
         this.sessionStarted = true;
@@ -143,6 +146,9 @@ export class GameplayScene extends Phaser.Scene {
       refreshDropper: () => this.dropController.refreshVisual(),
       setNextFruitPreview: () => this.hud.setNextFruit(fruitTextureKey(this.nextLevel), 40),
       hideDropper: () => this.dropController.hide(),
+      pushUndoCheckpoint: () => this.pushUndoCheckpoint(),
+      canUndo: () => this.undoSnapshot != null,
+      undoLastMove: () => this.applyUndo(),
     });
     this.skills.reset();
 
@@ -281,6 +287,21 @@ export class GameplayScene extends Phaser.Scene {
       dropperX: this.dropController.x,
       fruits,
     };
+  }
+
+  private pushUndoCheckpoint(): void {
+    this.undoSnapshot = this.captureRun();
+  }
+
+  private applyUndo(): void {
+    const saved = this.undoSnapshot;
+    if (!saved) return;
+
+    this.undoSnapshot = null;
+    for (const fruit of [...this.fruits]) {
+      this.factory.destroy(fruit);
+    }
+    this.restoreRun(saved);
   }
 
   private persistRun(): void {
