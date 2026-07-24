@@ -6,6 +6,7 @@ export { deepLinkController } from './deep-link';
 export { gameSyncController } from './game-sync';
 export { guest, guestController } from './guest';
 export { saveService } from './save';
+export { gameRunService } from './game-run';
 export { settings } from './settings';
 export { missions, missionController } from './missions';
 export { notificationController } from './notifications';

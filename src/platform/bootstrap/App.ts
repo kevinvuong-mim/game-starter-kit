@@ -5,6 +5,7 @@ import {
   settings,
   leaderboard,
   saveService,
+  gameRunService,
   dailyRewards,
   guestController,
   bindAdsController,
@@ -99,6 +100,7 @@ class App {
     analytics.setUserProperty('game_id', config().gameId);
 
     await saveService.loadLocal();
+    await gameRunService.load();
     syncGuestToStore();
     // Name flush may call saveLocal — only safe after hydrate.
     void guest.flushPendingName();

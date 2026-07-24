@@ -3,6 +3,11 @@ export { toast } from './toast/ToastManager';
 export { shareService } from '@platform/modules/share';
 export { t, i18n } from '@platform/modules/i18n/i18n.service';
 export { getHighScore } from './progress';
+export {
+  getPersistedGameRun,
+  setPersistedGameRun,
+  clearPersistedGameRun,
+} from './gameRun';
 export { getEquippedPlayerColor } from './shop/playerAppearance';
 export { getBoostQuantity, consumeBoost } from './shop/boostInventory';
 export { ShopPanel } from './shop/ShopPanel';

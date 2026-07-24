@@ -1,4 +1,10 @@
-const STORAGE_KEY = 'gsk:gameplay-run';
+import {
+  clearPersistedGameRun,
+  getPersistedGameRun,
+  setPersistedGameRun,
+} from '@platform/ui/gameRun';
+
+const LEGACY_SESSION_KEY = 'gsk:gameplay-run';
 
 export type SavedFruit = {
   x: number;
@@ -24,53 +30,73 @@ export type GameRunSnapshot = {
 
 let memory: GameRunSnapshot | null = null;
 
-function readSession(): GameRunSnapshot | null {
+function isGameRunSnapshot(value: unknown): value is GameRunSnapshot {
+  if (!value || typeof value !== 'object') return false;
+  const snap = value as GameRunSnapshot;
+  return snap.version === 1 && Array.isArray(snap.fruits);
+}
+
+function readLegacySession(): GameRunSnapshot | null {
   try {
     if (typeof sessionStorage === 'undefined') return null;
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(LEGACY_SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as GameRunSnapshot;
-    if (parsed?.version !== 1 || !Array.isArray(parsed.fruits)) return null;
-    return parsed;
+    const parsed = JSON.parse(raw) as unknown;
+    return isGameRunSnapshot(parsed) ? parsed : null;
   } catch {
     return null;
   }
 }
 
-function writeSession(snapshot: GameRunSnapshot | null): void {
+function clearLegacySession(): void {
   try {
     if (typeof sessionStorage === 'undefined') return;
-    if (!snapshot) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return;
-    }
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    sessionStorage.removeItem(LEGACY_SESSION_KEY);
   } catch {
-    // Best-effort — memory still holds the run.
+    // ignore
   }
 }
 
 export function hasGameRunSave(): boolean {
-  return memory != null || readSession() != null;
+  return loadGameRunSave() != null;
 }
 
 export function loadGameRunSave(): GameRunSnapshot | null {
   if (memory) return memory;
-  memory = readSession();
-  return memory;
+
+  const persisted = getPersistedGameRun();
+  if (isGameRunSnapshot(persisted)) {
+    memory = persisted;
+    return memory;
+  }
+
+  // One-time migration from the old sessionStorage-only save.
+  const legacy = readLegacySession();
+  if (legacy) {
+    memory = legacy;
+    setPersistedGameRun(legacy);
+    clearLegacySession();
+    return memory;
+  }
+
+  return null;
 }
 
 export function saveGameRun(snapshot: GameRunSnapshot): void {
   memory = snapshot;
-  writeSession(snapshot);
+  setPersistedGameRun(snapshot);
+  clearLegacySession();
 }
 
 export function clearGameRunSave(): void {
   memory = null;
-  writeSession(null);
+  clearPersistedGameRun();
+  clearLegacySession();
 }
 
 /** True when leaving would discard progress the player expects to keep. */
-export function isMeaningfulRun(snapshot: Pick<GameRunSnapshot, 'score' | 'sessionStarted' | 'fruits'>): boolean {
+export function isMeaningfulRun(
+  snapshot: Pick<GameRunSnapshot, 'score' | 'sessionStarted' | 'fruits'>
+): boolean {
   return snapshot.sessionStarted || snapshot.score > 0 || snapshot.fruits.length > 0;
 }

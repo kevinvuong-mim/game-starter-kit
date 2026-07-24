@@ -13,6 +13,7 @@ import { usePlatformStore } from '@platform/core/state';
 import { shop } from '@platform/modules/shop';
 import { hideNativeSplash } from '@platform/bootstrap/capacitor';
 import { saveService } from '@platform/modules/save';
+import { gameRunService } from '@platform/modules/game-run';
 
 const { events, analytics } = services;
 
@@ -105,6 +106,7 @@ export function bindAppLifecycle(): () => void {
     if (document.hidden) {
       trackSessionEnd();
       events.emit('app:pause', undefined);
+      void gameRunService.flush();
       void saveService.saveLocal();
       void analytics.flush();
     } else {
