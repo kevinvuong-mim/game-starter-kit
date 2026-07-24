@@ -50,11 +50,19 @@ export class GameplayScene extends Phaser.Scene {
   private undoSnapshot: GameRunSnapshot | null = null;
 
   private unsubscribers: Array<() => void> = [];
+  /** Only drop if this press started while gameplay (not while quit modal was open). */
+  private dropGestureArmed = false;
   private readonly onPointerMove = (pointer: Phaser.Input.Pointer) =>
     this.handlePointerMove(pointer);
   private readonly onPointerUp = (pointer: Phaser.Input.Pointer) => this.handlePointerUp(pointer);
-  private readonly onPointerDown = (pointer: Phaser.Input.Pointer) =>
+  private readonly onPointerDown = (pointer: Phaser.Input.Pointer) => {
+    if (this.hud?.isQuitConfirmOpen()) {
+      this.dropGestureArmed = false;
+      return;
+    }
+    this.dropGestureArmed = true;
     this.skillBar.onPointerDown(pointer);
+  };
   private readonly onCollision = (
     _event: Phaser.Physics.Matter.Events.CollisionStartEvent,
     bodyA: MatterJS.BodyType,
@@ -92,7 +100,7 @@ export class GameplayScene extends Phaser.Scene {
     this.factory.reset();
 
     this.mergeSystem = new MergeSystem(this.fruits, this.factory, {
-      isActive: () => this.gameActive,
+      isActive: () => this.isGameplayInteractive(),
       onScore: (points) => this.addScore(points),
       onMerge: () => {
         this.merges += 1;
@@ -101,7 +109,7 @@ export class GameplayScene extends Phaser.Scene {
     this.mergeSystem.reset();
 
     this.dropController = new DropController(this, {
-      isActive: () => this.gameActive,
+      isActive: () => this.isGameplayInteractive(),
       canDrop: () => this.canDrop,
       setCanDrop: (value) => {
         this.canDrop = value;
@@ -126,7 +134,7 @@ export class GameplayScene extends Phaser.Scene {
     });
 
     this.dangerLine = new DangerLineSystem(this.fruits, {
-      isActive: () => this.gameActive,
+      isActive: () => this.isGameplayInteractive(),
       onGameOver: (violators) => this.triggerGameOver(violators),
     });
 
@@ -136,7 +144,7 @@ export class GameplayScene extends Phaser.Scene {
     });
 
     this.skills = new SkillController(this, this.factory, this.skillBar, {
-      isActive: () => this.gameActive,
+      isActive: () => this.isGameplayInteractive(),
       canDrop: () => this.canDrop,
       getCurrentLevel: () => this.currentLevel,
       getNextLevel: () => this.nextLevel,
@@ -161,6 +169,10 @@ export class GameplayScene extends Phaser.Scene {
 
     this.hud = new GameplayHUD(this, {
       onBack: () => {
+        if (this.hud.isQuitConfirmOpen()) {
+          this.hud.hideQuitConfirm();
+          return;
+        }
         if (this.gameActive) {
           this.abortSession();
           this.scene.start(this.returnTo);
@@ -176,6 +188,16 @@ export class GameplayScene extends Phaser.Scene {
           returnTo: this.returnTo,
           isNewRecord,
         });
+      },
+      onQuitConfirmOpen: () => {
+        this.dropGestureArmed = false;
+        this.matter.world.pause();
+      },
+      onQuitConfirmClose: () => {
+        this.dropGestureArmed = false;
+        if (this.gameActive && !this.sessionEnded) {
+          this.matter.world.resume();
+        }
       },
     });
 
@@ -199,6 +221,10 @@ export class GameplayScene extends Phaser.Scene {
     this.unsubscribers.push(
       eventBus.on('app:back', () => {
         if (!this.gameActive) return;
+        if (this.hud.isQuitConfirmOpen()) {
+          this.hud.hideQuitConfirm();
+          return;
+        }
         if (this.skills.active) {
           this.skills.clear();
           return;
@@ -222,12 +248,16 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   update(): void {
-    if (!this.gameActive) return;
+    if (!this.isGameplayInteractive()) return;
     this.mergeSystem.flushMergeQueue();
     this.mergeSystem.queueProximityMerges();
     this.mergeSystem.flushMergeQueue();
     this.dropController.updateGuide();
     this.dangerLine.check();
+  }
+
+  private isGameplayInteractive(): boolean {
+    return this.gameActive && !this.hud?.isQuitConfirmOpen();
   }
 
   private cleanupEventListeners(): void {
@@ -402,11 +432,16 @@ export class GameplayScene extends Phaser.Scene {
   }
 
   private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    if (this.hud?.isQuitConfirmOpen() || !this.dropGestureArmed) return;
     if (this.skillBar.onPointerMove(pointer)) return;
     this.dropController.handlePointerMove(pointer);
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
+    const canDropFromGesture = this.dropGestureArmed && !this.hud?.isQuitConfirmOpen();
+    this.dropGestureArmed = false;
+
+    if (!canDropFromGesture) return;
     if (this.skillBar.onPointerUp(pointer)) return;
 
     if (!this.gameActive) return;
@@ -415,6 +450,9 @@ export class GameplayScene extends Phaser.Scene {
       this.skills.handlePointer(pointer);
       return;
     }
+
+    // HUD / modal buttons are interactive — don't treat their release as a drop.
+    if (this.input.hitTestPointer(pointer).length > 0) return;
 
     this.dropController.tryDrop(pointer);
   }

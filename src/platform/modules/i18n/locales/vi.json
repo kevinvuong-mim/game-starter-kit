@@ -31,7 +31,11 @@
     "skillHintSwapSecond": "Chọn trái thứ hai",
     "skillHintDouble": "Chọn trái để nhân đôi điểm ghép",
     "skillHintSize": "Chọn trái để tăng cấp",
-    "skillUndoNothing": "Không có gì để hoàn tác"
+    "skillUndoNothing": "Không có gì để hoàn tác",
+    "quitConfirmTitle": "Thoát ván chơi?",
+    "quitConfirmMessage": "Điểm sẽ được ghi nhận và ván chơi kết thúc.",
+    "quitConfirm": "Thoát",
+    "quitCancel": "Hủy"
   },
 
   "shop": {

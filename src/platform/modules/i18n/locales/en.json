@@ -31,7 +31,11 @@
     "skillHintSwapSecond": "Tap the second fruit",
     "skillHintDouble": "Tap a fruit to double its merge score",
     "skillHintSize": "Tap a fruit to grow it",
-    "skillUndoNothing": "Nothing to undo"
+    "skillUndoNothing": "Nothing to undo",
+    "quitConfirmTitle": "Quit this run?",
+    "quitConfirmMessage": "Your score will be submitted and the run will end.",
+    "quitConfirm": "Quit",
+    "quitCancel": "Cancel"
   },
 
   "shop": {
