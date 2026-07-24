@@ -45,7 +45,7 @@ export class GameOverScene extends Phaser.Scene {
     this.addBackgroundImage(width, height);
 
     const panelWidth = Math.min(width * 0.88, 420);
-    const contentTop = height * 0.35;
+    const contentTop = height * 0.4;
     const buttonsStartY = this.getButtonsStartY(contentTop, isNewRecord);
     const lastButtonY = isNewRecord
       ? buttonsStartY + NEW_RECORD_HEIGHT + NEW_RECORD_GAP + 3 * BUTTON_HEIGHT
