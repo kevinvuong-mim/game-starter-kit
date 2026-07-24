@@ -45,7 +45,7 @@ export class GameOverScene extends Phaser.Scene {
     this.addBackgroundImage(width, height);
 
     const panelWidth = Math.min(width * 0.88, 420);
-    const contentTop = height * 0.4;
+    const contentTop = height * 0.38;
     const buttonsStartY = this.getButtonsStartY(contentTop, isNewRecord);
     const lastButtonY = isNewRecord
       ? buttonsStartY + NEW_RECORD_HEIGHT + NEW_RECORD_GAP + 3 * BUTTON_HEIGHT
@@ -127,6 +127,23 @@ export class GameOverScene extends Phaser.Scene {
       scene: this,
       position: { x: centerX, y: buttonY },
       size: { width: BUTTON_WIDTH, height: BUTTON_HEIGHT },
+      background: { key: 'home-button-background' },
+      depth: 3,
+      text: {
+        content: t('game.home'),
+        style: { fontSize: 32, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
+      },
+      onClick: () => {
+        eventBus.emit('game:destroy', undefined);
+        this.scene.start(this.returnTo);
+      },
+    });
+    buttonY += BUTTON_HEIGHT;
+
+    createUIButton({
+      scene: this,
+      position: { x: centerX, y: buttonY },
+      size: { width: BUTTON_WIDTH, height: BUTTON_HEIGHT },
       background: { key: 'leaderboard-button-background' },
       depth: 3,
       text: {
@@ -138,23 +155,6 @@ export class GameOverScene extends Phaser.Scene {
           returnTo: 'GameOver',
           returnData: { score, returnTo: this.returnTo, isNewRecord },
         }),
-    });
-    buttonY += BUTTON_HEIGHT;
-
-    createUIButton({
-      scene: this,
-      position: { x: centerX, y: buttonY },
-      size: { width: BUTTON_WIDTH, height: BUTTON_HEIGHT },
-      background: { key: 'home-button-background' },
-      depth: 3,
-      text: {
-        content: t('game.home'),
-        style: { fontSize: 32, fontStyle: 'bold', border: { width: 4, color: '#000000' } },
-      },
-      onClick: () => {
-        eventBus.emit('game:destroy', undefined);
-        this.scene.start(this.returnTo);
-      },
     });
     buttonY += BUTTON_HEIGHT;
 
